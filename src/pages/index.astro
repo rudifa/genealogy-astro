@@ -1,34 +1,9 @@
 ---
 import GenealogyGraph from "../components/GenealogyGraph.astro";
+import jsonData from "@/data/sample_tree.json";
+import type {GenealogyData} from "@/types";
 
-export interface Person {
-  name: string;
-  mother?: string;
-  father?: string;
-}
-
-export interface GenealogyData {
-  persons: Person[];
-}
-
-let genealogyData: GenealogyData = {persons: []};
-try {
-  const response = await fetch(new URL("/sample_tree.json", Astro.url.origin));
-  if (response.ok) {
-    const data = await response.json();
-    // Ensure the data structure matches GenealogyData
-    if (data && Array.isArray(data.persons)) {
-      genealogyData = data as GenealogyData;
-    } else if (data && Array.isArray(data.people)) {
-      // Handle the case where the JSON might still use 'people' as root key
-      genealogyData.persons = data.people;
-    }
-  } else {
-    console.error(`Failed to fetch sample_tree.json: ${response.statusText}`);
-  }
-} catch (error) {
-  console.error("Error fetching genealogy data:", error);
-}
+const genealogyData: GenealogyData = jsonData;
 ---
 
 <html lang='en'>

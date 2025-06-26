@@ -1,15 +1,6 @@
 ---
 import {Graphviz} from "@hpcc-js/wasm/graphviz";
-
-export interface Person {
-  name: string;
-  mother?: string;
-  father?: string;
-}
-
-export interface GenealogyData {
-  persons: Person[];
-}
+import type { GenealogyData } from "@/types";
 
 interface Props {
   data: GenealogyData;
