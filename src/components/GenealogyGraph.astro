@@ -2,7 +2,7 @@
 function genealogyDotString(data) {
   const dotLines = [
     "strict digraph G {",
-    '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
+    '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
   ];
 
   for (const person of data.persons) {
@@ -73,34 +73,101 @@ try {
   }
 </style>
 
-<script is:inline>
-  const graphContainer = document.querySelector(".genealogy-graph");
+<script define:vars={{genealogyData: data}}>
+  // This script is hoisted to the <head> and runs before the DOM is ready.
+  // We must wait for the DOMContentLoaded event to ensure all elements are available.
+  document.addEventListener("DOMContentLoaded", () => {
+    // --- Get references to dialog elements ---
+    const dialog = document.getElementById("edit-dialog");
+    const form = document.getElementById("edit-form");
+    const originalNameInput = document.getElementById("original-name");
+    const nameInput = document.getElementById("person-name");
+    const motherInput = document.getElementById("person-mother");
+    const fatherInput = document.getElementById("person-father");
+    const saveButton = document.getElementById("save-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const deleteButton = document.getElementById("delete-button");
 
-  if (graphContainer) {
-    graphContainer.addEventListener("click", (event) => {
-      // Find the nearest <a> tag ancestor of the clicked element.
-      // Graphviz wraps clickable nodes in <a> tags.
-      const targetLink = event.target.closest("a");
+    // --- Graph click handler ---
+    const graphContainer = document.querySelector(".genealogy-graph");
 
-      if (!targetLink) {
-        return;
-      }
+    if (graphContainer) {
+      graphContainer.addEventListener("click", (event) => {
+        // Find the nearest <a> tag ancestor of the clicked element.
+        // Graphviz wraps clickable nodes in <a> tags.
+        const targetLink = event.target.closest("a");
 
-      // Check for our custom URL scheme. Graphviz uses `xlink:href` for SVGs.
-      const url =
-        targetLink.getAttribute("xlink:href") ||
-        targetLink.getAttribute("href");
+        if (!targetLink) {
+          return;
+        }
 
-      if (url && url.startsWith("#person:")) {
-        // Prevent the browser from trying to navigate to the fragment.
-        event.preventDefault();
+        // Check for our custom URL scheme. Graphviz uses `xlink:href` for SVGs.
+        const url =
+          targetLink.getAttribute("xlink:href") ||
+          targetLink.getAttribute("href");
 
-        // Extract the person's name from the URL.
-        const personName = decodeURIComponent(url.substring("#person:".length));
+        if (url && url.startsWith("#person:")) {
+          // Prevent the browser from trying to navigate to the fragment.
+          event.preventDefault();
 
-        // You can now use the personName, for example, to display more info.
-        console.log(`Person clicked: ${personName}`);
+          // Extract the person's name from the URL.
+          const personName = decodeURIComponent(
+            url.substring("#person:".length)
+          );
+
+          // Find the person's data and open the dialog
+          const personData = genealogyData.persons.find(
+            (p) => p.name === personName
+          );
+          if (personData) {
+            openEditDialog(personData);
+          }
+        }
+      });
+    }
+
+    // --- Dialog functions ---
+    function openEditDialog(person) {
+      originalNameInput.value = person.name;
+      nameInput.value = person.name;
+      motherInput.value = person.mother || "";
+      fatherInput.value = person.father || "";
+      dialog.style.display = "flex";
+    }
+
+    function closeEditDialog() {
+      dialog.style.display = "none";
+    }
+
+    // --- Dialog event listeners ---
+    cancelButton.addEventListener("click", closeEditDialog);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const updatedPerson = {
+        originalName: originalNameInput.value,
+        name: nameInput.value,
+        mother: motherInput.value || null,
+        father: fatherInput.value || null,
+      };
+      console.log("Saving person:", updatedPerson);
+      // In a real app, you would send this data to a server and then refresh the page or graph.
+      alert(
+        `Saved data for ${updatedPerson.name}. Refresh the page to see changes (not implemented).`
+      );
+      closeEditDialog();
+    });
+
+    deleteButton.addEventListener("click", () => {
+      const personName = originalNameInput.value;
+      if (confirm(`Are you sure you want to delete ${personName}?`)) {
+        console.log("Deleting person:", personName);
+        // In a real app, you would send this to a server and then refresh the page or graph.
+        alert(
+          `${personName} deleted. Refresh the page to see changes (not implemented).`
+        );
+        closeEditDialog();
       }
     });
-  }
+  });
 </script>

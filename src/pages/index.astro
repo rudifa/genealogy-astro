@@ -1,5 +1,6 @@
 ---
 import GenealogyGraph from "../components/GenealogyGraph.astro";
+import EditPersonDialog from "../components/EditPersonDialog.astro";
 import jsonData from "@/data/sample_tree.json";
 import type {GenealogyData} from "@/types";
 
@@ -17,5 +18,6 @@ const genealogyData: GenealogyData = jsonData;
   <body>
     <h1>Genealogy Tree</h1>
     <GenealogyGraph data={genealogyData} />
+    <EditPersonDialog />
   </body>
 </html>
