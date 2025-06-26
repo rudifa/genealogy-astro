@@ -35,6 +35,26 @@ function genealogyDotString(data) {
   return dotLines.join("\n");
 }
 
+async function genealogySvgString(dotString) {
+  let svg = "";
+  try {
+    const graphviz = await Graphviz.load();
+    svg = graphviz.dot(dotString);
+    //   console.log("Graphviz SVG:", svg);
+  } catch (error) {
+    console.error("Error rendering graph:", error);
+    svg = `<p>Error rendering graph: ${error.message}</p>`;
+  }
+  return svg;
+}
+
+async function renderGenealogyTree(data) {
+  let dotString = genealogyDotString(data);
+  // console.log("Generated DOT string:", dotString);
+  let svgString = await genealogySvgString(dotString);
+  return svgString;
+}
+
 import {Graphviz} from "@hpcc-js/wasm/graphviz";
 import type {GenealogyData} from "@/types";
 
@@ -44,21 +64,10 @@ interface Props {
 
 const {data} = Astro.props;
 
-let dotString = genealogyDotString(data);
-// console.log("Generated DOT string:", dotString);
-
-let svg = "";
-try {
-  const graphviz = await Graphviz.load();
-  svg = graphviz.dot(dotString);
-  //   console.log("Graphviz SVG:", svg);
-} catch (error) {
-  console.error("Error rendering graph:", error);
-  svg = `<p>Error rendering graph: ${error.message}</p>`;
-}
+let svgString = await renderGenealogyTree(data);
 ---
 
-<div class='genealogy-graph' set:html={svg} />
+<div class='genealogy-graph' set:html={svgString} />
 
 <style>
   .genealogy-graph {
