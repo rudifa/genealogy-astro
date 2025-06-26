@@ -1,61 +1,4 @@
 ---
-function genealogyDotString(data) {
-  const dotLines = [
-    "strict digraph G {",
-    '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
-  ];
-
-  for (const person of data.persons) {
-    // Add the main person node with a clickable URL
-    dotLines.push(
-      `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}"];`
-    );
-
-    // Add nodes for parents if they exist
-    if (person.mother) {
-      dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
-    }
-    if (person.father) {
-      dotLines.push(`  "${person.father}" [label="${person.father}"];`);
-    }
-
-    // If both parents exist, create a union node and connect them
-    if (person.mother && person.father) {
-      const parentsNode = `"${person.mother} + ${person.father}"`;
-      dotLines.push(
-        `  ${parentsNode} [shape=point, label=""];`,
-        `  "${person.mother}" -> ${parentsNode} [dir=none];`,
-        `  "${person.father}" -> ${parentsNode} [dir=none];`,
-        `  ${parentsNode} -> "${person.name}";`
-      );
-    }
-  }
-
-  dotLines.push("}");
-  return dotLines.join("\n");
-}
-
-async function genealogySvgString(dotString) {
-  let svg = "";
-  try {
-    const graphviz = await Graphviz.load();
-    svg = graphviz.dot(dotString);
-    //   console.log("Graphviz SVG:", svg);
-  } catch (error) {
-    console.error("Error rendering graph:", error);
-    svg = `<p>Error rendering graph: ${error.message}</p>`;
-  }
-  return svg;
-}
-
-async function renderGenealogyTree(data) {
-  let dotString = genealogyDotString(data);
-  // console.log("Generated DOT string:", dotString);
-  let svgString = await genealogySvgString(dotString);
-  return svgString;
-}
-
-import {Graphviz} from "@hpcc-js/wasm/graphviz";
 import type {GenealogyData} from "@/types";
 
 interface Props {
@@ -63,11 +6,11 @@ interface Props {
 }
 
 const {data} = Astro.props;
-
-let svgString = await renderGenealogyTree(data);
 ---
 
-<div class='genealogy-graph' set:html={svgString} />
+<div class='genealogy-graph'>
+  <!-- This container will be populated by the client-side script -->
+</div>
 
 <style>
   .genealogy-graph {
@@ -83,9 +26,55 @@ let svgString = await renderGenealogyTree(data);
 </style>
 
 <script define:vars={{genealogyData: data}}>
-  // This script is hoisted to the <head> and runs before the DOM is ready.
-  // We must wait for the DOMContentLoaded event to ensure all elements are available.
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    // The UMD bundle for @hpcc-js/wasm is loaded in the <head> via a script tag.
+    // It exposes a global object on the window object.
+    const {Graphviz} = window["@hpcc-js/wasm"];
+    // --- Rendering functions (now on the client) ---
+    function genealogyDotString(data) {
+      const dotLines = [
+        "strict digraph G {",
+        '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
+      ];
+
+      for (const person of data.persons) {
+        dotLines.push(
+          `  "${person.name}" [label="${person.name}", URL="person:${encodeURIComponent(person.name)}"];`
+        );
+
+        if (person.mother) {
+          dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
+        }
+        if (person.father) {
+          dotLines.push(`  "${person.father}" [label="${person.father}"];`);
+        }
+
+        if (person.mother && person.father) {
+          const parentsNode = `"${person.mother} + ${person.father}"`;
+          dotLines.push(
+            `  ${parentsNode} [shape=point, label=""];`,
+            `  "${person.mother}" -> ${parentsNode} [dir=none];`,
+            `  "${person.father}" -> ${parentsNode} [dir=none];`,
+            `  ${parentsNode} -> "${person.name}";`
+          );
+        }
+      }
+
+      dotLines.push("}");
+      return dotLines.join("\n");
+    }
+
+    async function renderGenealogyTree(data) {
+      const dotString = genealogyDotString(data);
+      try {
+        const graphviz = await Graphviz.load();
+        return graphviz.dot(dotString);
+      } catch (error) {
+        console.error("Error rendering graph:", error);
+        return `<p>Error rendering graph: ${error.message}</p>`;
+      }
+    }
+
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
     const form = document.getElementById("edit-form");
@@ -99,6 +88,12 @@ let svgString = await renderGenealogyTree(data);
 
     // --- Graph click handler ---
     const graphContainer = document.querySelector(".genealogy-graph");
+
+    // --- Render the graph on page load ---
+    if (graphContainer) {
+      const svgString = await renderGenealogyTree(genealogyData);
+      graphContainer.innerHTML = svgString;
+    }
 
     if (graphContainer) {
       graphContainer.addEventListener("click", (event) => {
@@ -115,13 +110,13 @@ let svgString = await renderGenealogyTree(data);
           targetLink.getAttribute("xlink:href") ||
           targetLink.getAttribute("href");
 
-        if (url && url.startsWith("#person:")) {
+        if (url && url.startsWith("person:")) {
           // Prevent the browser from trying to navigate to the fragment.
           event.preventDefault();
 
           // Extract the person's name from the URL.
           const personName = decodeURIComponent(
-            url.substring("#person:".length)
+            url.substring("person:".length)
           );
 
           // Find the person's data and open the dialog
