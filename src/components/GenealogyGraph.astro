@@ -6,7 +6,7 @@ function genealogyDotString(data) {
 
   for (const person of data.persons) {
     // Add nodes for the person, mother, and father
-    dotString += `  "${person.name}" [label="${person.name}"];
+    dotString += `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}", style=filled, fillcolor=white];
 `;
     if (person.mother) {
       dotString += `  "${person.mother}" [label="${person.mother}"];
@@ -52,6 +52,7 @@ let svg = "";
 try {
   const graphviz = await Graphviz.load();
   svg = graphviz.dot(dotString);
+  console.log("Graphviz SVG:", svg);
 } catch (error) {
   console.error("Error rendering graph:", error);
   svg = `<p>Error rendering graph: ${error.message}</p>`;
@@ -72,3 +73,66 @@ try {
     height: auto;
   }
 </style>
+
+<script is:inline>
+  // This script runs on the client after the HTML is loaded.
+  // It's placed here to ensure it runs after the SVG is injected into the DOM.
+
+  const graphContainer = document.querySelector(".genealogy-graph");
+
+  if (graphContainer) {
+    // Use event delegation on the container for better performance,
+    // especially if you have many nodes.
+    graphContainer.addEventListener("click", (event) => {
+      const targetElement = event.target;
+      console.group("Click Event Debug Info");
+      console.log("Raw click event target:", targetElement);
+      console.log("Raw click event target tagName:", targetElement.tagName);
+
+      // Log parent elements to understand the DOM structure
+      let currentElement = targetElement;
+      let depth = 0;
+      while (currentElement && depth < 5) {
+        // Log up to 5 levels of parents
+        console.log(
+          `Parent at depth ${depth} (tagName: ${currentElement.tagName}):`,
+          currentElement
+        );
+        if (currentElement.tagName === "A") {
+          console.log(`  Found potential <a> element at depth ${depth}.`);
+          console.log(
+            `  xlink:href attribute:`,
+            currentElement.getAttributeNS(
+              "http://www.w3.org/1999/xlink",
+              "href"
+            )
+          );
+          console.log(`  href attribute:`, currentElement.getAttribute("href"));
+        }
+        currentElement = currentElement.parentElement;
+        depth++;
+      }
+
+      // Graphviz typically wraps nodes with an <a> tag if a URL is specified.
+      // It often uses xlink:href for SVG links, but modern browsers also support href.
+      // Using a simpler selector and checking the attribute in JS is more robust,
+      // especially with SVG namespaces.
+      const targetLink = event.target.closest("a");
+      console.log("Result of .closest() search:", targetLink);
+
+      if (targetLink) {
+        const url =
+          targetLink.getAttribute("xlink:href") ||
+          targetLink.getAttribute("href");
+        if (url && url.startsWith("#person:")) {
+          const personName = decodeURIComponent(
+            url.substring("#person:".length)
+          );
+          console.log("Clicked on person:", personName);
+          event.preventDefault(); // Prevent default navigation for custom URLs
+        }
+      }
+      console.groupEnd();
+    });
+  }
+</script>
