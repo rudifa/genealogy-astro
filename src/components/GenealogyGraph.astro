@@ -1,6 +1,44 @@
 ---
+function genealogyDotString(data) {
+  let dotString = `strict digraph G {
+  node [shape=box];
+`;
+
+  for (const person of data.persons) {
+    // Add nodes for the person, mother, and father
+    dotString += `  "${person.name}" [label="${person.name}"];
+`;
+    if (person.mother) {
+      dotString += `  "${person.mother}" [label="${person.mother}"];
+`;
+    }
+    if (person.father) {
+      dotString += `  "${person.father}" [label="${person.father}"];
+`;
+    }
+
+    // Add parents node if both mother and father are present
+    // Add edges for parent-child relationships
+    if (person.mother && person.father) {
+      const parentsNode = `"${person.mother} + ${person.father}"`;
+      // Create a combined node for parents
+      dotString += `  ${parentsNode} [shape=point, label=""];
+`;
+      dotString += `  "${person.mother}" -> ${parentsNode} [dir=none];
+`;
+      dotString += `  "${person.father}" -> ${parentsNode} [dir=none];
+`;
+      dotString += `  ${parentsNode} -> "${person.name}";
+`;
+    }
+  }
+
+  dotString += `}`;
+  return dotString;
+}
+
 import {Graphviz} from "@hpcc-js/wasm/graphviz";
-import type { GenealogyData } from "@/types";
+import type {GenealogyData} from "@/types";
 
 interface Props {
   data: GenealogyData;
@@ -8,41 +46,7 @@ interface Props {
 
 const {data} = Astro.props;
 
-let dotString = `strict digraph G {
-  node [shape=box];
-`;
-
-// Add nodes and edges for parent-child relationships
-for (const person of data.persons) {
-  // Add nodes for the person, mother, and father
-  dotString += `  "${person.name}" [label="${person.name}"];
-`;
-  if (person.mother) {
-    dotString += `  "${person.mother}" [label="${person.mother}"];
-`;
-  }
-  if (person.father) {
-    dotString += `  "${person.father}" [label="${person.father}"];
-`;
-  }
-
-  // Add parents node if both mother and father are present
-  // Add edges for parent-child relationships
-  if (person.mother && person.father) {
-    const parentsNode = `"${person.mother} + ${person.father}"`;
-    // Create a combined node for parents
-    dotString += `  ${parentsNode} [shape=point, label=""];
-`;
-    dotString += `  "${person.mother}" -> ${parentsNode} [dir=none];
-`;
-    dotString += `  "${person.father}" -> ${parentsNode} [dir=none];
-`;
-    dotString += `  ${parentsNode} -> "${person.name}";
-`;
-  }
-}
-
-dotString += `}`;
+let dotString = genealogyDotString(data);
 
 let svg = "";
 try {
