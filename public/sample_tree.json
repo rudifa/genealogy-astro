@@ -1,0 +1,36 @@
+{
+    "persons": [
+        {
+            "name": "John"
+        },
+        {
+            "name": "Mary"
+        },
+        {
+            "name": "Bill"
+        },
+        {
+            "name": "Cathy"
+        },
+        {
+            "father": "John",
+            "mother": "Mary",
+            "name": "Jane"
+        },
+        {
+            "father": "Bill",
+            "mother": "Cathy",
+            "name": "Mark"
+        },
+        {
+            "father": "Mark",
+            "mother": "Jane",
+            "name": "Sarah"
+        },
+        {
+            "father": "Mark",
+            "mother": "Jane",
+            "name": "Emily"
+        }
+    ]
+}

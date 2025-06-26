@@ -1,0 +1,81 @@
+---
+import { Viz } from 'viz.js';
+import { Module, render } from '@hpcc-js/wasm';
+
+export interface Person {
+  name: string;
+  mother?: string;
+  father?: string;
+}
+
+export interface GenealogyData {
+  persons: Person[];
+}
+
+interface Props {
+  data: GenealogyData;
+}
+
+const { data } = Astro.props;
+
+let dotString = `digraph G {
+  strict=true;
+  node [shape=box];
+`;
+
+// Add nodes and edges for parent-child relationships
+for (const person of data.persons) {
+  // Add nodes for the person, mother, and father
+  dotString += `  "${person.name}" [label="${person.name}"];
+`;
+  if (person.mother) {
+    dotString += `  "${person.mother}" [label="${person.mother}"];
+`;
+  }
+  if (person.father) {
+    dotString += `  "${person.father}" [label="${person.father}"];
+`;
+  }
+
+  // Add parents node if both mother and father are present
+  // Add edges for parent-child relationships
+  if (person.mother && person.father) {
+    const parentsNode = `"${person.mother} + ${person.father}"`;
+    // Create a combined node for parents
+    dotString += `  ${parentsNode} [shape=point, label=""];
+`;
+    dotString += `  "${person.mother}" -> ${parentsNode} [dir=none];
+`;
+    dotString += `  "${person.father}" -> ${parentsNode} [dir=none];
+`;
+    dotString += `  ${parentsNode} -> "${person.name}";
+`;
+  }
+}
+
+dotString += `}`;
+
+let svg = '';
+try {
+  const viz = new Viz({ Module, render });
+  svg = await viz.renderString(dotString);
+} catch (error) {
+  console.error("Error rendering graph:", error);
+  svg = `<p>Error rendering graph: ${error.message}</p>`;
+}
+---
+
+<div class="genealogy-graph" set:html={svg}></div>
+
+<style>
+  .genealogy-graph {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .genealogy-graph svg {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
