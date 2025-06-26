@@ -1,11 +1,14 @@
 ---
 function genealogyDotString(data) {
-  const dotLines = ["strict digraph G {", "  node [shape=box];"];
+  const dotLines = [
+    "strict digraph G {",
+    '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
+  ];
 
   for (const person of data.persons) {
     // Add the main person node with a clickable URL
     dotLines.push(
-      `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}", style=filled, fillcolor=white];`
+      `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}"];`
     );
 
     // Add nodes for parents if they exist
@@ -42,12 +45,13 @@ interface Props {
 const {data} = Astro.props;
 
 let dotString = genealogyDotString(data);
+// console.log("Generated DOT string:", dotString);
 
 let svg = "";
 try {
   const graphviz = await Graphviz.load();
   svg = graphviz.dot(dotString);
-  console.log("Graphviz SVG:", svg);
+  //   console.log("Graphviz SVG:", svg);
 } catch (error) {
   console.error("Error rendering graph:", error);
   svg = `<p>Error rendering graph: ${error.message}</p>`;
