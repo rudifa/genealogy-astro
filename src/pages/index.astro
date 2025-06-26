@@ -1,5 +1,5 @@
 ---
-import GenealogyGraph from '../components/GenealogyGraph.astro';
+import GenealogyGraph from "../components/GenealogyGraph.astro";
 
 export interface Person {
   name: string;
@@ -11,9 +11,9 @@ export interface GenealogyData {
   persons: Person[];
 }
 
-let genealogyData: GenealogyData = { persons: [] };
+let genealogyData: GenealogyData = {persons: []};
 try {
-  const response = await fetch('/sample_tree.json');
+  const response = await fetch(new URL("/sample_tree.json", Astro.url.origin));
   if (response.ok) {
     const data = await response.json();
     // Ensure the data structure matches GenealogyData
@@ -31,12 +31,12 @@ try {
 }
 ---
 
-<html lang="en">
+<html lang='en'>
   <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
+    <meta charset='utf-8' />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='viewport' content='width=device-width' />
+    <meta name='generator' content={Astro.generator} />
     <title>Genealogy Tree</title>
   </head>
   <body>

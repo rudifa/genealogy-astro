@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@hpcc-js/wasm": "^2.23.0",
-    "astro": "^5.10.1",
-    "viz.js": "^2.1.2"
+    "astro": "^5.10.1"
   }
 }

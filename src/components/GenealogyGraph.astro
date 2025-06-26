@@ -1,6 +1,5 @@
 ---
-import { Viz } from 'viz.js';
-import { Module, render } from '@hpcc-js/wasm';
+import {Graphviz} from "@hpcc-js/wasm/graphviz";
 
 export interface Person {
   name: string;
@@ -16,10 +15,9 @@ interface Props {
   data: GenealogyData;
 }
 
-const { data } = Astro.props;
+const {data} = Astro.props;
 
-let dotString = `digraph G {
-  strict=true;
+let dotString = `strict digraph G {
   node [shape=box];
 `;
 
@@ -55,17 +53,17 @@ for (const person of data.persons) {
 
 dotString += `}`;
 
-let svg = '';
+let svg = "";
 try {
-  const viz = new Viz({ Module, render });
-  svg = await viz.renderString(dotString);
+  const graphviz = await Graphviz.load();
+  svg = graphviz.dot(dotString);
 } catch (error) {
   console.error("Error rendering graph:", error);
   svg = `<p>Error rendering graph: ${error.message}</p>`;
 }
 ---
 
-<div class="genealogy-graph" set:html={svg}></div>
+<div class='genealogy-graph' set:html={svg} />
 
 <style>
   .genealogy-graph {
