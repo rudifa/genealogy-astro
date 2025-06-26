@@ -1,40 +1,35 @@
 ---
 function genealogyDotString(data) {
-  let dotString = `strict digraph G {
-  node [shape=box];
-`;
+  const dotLines = ["strict digraph G {", "  node [shape=box];"];
 
   for (const person of data.persons) {
-    // Add nodes for the person, mother, and father
-    dotString += `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}", style=filled, fillcolor=white];
-`;
+    // Add the main person node with a clickable URL
+    dotLines.push(
+      `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}", style=filled, fillcolor=white];`
+    );
+
+    // Add nodes for parents if they exist
     if (person.mother) {
-      dotString += `  "${person.mother}" [label="${person.mother}"];
-`;
+      dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
     }
     if (person.father) {
-      dotString += `  "${person.father}" [label="${person.father}"];
-`;
+      dotLines.push(`  "${person.father}" [label="${person.father}"];`);
     }
 
-    // Add parents node if both mother and father are present
-    // Add edges for parent-child relationships
+    // If both parents exist, create a union node and connect them
     if (person.mother && person.father) {
       const parentsNode = `"${person.mother} + ${person.father}"`;
-      // Create a combined node for parents
-      dotString += `  ${parentsNode} [shape=point, label=""];
-`;
-      dotString += `  "${person.mother}" -> ${parentsNode} [dir=none];
-`;
-      dotString += `  "${person.father}" -> ${parentsNode} [dir=none];
-`;
-      dotString += `  ${parentsNode} -> "${person.name}";
-`;
+      dotLines.push(
+        `  ${parentsNode} [shape=point, label=""];`,
+        `  "${person.mother}" -> ${parentsNode} [dir=none];`,
+        `  "${person.father}" -> ${parentsNode} [dir=none];`,
+        `  ${parentsNode} -> "${person.name}";`
+      );
     }
   }
 
-  dotString += `}`;
-  return dotString;
+  dotLines.push("}");
+  return dotLines.join("\n");
 }
 
 import {Graphviz} from "@hpcc-js/wasm/graphviz";
@@ -75,64 +70,33 @@ try {
 </style>
 
 <script is:inline>
-  // This script runs on the client after the HTML is loaded.
-  // It's placed here to ensure it runs after the SVG is injected into the DOM.
-
   const graphContainer = document.querySelector(".genealogy-graph");
 
   if (graphContainer) {
-    // Use event delegation on the container for better performance,
-    // especially if you have many nodes.
     graphContainer.addEventListener("click", (event) => {
-      const targetElement = event.target;
-      console.group("Click Event Debug Info");
-      console.log("Raw click event target:", targetElement);
-      console.log("Raw click event target tagName:", targetElement.tagName);
-
-      // Log parent elements to understand the DOM structure
-      let currentElement = targetElement;
-      let depth = 0;
-      while (currentElement && depth < 5) {
-        // Log up to 5 levels of parents
-        console.log(
-          `Parent at depth ${depth} (tagName: ${currentElement.tagName}):`,
-          currentElement
-        );
-        if (currentElement.tagName === "A") {
-          console.log(`  Found potential <a> element at depth ${depth}.`);
-          console.log(
-            `  xlink:href attribute:`,
-            currentElement.getAttributeNS(
-              "http://www.w3.org/1999/xlink",
-              "href"
-            )
-          );
-          console.log(`  href attribute:`, currentElement.getAttribute("href"));
-        }
-        currentElement = currentElement.parentElement;
-        depth++;
-      }
-
-      // Graphviz typically wraps nodes with an <a> tag if a URL is specified.
-      // It often uses xlink:href for SVG links, but modern browsers also support href.
-      // Using a simpler selector and checking the attribute in JS is more robust,
-      // especially with SVG namespaces.
+      // Find the nearest <a> tag ancestor of the clicked element.
+      // Graphviz wraps clickable nodes in <a> tags.
       const targetLink = event.target.closest("a");
-      console.log("Result of .closest() search:", targetLink);
 
-      if (targetLink) {
-        const url =
-          targetLink.getAttribute("xlink:href") ||
-          targetLink.getAttribute("href");
-        if (url && url.startsWith("#person:")) {
-          const personName = decodeURIComponent(
-            url.substring("#person:".length)
-          );
-          console.log("Clicked on person:", personName);
-          event.preventDefault(); // Prevent default navigation for custom URLs
-        }
+      if (!targetLink) {
+        return;
       }
-      console.groupEnd();
+
+      // Check for our custom URL scheme. Graphviz uses `xlink:href` for SVGs.
+      const url =
+        targetLink.getAttribute("xlink:href") ||
+        targetLink.getAttribute("href");
+
+      if (url && url.startsWith("#person:")) {
+        // Prevent the browser from trying to navigate to the fragment.
+        event.preventDefault();
+
+        // Extract the person's name from the URL.
+        const personName = decodeURIComponent(url.substring("#person:".length));
+
+        // You can now use the personName, for example, to display more info.
+        console.log(`Person clicked: ${personName}`);
+      }
     });
   }
 </script>
