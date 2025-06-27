@@ -26,62 +26,60 @@ const {data} = Astro.props;
 </style>
 
 <script type='module' define:vars={{genealogyData: data}}>
+  // --- Load Graphviz from the CDN ---
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
   // We need to explicitly load the WASM file
   const graphvizPromise = Graphviz.load();
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    // The UMD bundle for @hpcc-js/wasm is loaded in the <head> via a script tag.
-    // It exposes a global object on the window object.
-    // const {Graphviz} = window["@hpcc-js/wasm"];
-    // --- Rendering functions (now on the client) ---
-    function genealogyDotString(data) {
-      const dotLines = [
-        "strict digraph G {",
-        '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
-      ];
+  // --- genealogyData-to-svg functions  ---
+  function genealogyDotString(data) {
+    const dotLines = [
+      "strict digraph G {",
+      '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
+    ];
 
-      for (const person of data.persons) {
+    for (const person of data.persons) {
+      dotLines.push(
+        `  "${person.name}" [label="${person.name}", URL="person:${encodeURIComponent(person.name)}"];`
+      );
+
+      if (person.mother) {
+        dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
+      }
+      if (person.father) {
+        dotLines.push(`  "${person.father}" [label="${person.father}"];`);
+      }
+
+      if (person.mother && person.father) {
+        const parentsNode = `"${person.mother} + ${person.father}"`;
         dotLines.push(
-          `  "${person.name}" [label="${person.name}", URL="person:${encodeURIComponent(person.name)}"];`
+          `  ${parentsNode} [shape=point, label=""];`,
+          `  "${person.mother}" -> ${parentsNode} [dir=none];`,
+          `  "${person.father}" -> ${parentsNode} [dir=none];`,
+          `  ${parentsNode} -> "${person.name}";`
         );
-
-        if (person.mother) {
-          dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
-        }
-        if (person.father) {
-          dotLines.push(`  "${person.father}" [label="${person.father}"];`);
-        }
-
-        if (person.mother && person.father) {
-          const parentsNode = `"${person.mother} + ${person.father}"`;
-          dotLines.push(
-            `  ${parentsNode} [shape=point, label=""];`,
-            `  "${person.mother}" -> ${parentsNode} [dir=none];`,
-            `  "${person.father}" -> ${parentsNode} [dir=none];`,
-            `  ${parentsNode} -> "${person.name}";`
-          );
-        }
-      }
-
-      dotLines.push("}");
-      return dotLines.join("\n");
-    }
-
-    async function renderGenealogyTree(data) {
-      const dotString = genealogyDotString(data);
-
-      try {
-        const graphviz = await graphvizPromise;
-        const svg = graphviz.layout(dotString, "svg", "dot");
-        return svg;
-      } catch (error) {
-        console.error("Error rendering graph:", error);
-        return `<p>Error rendering graph: ${error.message}</p>`;
       }
     }
 
+    dotLines.push("}");
+    return dotLines.join("\n");
+  }
+
+  async function genealogySvgString(data) {
+    const dotString = genealogyDotString(data);
+
+    try {
+      const graphviz = await graphvizPromise;
+      return graphviz.layout(dotString, "svg", "dot");
+    } catch (error) {
+      console.error("Error rendering graph:", error);
+      return `<p>Error rendering graph: ${error.message}</p>`;
+    }
+  }
+
+  // --- Initialize the graph and dialog function ---
+  async function initializeGraph() {
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
     const form = document.getElementById("edit-form");
@@ -98,11 +96,12 @@ const {data} = Astro.props;
 
     // --- Render the graph on page load ---
     if (graphContainer) {
-      const svgString = await renderGenealogyTree(genealogyData);
+      const svgString = await genealogySvgString(genealogyData);
       graphContainer.innerHTML = svgString;
     }
 
     if (graphContainer) {
+      // --- Add click event listener to the graph container ---
       graphContainer.addEventListener("click", (event) => {
         // Find the nearest <a> tag ancestor of the clicked element.
         // Graphviz wraps clickable nodes in <a> tags.
@@ -180,5 +179,7 @@ const {data} = Astro.props;
         closeEditDialog();
       }
     });
-  });
+  }
+  // Initialize the graph when the DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeGraph);
 </script>
