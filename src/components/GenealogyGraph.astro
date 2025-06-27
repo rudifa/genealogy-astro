@@ -107,7 +107,7 @@ const {data} = Astro.props;
     const fatherInput = document.getElementById("person-father");
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
-    const deleteButton = document.getElementById("delete-button");
+    const removeButton = document.getElementById("remove-button");
 
     // --- Graph click handler ---
     const graphContainer = document.querySelector(".genealogy-graph");
@@ -223,13 +223,13 @@ const {data} = Astro.props;
       closeEditDialog();
     });
 
-    deleteButton.addEventListener("click", () => {
+    removeButton.addEventListener("click", () => {
       const personName = originalNameInput.value;
-      if (confirm(`Are you sure you want to delete ${personName}?`)) {
+      if (confirm(`Are you sure you want to remove ${personName}?`)) {
         console.log("Deleting person:", personName);
         // In a real app, you would send this to a server and then refresh the page or graph.
         alert(
-          `${personName} deleted. Refresh the page to see changes (not implemented).`
+          `${personName} removed. Refresh the page to see changes (not implemented).`
         );
         closeEditDialog();
       }
