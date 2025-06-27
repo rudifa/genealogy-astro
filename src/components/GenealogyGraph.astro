@@ -25,11 +25,16 @@ const {data} = Astro.props;
   }
 </style>
 
-<script define:vars={{genealogyData: data}}>
+<script type='module' define:vars={{genealogyData: data}}>
+  import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
+
+  // We need to explicitly load the WASM file
+  const graphvizPromise = Graphviz.load();
+
   document.addEventListener("DOMContentLoaded", async () => {
     // The UMD bundle for @hpcc-js/wasm is loaded in the <head> via a script tag.
     // It exposes a global object on the window object.
-    const {Graphviz} = window["@hpcc-js/wasm"];
+    // const {Graphviz} = window["@hpcc-js/wasm"];
     // --- Rendering functions (now on the client) ---
     function genealogyDotString(data) {
       const dotLines = [
@@ -66,9 +71,11 @@ const {data} = Astro.props;
 
     async function renderGenealogyTree(data) {
       const dotString = genealogyDotString(data);
+
       try {
-        const graphviz = await Graphviz.load();
-        return graphviz.dot(dotString);
+        const graphviz = await graphvizPromise;
+        const svg = graphviz.layout(dotString, "svg", "dot");
+        return svg;
       } catch (error) {
         console.error("Error rendering graph:", error);
         return `<p>Error rendering graph: ${error.message}</p>`;
