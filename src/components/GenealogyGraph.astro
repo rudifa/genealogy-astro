@@ -89,10 +89,7 @@ const {data} = Astro.props;
 
     // 2. Define all person nodes. Make them clickable only if they have a main entry.
     allNames.forEach((name) => {
-      const personHasEntry = data.persons.some((p) => p.name === name);
-      const url = personHasEntry
-        ? `URL="person:${encodeURIComponent(name)}"`
-        : "";
+      const url = `URL="person:${encodeURIComponent(name)}"`;
       dotLines.push(`  "${name}" [label="${name}"${url ? ", " + url : ""}];`);
     });
 
