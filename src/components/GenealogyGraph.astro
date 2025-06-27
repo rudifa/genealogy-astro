@@ -176,6 +176,18 @@ const {data} = Astro.props;
       if (personIndex > -1) {
         // Update the existing person's data in the array.
         genealogyData.persons[personIndex] = newPersonData;
+
+        // If the name was changed, we must update all references to this person.
+        if (newPersonData.name !== updatedPerson.originalName) {
+          genealogyData.persons.forEach((p) => {
+            if (p.mother === updatedPerson.originalName) {
+              p.mother = newPersonData.name;
+            }
+            if (p.father === updatedPerson.originalName) {
+              p.father = newPersonData.name;
+            }
+          });
+        }
       } else {
         // If the person wasn't found, add them as a new entry.
         genealogyData.persons.push(newPersonData);
