@@ -36,7 +36,7 @@ const {data} = Astro.props;
   function genealogyDotString(data) {
     const dotLines = [
       "strict digraph G {",
-      '  node [shape=box, style="filled,rounded", fillcolor="#E9F4FF"];',
+      '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
     ];
 
     for (const person of data.persons) {
@@ -152,7 +152,7 @@ const {data} = Astro.props;
     // --- Dialog event listeners ---
     cancelButton.addEventListener("click", closeEditDialog);
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const updatedPerson = {
         originalName: originalNameInput.value,
@@ -160,11 +160,36 @@ const {data} = Astro.props;
         mother: motherInput.value || null,
         father: fatherInput.value || null,
       };
-      console.log("Saving person:", updatedPerson);
-      // In a real app, you would send this data to a server and then refresh the page or graph.
-      alert(
-        `Saved data for ${updatedPerson.name}. Refresh the page to see changes (not implemented).`
+
+      // Find the person in the data array by their original name and update or add them.
+      // This is a key step for enabling dynamic graph updates without a page reload.
+      const personIndex = genealogyData.persons.findIndex(
+        (p) => p.name === updatedPerson.originalName
       );
+
+      const newPersonData = {
+        name: updatedPerson.name,
+        mother: updatedPerson.mother,
+        father: updatedPerson.father,
+      };
+
+      if (personIndex > -1) {
+        // Update the existing person's data in the array.
+        genealogyData.persons[personIndex] = newPersonData;
+      } else {
+        // If the person wasn't found, add them as a new entry.
+        genealogyData.persons.push(newPersonData);
+      }
+
+      console.log("Updated data:", genealogyData);
+
+      // Re-render the graph with the updated data
+      if (graphContainer) {
+        const newSvgString = await genealogySvgString(genealogyData);
+        graphContainer.innerHTML = newSvgString;
+        console.log("Updated svg:", newSvgString);
+      }
+
       closeEditDialog();
     });
 
