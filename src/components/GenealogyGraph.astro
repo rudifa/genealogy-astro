@@ -1,8 +1,8 @@
 ---
-import type {GenealogyData} from "@/types";
+import type {GenealogyData as GenealogyDataType} from "@/types";
 
 interface Props {
-  data: GenealogyData;
+  data: GenealogyDataType;
 }
 
 const {data} = Astro.props;
@@ -64,14 +64,13 @@ const {data} = Astro.props;
   }
 </style>
 
-<script type='module' define:vars={{genealogyData: data}}>
-  // --- Load Graphviz from the CDN ---
+<script type='module' define:vars={{genealogyDataJson: JSON.stringify(data)}}>
+  import {GenealogyData} from "/GenealogyData.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
-  // We need to explicitly load the WASM file
+  const genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
   const graphvizPromise = Graphviz.load();
 
-  // --- genealogyData-to-svg functions  ---
   function genealogyDotString(data) {
     const dotLines = [
       "strict digraph G {",
@@ -80,14 +79,9 @@ const {data} = Astro.props;
     ];
 
     // 1. Collect all unique names from the dataset to define nodes.
-    const allNames = new Set();
-    data.persons.forEach((p) => {
-      allNames.add(p.name);
-      if (p.mother) allNames.add(p.mother);
-      if (p.father) allNames.add(p.father);
-    });
+    const allNames = data.getAllUniqueNames();
 
-    // 2. Define all person nodes. Make them clickable only if they have a main entry.
+    // 2. Define all person nodes.
     allNames.forEach((name) => {
       const url = `URL="person:${encodeURIComponent(name)}"`;
       dotLines.push(`  "${name}" [label="${name}"${url ? ", " + url : ""}];`);
@@ -97,7 +91,6 @@ const {data} = Astro.props;
     for (const person of data.persons) {
       const childNode = `"${person.name}"`;
       if (person.mother && person.father) {
-        // Use a more robust ID for the invisible parents node
         const parentsNode = `"${person.mother}_${person.father}_family"`;
         dotLines.push(
           `  ${parentsNode} [shape=point];`,
@@ -132,7 +125,6 @@ const {data} = Astro.props;
     }
   }
 
-  // --- Initialize the graph and dialog function ---
   async function initializeGraph() {
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
@@ -161,29 +153,23 @@ const {data} = Astro.props;
     if (graphContainer) {
       // --- Add click event listener to the graph container ---
       graphContainer.addEventListener("click", (event) => {
-        // Find the nearest <a> tag ancestor of the clicked element.
-        // Graphviz wraps clickable nodes in <a> tags.
         const targetLink = event.target.closest("a");
 
         if (!targetLink) {
           return;
         }
 
-        // Check for our custom URL scheme. Graphviz uses `xlink:href` for SVGs.
         const url =
           targetLink.getAttribute("xlink:href") ||
           targetLink.getAttribute("href");
 
         if (url && url.startsWith("person:")) {
-          // Prevent the browser from trying to navigate to the fragment.
           event.preventDefault();
 
-          // Extract the person's name from the URL.
           const personName = decodeURIComponent(
             url.substring("person:".length)
           );
 
-          // Find the person's data and open the dialog
           const personData = genealogyData.persons.find(
             (p) => p.name === personName
           );
@@ -213,43 +199,12 @@ const {data} = Astro.props;
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const updatedPerson = {
-        originalName: originalNameInput.value,
         name: nameInput.value,
         mother: motherInput.value || null,
         father: fatherInput.value || null,
       };
 
-      // Find the person in the data array by their original name and update or add them.
-      // This is a key step for enabling dynamic graph updates without a page reload.
-      const personIndex = genealogyData.persons.findIndex(
-        (p) => p.name === updatedPerson.originalName
-      );
-
-      const newPersonData = {
-        name: updatedPerson.name,
-        mother: updatedPerson.mother,
-        father: updatedPerson.father,
-      };
-
-      if (personIndex > -1) {
-        // Update the existing person's data in the array.
-        genealogyData.persons[personIndex] = newPersonData;
-
-        // If the name was changed, we must update all references to this person.
-        if (newPersonData.name !== updatedPerson.originalName) {
-          genealogyData.persons.forEach((p) => {
-            if (p.mother === updatedPerson.originalName) {
-              p.mother = newPersonData.name;
-            }
-            if (p.father === updatedPerson.originalName) {
-              p.father = newPersonData.name;
-            }
-          });
-        }
-      } else {
-        // If the person wasn't found, add them as a new entry.
-        genealogyData.persons.push(newPersonData);
-      }
+      genealogyData.updatePerson(originalNameInput.value, updatedPerson);
 
       console.log("Updated data:", genealogyData);
 
@@ -266,25 +221,7 @@ const {data} = Astro.props;
     removeButton.addEventListener("click", async () => {
       const personName = originalNameInput.value;
       if (confirm(`Are you sure you want to remove ${personName}?`)) {
-        // Find the index of the person to remove.
-        const personIndexToRemove = genealogyData.persons.findIndex(
-          (p) => p.name === personName
-        );
-
-        if (personIndexToRemove > -1) {
-          // Remove the person from the array.
-          genealogyData.persons.splice(personIndexToRemove, 1);
-        }
-
-        // Remove any references to this person as a parent.
-        genealogyData.persons.forEach((p) => {
-          if (p.mother === personName) {
-            p.mother = null;
-          }
-          if (p.father === personName) {
-            p.father = null;
-          }
-        });
+        genealogyData.removePerson(personName);
 
         // Re-render the graph with the updated data
         if (graphContainer) {
@@ -298,7 +235,6 @@ const {data} = Astro.props;
 
     // --- Toolbar button event listeners ---
     addButton.addEventListener("click", () => {
-      // Open dialog for adding a new person
       const newPerson = {
         name: "",
         mother: null,
@@ -309,7 +245,7 @@ const {data} = Astro.props;
 
     clearButton.addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear all genealogy data?")) {
-        genealogyData.persons = [];
+        genealogyData.clear();
 
         // Re-render the graph with empty data
         if (graphContainer) {
@@ -319,6 +255,7 @@ const {data} = Astro.props;
       }
     });
   }
+
   // Initialize the graph when the DOM is ready
   document.addEventListener("DOMContentLoaded", initializeGraph);
 </script>
