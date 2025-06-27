@@ -223,14 +223,35 @@ const {data} = Astro.props;
       closeEditDialog();
     });
 
-    removeButton.addEventListener("click", () => {
+    removeButton.addEventListener("click", async () => {
       const personName = originalNameInput.value;
       if (confirm(`Are you sure you want to remove ${personName}?`)) {
-        console.log("Deleting person:", personName);
-        // In a real app, you would send this to a server and then refresh the page or graph.
-        alert(
-          `${personName} removed. Refresh the page to see changes (not implemented).`
+        // Find the index of the person to remove.
+        const personIndexToRemove = genealogyData.persons.findIndex(
+          (p) => p.name === personName
         );
+
+        if (personIndexToRemove > -1) {
+          // Remove the person from the array.
+          genealogyData.persons.splice(personIndexToRemove, 1);
+        }
+
+        // Remove any references to this person as a parent.
+        genealogyData.persons.forEach((p) => {
+          if (p.mother === personName) {
+            p.mother = null;
+          }
+          if (p.father === personName) {
+            p.father = null;
+          }
+        });
+
+        // Re-render the graph with the updated data
+        if (graphContainer) {
+          const newSvgString = await genealogySvgString(genealogyData);
+          graphContainer.innerHTML = newSvgString;
+        }
+
         closeEditDialog();
       }
     });
