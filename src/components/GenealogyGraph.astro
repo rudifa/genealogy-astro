@@ -37,27 +37,45 @@ const {data} = Astro.props;
     const dotLines = [
       "strict digraph G {",
       '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
+      "  edge [dir=none];",
     ];
 
+    // 1. Collect all unique names from the dataset to define nodes.
+    const allNames = new Set();
+    data.persons.forEach((p) => {
+      allNames.add(p.name);
+      if (p.mother) allNames.add(p.mother);
+      if (p.father) allNames.add(p.father);
+    });
+
+    // 2. Define all person nodes. Make them clickable only if they have a main entry.
+    allNames.forEach((name) => {
+      const personHasEntry = data.persons.some((p) => p.name === name);
+      const url = personHasEntry
+        ? `URL="person:${encodeURIComponent(name)}"`
+        : "";
+      dotLines.push(`  "${name}" [label="${name}"${url ? ", " + url : ""}];`);
+    });
+
+    // 3. Define all relationships.
     for (const person of data.persons) {
-      dotLines.push(
-        `  "${person.name}" [label="${person.name}", URL="person:${encodeURIComponent(person.name)}"];`
-      );
-
-      if (person.mother) {
-        dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
-      }
-      if (person.father) {
-        dotLines.push(`  "${person.father}" [label="${person.father}"];`);
-      }
-
+      const childNode = `"${person.name}"`;
       if (person.mother && person.father) {
-        const parentsNode = `"${person.mother} + ${person.father}"`;
+        // Use a more robust ID for the invisible parents node
+        const parentsNode = `"${person.mother}_${person.father}_family"`;
         dotLines.push(
-          `  ${parentsNode} [shape=point, label=""];`,
-          `  "${person.mother}" -> ${parentsNode} [dir=none];`,
-          `  "${person.father}" -> ${parentsNode} [dir=none];`,
-          `  ${parentsNode} -> "${person.name}";`
+          `  ${parentsNode} [shape=point];`,
+          `  "${person.mother}" -> ${parentsNode};`,
+          `  "${person.father}" -> ${parentsNode};`,
+          `  ${parentsNode} -> ${childNode} [dir=forward, arrowhead=normal];`
+        );
+      } else if (person.mother) {
+        dotLines.push(
+          `  "${person.mother}" -> ${childNode} [dir=forward, arrowhead=normal];`
+        );
+      } else if (person.father) {
+        dotLines.push(
+          `  "${person.father}" -> ${childNode} [dir=forward, arrowhead=normal];`
         );
       }
     }
