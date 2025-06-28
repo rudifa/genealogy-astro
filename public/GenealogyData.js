@@ -1,6 +1,8 @@
 export class GenealogyData {
   constructor(initialData) {
     this.persons = initialData.persons || [];
+    const allNames = this.getAllUniqueNames();
+    this.updatePersonsFromNames(allNames);
   }
 
   addPerson(person) {
@@ -53,5 +55,18 @@ export class GenealogyData {
       if (p.father) allNames.add(p.father);
     });
     return allNames;
+  }
+  updatePersonsFromNames(allNames) {
+    const existingNames = new Set(this.persons.map(p => p.name));
+
+    allNames.forEach(name => {
+      if (!existingNames.has(name)) {
+        this.addPerson({
+          name: name,
+          mother: null,
+          father: null
+        });
+      }
+    });
   }
 }

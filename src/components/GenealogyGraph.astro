@@ -81,8 +81,6 @@ const {data} = Astro.props;
     // 1. Collect all unique names from the dataset to define nodes.
     const allNames = data.getAllUniqueNames();
 
-    console.log("All unique names:", allNames);
-
     // 2. Define all person nodes.
     allNames.forEach((name) => {
       const url = `URL="person:${encodeURIComponent(name)}"`;
@@ -117,6 +115,8 @@ const {data} = Astro.props;
 
   async function genealogySvgString(data) {
     const dotString = genealogyDotString(data);
+
+    console.log("Dot string:", dotString);
 
     try {
       const graphviz = await graphvizPromise;
