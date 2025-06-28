@@ -50,8 +50,10 @@ export const en: Translations = {
   errorInitializing: "Failed to initialize genealogy graph",
 
   // Confirmations
-  confirmRemove: "Are you sure you want to remove",
-  confirmClear: "Are you sure you want to remove all",
+  confirmRemove:
+    "Are you sure you want to remove {name}? This action cannot be undone.",
+  confirmClear:
+    "Are you sure you want to remove all {count} {people} from the genealogy? This action cannot be undone.",
   actionCannotBeUndone: "This action cannot be undone.",
 
   // Placeholders and misc

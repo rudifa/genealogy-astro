@@ -51,8 +51,10 @@ export const de: Translations = {
   errorInitializing: "Genealogie-Graph-Initialisierung fehlgeschlagen",
 
   // Confirmations
-  confirmRemove: "Sind Sie sicher, dass Sie entfernen möchten",
-  confirmClear: "Sind Sie sicher, dass Sie alle entfernen möchten",
+  confirmRemove:
+    "Sind Sie sicher, dass Sie {name} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  confirmClear:
+    "Sind Sie sicher, dass Sie alle {count} {people} aus der Genealogie entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
   actionCannotBeUndone: "Diese Aktion kann nicht rückgängig gemacht werden.",
 
   // Placeholders and misc

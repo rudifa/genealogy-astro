@@ -254,6 +254,20 @@ const {data, language, translations} = Astro.props;
     clearAll: "Clear All",
     loading: "Loading...",
     loadingGraph: "Loading graph...",
+    graphUpdated: "Graph updated",
+    graphCleared: "Graph cleared",
+    noDataToClear: "No data to clear",
+    errorUpdating: "Failed to update graph",
+    errorRendering: "Failed to render graph",
+    errorOpening: "Error opening person details",
+    errorClearing: "Error clearing genealogy data",
+    errorInitializing: "Failed to initialize genealogy graph",
+    personNotFound: "not found",
+    confirmClear: "Are you sure you want to remove all {count} {people} from the genealogy? This action cannot be undone.",
+    initializationError: "Initialization Error",
+    failedToLoad: "Failed to load the genealogy graph application.",
+    errorRenderingGraph: "Error Rendering Graph",
+    reloadPage: "Reload Page",
   };
 
   // Translation management
@@ -353,15 +367,15 @@ const {data, language, translations} = Astro.props;
           console.error("Error rendering graph:", error);
           graphContainer.innerHTML = `
             <div style="text-align: center; color: #dc3545; padding: 20px;">
-              <h3>Error Rendering Graph</h3>
+              <h3>${currentTranslations.errorRenderingGraph || "Error Rendering Graph"}</h3>
               <p>${error.message}</p>
               <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
-                Reload Page
+                ${currentTranslations.reloadPage || "Reload Page"}
               </button>
             </div>
           `;
           showNotification(
-            currentTranslations.failedToRenderGraph || "Failed to render graph",
+            currentTranslations.errorRendering || "Failed to render graph",
             "error"
           );
         } finally {
@@ -373,10 +387,10 @@ const {data, language, translations} = Astro.props;
       document.addEventListener("genealogy-data-changed", async (event) => {
         try {
           await renderGraph();
-          showNotification("Graph updated", "success");
+          showNotification(currentTranslations.graphUpdated || "Graph updated", "success");
         } catch (error) {
           console.error("Error updating graph:", error);
-          showNotification("Failed to update graph", "error");
+          showNotification(currentTranslations.errorUpdating || "Failed to update graph", "error");
         }
       });
 
@@ -411,12 +425,12 @@ const {data, language, translations} = Astro.props;
               if (personData) {
                 openEditDialog(personData);
               } else {
-                showNotification(`Person "${personName}" not found`, "error");
+                showNotification(`Person "${personName}" ${currentTranslations.personNotFound || "not found"}`, "error");
               }
             }
           } catch (error) {
             console.error("Error handling graph click:", error);
-            showNotification("Error opening person details", "error");
+            showNotification(currentTranslations.errorOpening || "Error opening person details", "error");
           }
         });
       }
@@ -434,7 +448,7 @@ const {data, language, translations} = Astro.props;
           openEditDialog(newPerson);
         } catch (error) {
           console.error("Error opening add dialog:", error);
-          showNotification("Error opening add person dialog", "error");
+          showNotification(currentTranslations.errorOpening || "Error opening add person dialog", "error");
         }
       });
 
@@ -485,16 +499,16 @@ const {data, language, translations} = Astro.props;
       });
     } catch (error) {
       console.error("Error initializing graph:", error);
-      showNotification("Failed to initialize genealogy graph", "error");
+      showNotification(currentTranslations.errorInitializing || "Failed to initialize genealogy graph", "error");
 
       // Show error in graph container
       if (graphContainer) {
         graphContainer.innerHTML = `
           <div style="text-align: center; color: #dc3545; padding: 20px;">
-            <h3>Initialization Error</h3>
-            <p>Failed to load the genealogy graph application.</p>
+            <h3>${currentTranslations.initializationError || "Initialization Error"}</h3>
+            <p>${currentTranslations.failedToLoad || "Failed to load the genealogy graph application."}</p>
             <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
-              Reload Page
+              ${currentTranslations.reloadPage || "Reload Page"}
             </button>
           </div>
         `;

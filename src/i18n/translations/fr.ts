@@ -51,8 +51,10 @@ export const fr: Translations = {
   errorInitializing: "Échec de l'initialisation du graphique généalogique",
 
   // Confirmations
-  confirmRemove: "Êtes-vous sûr de vouloir supprimer",
-  confirmClear: "Êtes-vous sûr de vouloir supprimer tous les",
+  confirmRemove:
+    "Êtes-vous sûr de vouloir supprimer {name}? Cette action ne peut pas être annulée.",
+  confirmClear:
+    "Êtes-vous sûr de vouloir supprimer toutes les {count} {people} de la généalogie? Cette action ne peut pas être annulée.",
   actionCannotBeUndone: "Cette action ne peut pas être annulée.",
 
   // Placeholders and misc
