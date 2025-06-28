@@ -274,8 +274,9 @@ export const supportedLanguages: {
   code: Language;
   name: string;
   nativeName: string;
+  flag: string;
 }[] = [
-  {code: "en", name: "English", nativeName: "English"},
-  {code: "fr", name: "French", nativeName: "Français"},
-  {code: "de", name: "German", nativeName: "Deutsch"},
+  {code: "en", name: "English", nativeName: "English", flag: "🇺🇸"},
+  {code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷"},
+  {code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪"},
 ];
