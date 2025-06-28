@@ -191,7 +191,7 @@ const {data} = Astro.props;
 </style>
 
 <script type='module' define:vars={{genealogyDataJson: JSON.stringify(data)}}>
-  import {GenealogyData} from "/GenealogyData.js";
+  import {GenealogyData} from "/utility/GenealogyData.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
   const genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
