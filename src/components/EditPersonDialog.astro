@@ -73,11 +73,7 @@
 </style>
 
 <script type='module'>
-  export function initializeEditDialog(
-    genealogyData,
-    genealogySvgString,
-    graphContainer
-  ) {
+  export function initializeEditDialog(genealogyData) {
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
     const form = document.getElementById("edit-form");
@@ -102,6 +98,14 @@
       dialog.style.display = "none";
     }
 
+    function emitDataChanged() {
+      // Emit a custom event to notify that the data has changed
+      const event = new CustomEvent("genealogy-data-changed", {
+        detail: {genealogyData},
+      });
+      document.dispatchEvent(event);
+    }
+
     // --- Dialog event listeners ---
     // Cancel button closes the dialog
     cancelButton.addEventListener("click", closeEditDialog);
@@ -117,16 +121,8 @@
 
       genealogyData.updatePerson(originalNameInput.value, updatedPerson);
 
-      console.log("Updated data:", genealogyData);
-
-      // Re-render the graph with the updated data
-      if (graphContainer) {
-        const newSvgString = await genealogySvgString(genealogyData);
-        graphContainer.innerHTML = newSvgString;
-        console.log("Updated svg:", newSvgString);
-      }
-
       closeEditDialog();
+      emitDataChanged();
     });
 
     // Remove button removes the person from genealogy data
@@ -135,13 +131,8 @@
       if (confirm(`Are you sure you want to remove ${personName}?`)) {
         genealogyData.removePerson(personName);
 
-        // Re-render the graph with the updated data
-        if (graphContainer) {
-          const newSvgString = await genealogySvgString(genealogyData);
-          graphContainer.innerHTML = newSvgString;
-        }
-
         closeEditDialog();
+        emitDataChanged();
       }
     });
 

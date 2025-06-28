@@ -77,8 +77,6 @@ const {data} = Astro.props;
   async function genealogySvgString(data) {
     const dotString = data.genealogyDotString();
 
-    console.log("Dot string:", dotString);
-
     try {
       const graphviz = await graphvizPromise;
       return graphviz.layout(dotString, "svg", "dot");
@@ -97,20 +95,27 @@ const {data} = Astro.props;
     const graphContainer = document.querySelector(".genealogy-graph");
 
     // --- Initialize the edit dialog ---
-    const {openEditDialog} = window.initializeEditDialog(
-      genealogyData,
-      genealogySvgString,
-      graphContainer
-    );
+    const {openEditDialog} = window.initializeEditDialog(genealogyData);
+
+    // --- Function to render the graph ---
+    async function renderGraph() {
+      if (graphContainer) {
+        const newSvgString = await genealogySvgString(genealogyData);
+        graphContainer.innerHTML = newSvgString;
+      }
+    }
+
+    // --- Listen for data changes from the dialog ---
+    document.addEventListener("genealogy-data-changed", async (event) => {
+      await renderGraph();
+    });
 
     // --- Render the graph on page load ---
-    if (graphContainer) {
-      const svgString = await genealogySvgString(genealogyData);
-      graphContainer.innerHTML = svgString;
-    }
+    await renderGraph();
 
     if (graphContainer) {
       // --- Add click event listener to the graph container ---
+      // to open the edit dialog for the clicked person node
       graphContainer.addEventListener("click", (event) => {
         const targetLink = event.target.closest("a");
 
@@ -152,12 +157,7 @@ const {data} = Astro.props;
     clearButton.addEventListener("click", async () => {
       if (confirm("Are you sure you want to clear all genealogy data?")) {
         genealogyData.clear();
-
-        // Re-render the graph with empty data
-        if (graphContainer) {
-          const newSvgString = await genealogySvgString(genealogyData);
-          graphContainer.innerHTML = newSvgString;
-        }
+        await renderGraph();
       }
     });
   }
