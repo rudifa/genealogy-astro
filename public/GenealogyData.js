@@ -69,4 +69,45 @@ export class GenealogyData {
       }
     });
   }
+   genealogyDotString() {
+    const dotLines = [
+      "strict digraph G {",
+      '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
+      "  edge [dir=none];",
+    ];
+
+    // 1. Collect all unique names from the dataset to define nodes.
+    const allNames = this.getAllUniqueNames();
+
+    // 2. Define all person nodes.
+    allNames.forEach((name) => {
+      const url = `URL="person:${encodeURIComponent(name)}"`;
+      dotLines.push(`  "${name}" [label="${name}"${url ? ", " + url : ""}];`);
+    });
+
+    // 3. Define all relationships.
+    for (const person of this.persons) {
+      const childNode = `"${person.name}"`;
+      if (person.mother && person.father) {
+        const parentsNode = `"${person.mother}_${person.father}_family"`;
+        dotLines.push(
+          `  ${parentsNode} [shape=point];`,
+          `  "${person.mother}" -> ${parentsNode};`,
+          `  "${person.father}" -> ${parentsNode};`,
+          `  ${parentsNode} -> ${childNode} [dir=forward, arrowhead=normal];`
+        );
+      } else if (person.mother) {
+        dotLines.push(
+          `  "${person.mother}" -> ${childNode} [dir=forward, arrowhead=normal];`
+        );
+      } else if (person.father) {
+        dotLines.push(
+          `  "${person.father}" -> ${childNode} [dir=forward, arrowhead=normal];`
+        );
+      }
+    }
+
+    dotLines.push("}");
+    return dotLines.join("\n");
+  }
 }
