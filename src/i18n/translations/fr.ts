@@ -1,0 +1,68 @@
+import type {Translations} from "../index";
+
+export const fr: Translations = {
+  // Page content
+  pageTitle: "Explorateur d'Arbre Généalogique",
+  pageDescription:
+    "Application interactive de visualisation et de gestion d'arbre généalogique.",
+
+  // Header
+  appTitle: "Explorateur d'Arbre Généalogique",
+  appSubtitle:
+    "Visualisez et gérez votre généalogie familiale avec un graphique interactif. Cliquez sur une personne pour modifier ses détails ou ajouter de nouveaux membres de la famille.",
+
+  // Toolbar
+  addPerson: "Ajouter Personne",
+  clearAll: "Tout Effacer",
+  loading: "Chargement...",
+
+  // Dialog
+  editPerson: "Modifier Personne",
+  addNewPerson: "Ajouter Nouvelle Personne",
+  name: "Nom",
+  mother: "Mère",
+  father: "Père",
+  required: "*",
+  save: "Sauvegarder",
+  remove: "Supprimer",
+  cancel: "Annuler",
+
+  // Validation messages
+  nameRequired: "Le nom est requis",
+  nameMaxLength: "Le nom doit faire 100 caractères ou moins",
+  nameExists: "Une personne avec ce nom existe déjà",
+  parentMaxLength: "doit faire 100 caractères ou moins",
+  parentSameAsPerson: "ne peut pas être la même que la personne",
+  fixErrors: "Veuillez corriger les erreurs de validation avant de sauvegarder",
+
+  // Notifications
+  graphUpdated: "Graphique mis à jour",
+  graphCleared: "Graphique effacé",
+  noDataToClear: "Aucune donnée à effacer",
+  personNotFound: "non trouvé",
+  errorRendering: "Échec du rendu du graphique",
+  errorUpdating: "Échec de la mise à jour du graphique",
+  errorSaving:
+    "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+  errorRemoving:
+    "Une erreur s'est produite lors de la suppression de la personne. Veuillez réessayer.",
+  errorOpening: "Erreur lors de l'ouverture des détails de la personne",
+  errorClearing: "Erreur lors de l'effacement des données généalogiques",
+  errorInitializing: "Échec de l'initialisation du graphique généalogique",
+
+  // Confirmations
+  confirmRemove: "Êtes-vous sûr de vouloir supprimer",
+  confirmClear: "Êtes-vous sûr de vouloir supprimer tous les",
+  actionCannotBeUndone: "Cette action ne peut pas être annulée.",
+
+  // Placeholders and misc
+  loadingGraph: "Chargement du graphique généalogique...",
+  reloadPage: "Recharger la Page",
+  initializationError: "Erreur d'Initialisation",
+  failedToLoad: "Échec du chargement de l'application d'arbre généalogique.",
+  errorRenderingGraph: "Erreur de Rendu du Graphique",
+
+  // Language switcher
+  language: "Langue",
+  selectLanguage: "Sélectionner la Langue",
+};

@@ -276,6 +276,9 @@ const {language, translations} = Astro.props;
       }
     }
 
+    // Initialize dialog translations on load
+    updateDialogTranslations(t);
+
     // Listen for language changes
     window.addEventListener("languageChanged", function (event) {
       updateDialogTranslations(event.detail.translations);
