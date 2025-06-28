@@ -467,6 +467,7 @@ const {data, language, translations} = Astro.props;
           saveDataToStorage();
           await renderGraph();
           showNotification(currentTranslations.graphUpdated || "Graph updated", "success");
+          console.log("genealogy-data-changed event, updated persons:", genealogyData.persons);
         } catch (error) {
           console.error("Error updating graph:", error);
           showNotification(currentTranslations.errorUpdating || "Failed to update graph", "error");

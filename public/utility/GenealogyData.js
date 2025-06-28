@@ -1,12 +1,12 @@
 export class GenealogyData {
   constructor(initialData) {
     this.persons = initialData.persons || [];
-    const allNames = this.getAllUniqueNames();
-    this.updatePersonsFromNames(allNames);
+    this.updatePersonsFromNames();
   }
 
   addPerson(person) {
     this.persons.push(person);
+    this.updatePersonsFromNames();
   }
 
   updatePerson(originalName, updatedPerson) {
@@ -16,6 +16,7 @@ export class GenealogyData {
       if (updatedPerson.name !== originalName) {
         this.updateReferences(originalName, updatedPerson.name);
       }
+      this.updatePersonsFromNames(); // we may have added a parent
     } else {
       this.addPerson(updatedPerson);
     }
@@ -56,8 +57,9 @@ export class GenealogyData {
     });
     return allNames;
   }
-  updatePersonsFromNames(allNames) {
+  updatePersonsFromNames() {
     const existingNames = new Set(this.persons.map(p => p.name));
+    const allNames = this.getAllUniqueNames();
 
     allNames.forEach(name => {
       if (!existingNames.has(name)) {
