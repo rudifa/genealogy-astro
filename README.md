@@ -8,10 +8,10 @@
 - remove persons
 - clear all
 - UX in English, French, and German
+- publish on Vercel
 
 ## Missing features
 
-- publish on Netlify or Vercel
 - save changes in the browser storage (as long as the page tab is open)
 - save changes to a file
 - load a tree from a file
