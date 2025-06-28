@@ -5,7 +5,9 @@
 - view the defult sample tree
 - add new persons
 - edit existing persons
-- delete persons
+- remove persons
+- clear all
+- UX in English, French, and German
 
 ## Missing features
 
