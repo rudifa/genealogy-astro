@@ -1,0 +1,119 @@
+---
+import {supportedLanguages, type Language} from "../i18n/index";
+
+export interface Props {
+  currentLanguage: Language;
+  translations: any;
+}
+
+const {currentLanguage, translations} = Astro.props;
+---
+
+<div class='language-switcher'>
+  <label for='language-select' class='language-label'>
+    {translations.language}:
+  </label>
+  <select id='language-select' class='language-select'>
+    {
+      supportedLanguages.map((lang) => (
+        <option value={lang.code} selected={lang.code === currentLanguage}>
+          {lang.nativeName}
+        </option>
+      ))
+    }
+  </select>
+</div>
+
+<style>
+  .language-switcher {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .language-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6c757d;
+    white-space: nowrap;
+  }
+
+  .language-select {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .language-select:hover {
+    border-color: #adb5bd;
+  }
+
+  .language-select:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+  }
+
+  @media (max-width: 768px) {
+    .language-switcher {
+      margin-bottom: 8px;
+    }
+
+    .language-label {
+      font-size: 11px;
+    }
+
+    .language-select {
+      font-size: 11px;
+      padding: 3px 6px;
+    }
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    const languageSelect = document.getElementById("language-select");
+
+    if (languageSelect) {
+      // Set initial value based on current language
+      const currentLang = window.currentLanguage || "en";
+      languageSelect.value = currentLang;
+
+      languageSelect.addEventListener("change", function (event) {
+        const selectedLanguage = event.target.value;
+
+        // Update the global language
+        window.currentLanguage = selectedLanguage;
+
+        // Store language preference in localStorage
+        localStorage.setItem("genealogy-language", selectedLanguage);
+
+        // Update the page language
+        if (window.updatePageLanguage) {
+          window.updatePageLanguage(selectedLanguage);
+        }
+
+        // Update URL
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", selectedLanguage);
+        window.history.replaceState({}, "", url.toString());
+      });
+    }
+
+    // Listen for language changes to update the dropdown
+    window.addEventListener("languageChanged", function (event) {
+      const language = event.detail.language;
+      if (languageSelect && languageSelect.value !== language) {
+        languageSelect.value = language;
+      }
+    });
+  });
+</script>

@@ -1,36 +1,41 @@
 ---
 import type {GenealogyData as GenealogyDataType} from "@/types";
+import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
 
 interface Props {
   data: GenealogyDataType;
+  language: Language;
+  translations: Translations;
 }
 
-const {data} = Astro.props;
+const {data, language, translations} = Astro.props;
 ---
 
 <div class='screen'>
   <div class='toolbar'>
-    <button id='add-button' type='button'>Add Person</button>
-    <button id='clear-button' type='button'>Clear All</button>
+    <LanguageSwitcher currentLanguage={language} translations={translations} />
+    <button id='add-button' type='button'>{translations.addPerson}</button>
+    <button id='clear-button' type='button'>{translations.clearAll}</button>
     <div
       id='loading-indicator'
       class='loading-indicator'
       style='display: none;'>
       <div class='spinner'></div>
-      <span>Loading...</span>
+      <span>{translations.loading}</span>
     </div>
   </div>
   <div class='genealogy-graph'>
     <!-- This container will be populated by the client-side script -->
     <div id='graph-placeholder' class='graph-placeholder'>
-      <p>Loading genealogy graph...</p>
+      <p>{translations.loadingGraph}</p>
     </div>
   </div>
   <div id='notification' class='notification' style='display: none;'></div>
 </div>
 
-<EditPersonDialog />
+<EditPersonDialog language={language} translations={translations} />
 
 <style>
   .screen {
@@ -199,6 +204,29 @@ const {data} = Astro.props;
 
   // UI state management
   let isRendering = false;
+  let currentTranslations = window.genealogyTranslations?.en || {
+    addPerson: "Add Person",
+    clearAll: "Clear All",
+    loading: "Loading...",
+    loadingGraph: "Loading graph...",
+  };
+
+  // Translation management
+  function updateUITranslations(translations) {
+    currentTranslations = translations;
+
+    // Update button text
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+    const loadingIndicator = document.querySelector("#loading-indicator span");
+    const graphPlaceholder = document.querySelector("#graph-placeholder p");
+
+    if (addButton) addButton.textContent = translations.addPerson;
+    if (clearButton) clearButton.textContent = translations.clearAll;
+    if (loadingIndicator) loadingIndicator.textContent = translations.loading;
+    if (graphPlaceholder)
+      graphPlaceholder.textContent = translations.loadingGraph;
+  }
 
   async function genealogySvgString(data) {
     const dotString = data.genealogyDotString();
@@ -271,7 +299,10 @@ const {data} = Astro.props;
 
           // Show success notification for significant changes
           if (genealogyData.persons.length === 0) {
-            showNotification("Graph cleared", "info");
+            showNotification(
+              currentTranslations.graphCleared || "Graph cleared",
+              "info"
+            );
           }
         } catch (error) {
           console.error("Error rendering graph:", error);
@@ -284,7 +315,10 @@ const {data} = Astro.props;
               </button>
             </div>
           `;
-          showNotification("Failed to render graph", "error");
+          showNotification(
+            currentTranslations.failedToRenderGraph || "Failed to render graph",
+            "error"
+          );
         } finally {
           setLoadingState(false);
         }
@@ -365,11 +399,18 @@ const {data} = Astro.props;
 
           const personCount = genealogyData.persons.length;
           if (personCount === 0) {
-            showNotification("No data to clear", "info");
+            showNotification(
+              currentTranslations.noDataToClear || "No data to clear",
+              "info"
+            );
             return;
           }
 
-          const confirmMessage = `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
+          const confirmMessage = currentTranslations.confirmClear
+            ? currentTranslations.confirmClear
+                .replace("{count}", personCount)
+                .replace("{people}", personCount === 1 ? "person" : "people")
+            : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
 
           if (confirm(confirmMessage)) {
             genealogyData.clear();
@@ -377,7 +418,11 @@ const {data} = Astro.props;
           }
         } catch (error) {
           console.error("Error clearing data:", error);
-          showNotification("Error clearing genealogy data", "error");
+          showNotification(
+            currentTranslations.errorClearingData ||
+              "Error clearing genealogy data",
+            "error"
+          );
         }
       });
 
@@ -414,4 +459,12 @@ const {data} = Astro.props;
 
   // Initialize the graph when the DOM is ready
   document.addEventListener("DOMContentLoaded", initializeGraph);
+
+  // Listen for language changes
+  window.addEventListener("languageChanged", function (event) {
+    const translations = event.detail.translations;
+    if (translations) {
+      updateUITranslations(translations);
+    }
+  });
 </script>

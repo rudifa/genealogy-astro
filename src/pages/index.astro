@@ -3,22 +3,237 @@ import Layout from "../layouts/Layout.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
 import jsonData from "@/data/sample_tree.json";
 import type {GenealogyData} from "@/types";
+import {getTranslations, type Language} from "../i18n/index";
 
 const genealogyData: GenealogyData = jsonData;
+
+// For now, we'll default to English on the server side
+// The client will handle language detection and updates
+const currentLanguage: Language = "en";
+const t = getTranslations(currentLanguage);
 ---
 
-<Layout title='Genealogy Tree'>
+<Layout
+  title={t.pageTitle}
+  description={t.pageDescription}
+  language={currentLanguage}>
   <main class='app-container'>
     <header class='app-header'>
-      <h1>Family Tree Explorer</h1>
+      <h1>{t.appTitle}</h1>
       <p class='app-description'>
-        Visualize and manage your family genealogy with an interactive graph.
-        Click on any person to edit their details or add new family members.
+        {t.appSubtitle}
       </p>
     </header>
-    <GenealogyGraph data={genealogyData} />
+    <GenealogyGraph
+      data={genealogyData}
+      language={currentLanguage}
+      translations={t}
+    />
   </main>
 </Layout>
+
+<script is:inline>
+  // Since this is client-side, we need to define the translations inline
+  window.genealogyTranslations = {
+    en: {
+      pageTitle: "Family Tree Genealogy",
+      pageDescription: "Interactive family tree visualization",
+      appTitle: "Family Tree",
+      appSubtitle:
+        "Explore your family history with our interactive genealogy tree",
+      language: "Language",
+      addPerson: "Add Person",
+      clearAll: "Clear All",
+      loading: "Loading...",
+      loadingGraph: "Loading graph...",
+      noDataToClear: "No data to clear",
+      confirmClear:
+        "Are you sure you want to remove all {count} {people} from the genealogy? This action cannot be undone.",
+      errorClearingData: "Error clearing genealogy data",
+      graphUpdated: "Graph updated",
+      graphCleared: "Graph cleared",
+      failedToUpdateGraph: "Failed to update graph",
+      failedToRenderGraph: "Failed to render graph",
+      // Dialog translations
+      editPerson: "Edit Person",
+      addNewPerson: "Add New Person",
+      name: "Name",
+      mother: "Mother",
+      father: "Father",
+      required: "(required)",
+      save: "Save",
+      remove: "Remove",
+      cancel: "Cancel",
+      nameRequired: "Name is required",
+      nameMaxLength: "Name must be 100 characters or less",
+      nameExists: "A person with this name already exists",
+      confirmRemove:
+        "Are you sure you want to remove {name}? This action cannot be undone.",
+      validationErrors: "Please fix the validation errors before saving",
+      errorSaving: "An error occurred while saving. Please try again.",
+      errorRemoving:
+        "An error occurred while removing the person. Please try again.",
+      parentNameLength: "{parent} name must be 100 characters or less",
+      parentSameName: "{parent} cannot be the same as the person",
+    },
+    fr: {
+      pageTitle: "Arbre Généalogique Familial",
+      pageDescription: "Visualisation interactive de l'arbre généalogique",
+      appTitle: "Arbre Familial",
+      appSubtitle:
+        "Explorez votre histoire familiale avec notre arbre généalogique interactif",
+      language: "Langue",
+      addPerson: "Ajouter une Personne",
+      clearAll: "Tout Effacer",
+      loading: "Chargement...",
+      loadingGraph: "Chargement du graphique...",
+      noDataToClear: "Aucune donnée à effacer",
+      confirmClear:
+        "Êtes-vous sûr de vouloir supprimer toutes les {count} {people} de la généalogie? Cette action ne peut pas être annulée.",
+      errorClearingData:
+        "Erreur lors de l'effacement des données généalogiques",
+      graphUpdated: "Graphique mis à jour",
+      graphCleared: "Graphique effacé",
+      failedToUpdateGraph: "Échec de la mise à jour du graphique",
+      failedToRenderGraph: "Échec du rendu du graphique",
+      // Dialog translations
+      editPerson: "Modifier la Personne",
+      addNewPerson: "Ajouter une Nouvelle Personne",
+      name: "Nom",
+      mother: "Mère",
+      father: "Père",
+      required: "(obligatoire)",
+      save: "Sauvegarder",
+      remove: "Supprimer",
+      cancel: "Annuler",
+      nameRequired: "Le nom est obligatoire",
+      nameMaxLength: "Le nom doit contenir au maximum 100 caractères",
+      nameExists: "Une personne avec ce nom existe déjà",
+      confirmRemove:
+        "Êtes-vous sûr de vouloir supprimer {name}? Cette action ne peut pas être annulée.",
+      validationErrors:
+        "Veuillez corriger les erreurs de validation avant de sauvegarder",
+      errorSaving:
+        "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
+      errorRemoving:
+        "Une erreur s'est produite lors de la suppression de la personne. Veuillez réessayer.",
+      parentNameLength:
+        "Le nom de {parent} doit contenir au maximum 100 caractères",
+      parentSameName: "{parent} ne peut pas être identique à la personne",
+    },
+    de: {
+      pageTitle: "Familienstammbaum Genealogie",
+      pageDescription: "Interaktive Stammbaum-Visualisierung",
+      appTitle: "Familienstammbaum",
+      appSubtitle:
+        "Entdecken Sie Ihre Familiengeschichte mit unserem interaktiven Stammbaum",
+      language: "Sprache",
+      addPerson: "Person Hinzufügen",
+      clearAll: "Alles Löschen",
+      loading: "Wird geladen...",
+      loadingGraph: "Diagramm wird geladen...",
+      noDataToClear: "Keine Daten zum Löschen",
+      confirmClear:
+        "Sind Sie sicher, dass Sie alle {count} {people} aus der Genealogie entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      errorClearingData: "Fehler beim Löschen der Genealogie-Daten",
+      graphUpdated: "Diagramm aktualisiert",
+      graphCleared: "Diagramm gelöscht",
+      failedToUpdateGraph: "Diagramm-Update fehlgeschlagen",
+      failedToRenderGraph: "Diagramm-Rendering fehlgeschlagen",
+      // Dialog translations
+      editPerson: "Person Bearbeiten",
+      addNewPerson: "Neue Person Hinzufügen",
+      name: "Name",
+      mother: "Mutter",
+      father: "Vater",
+      required: "(erforderlich)",
+      save: "Speichern",
+      remove: "Entfernen",
+      cancel: "Abbrechen",
+      nameRequired: "Name ist erforderlich",
+      nameMaxLength: "Name darf maximal 100 Zeichen lang sein",
+      nameExists: "Eine Person mit diesem Namen existiert bereits",
+      confirmRemove:
+        "Sind Sie sicher, dass Sie {name} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      validationErrors:
+        "Bitte beheben Sie die Validierungsfehler vor dem Speichern",
+      errorSaving:
+        "Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      errorRemoving:
+        "Beim Entfernen der Person ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      parentNameLength: "{parent}-Name darf maximal 100 Zeichen lang sein",
+      parentSameName: "{parent} kann nicht dieselbe wie die Person sein",
+    },
+  };
+
+  window.currentLanguage = "en";
+
+  window.updatePageLanguage = function (language) {
+    const t =
+      window.genealogyTranslations[language] || window.genealogyTranslations.en;
+
+    // Update page title and meta
+    document.title = t.pageTitle;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", t.pageDescription);
+    }
+    document.documentElement.lang = language;
+
+    // Update header text
+    const headerTitle = document.querySelector(".app-header h1");
+    const headerDescription = document.querySelector(".app-description");
+    if (headerTitle) headerTitle.textContent = t.appTitle;
+    if (headerDescription) headerDescription.textContent = t.appSubtitle;
+
+    // Trigger a custom event to update components
+    window.dispatchEvent(
+      new CustomEvent("languageChanged", {
+        detail: {language: language, translations: t},
+      })
+    );
+  };
+
+  window.detectAndSetLanguage = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang");
+    const storedLang = localStorage.getItem("genealogy-language");
+
+    let selectedLanguage = "en";
+
+    if (urlLang && ["en", "fr", "de"].includes(urlLang)) {
+      selectedLanguage = urlLang;
+      localStorage.setItem("genealogy-language", urlLang);
+    } else if (storedLang && ["en", "fr", "de"].includes(storedLang)) {
+      selectedLanguage = storedLang;
+      // Update URL to reflect stored preference
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", selectedLanguage);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    if (selectedLanguage !== window.currentLanguage) {
+      window.currentLanguage = selectedLanguage;
+      window.updatePageLanguage(window.currentLanguage);
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", window.detectAndSetLanguage);
+
+  // Handle language changes from the language switcher
+  window.addEventListener("languageChanged", function (event) {
+    const language = event.detail.language;
+    if (language !== window.currentLanguage) {
+      window.currentLanguage = language;
+      localStorage.setItem("genealogy-language", language);
+
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", language);
+      window.history.replaceState({}, "", url.toString());
+    }
+  });
+</script>
 
 <style>
   .app-container {
@@ -89,3 +304,21 @@ const genealogyData: GenealogyData = jsonData;
     }
   }
 </style>
+
+<script define:vars={{currentLanguage}}>
+  // Handle language persistence on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang");
+
+    console.log("Client-side language detection:");
+    console.log("URL:", window.location.href);
+    console.log("urlLang:", urlLang);
+    console.log("currentLanguage from server:", currentLanguage);
+
+    // Store the current language in localStorage
+    if (urlLang && ["en", "fr", "de"].includes(urlLang)) {
+      localStorage.setItem("genealogy-language", urlLang);
+    }
+  });
+</script>
