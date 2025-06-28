@@ -64,4 +64,10 @@ export const en: Translations = {
   // Language switcher
   language: "Language",
   selectLanguage: "Select Language",
+
+  // Footer
+  projectInfo: "Open Source Genealogy App",
+  developedBy: "Developed by",
+  sourceCode: "Source Code",
+  viewOnGitHub: "View on GitHub",
 };

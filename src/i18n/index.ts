@@ -63,6 +63,12 @@ export interface Translations {
   // Language switcher
   language: string;
   selectLanguage: string;
+
+  // Footer
+  projectInfo: string;
+  developedBy: string;
+  sourceCode: string;
+  viewOnGitHub: string;
 }
 
 export const translations: Record<Language, Translations> = {

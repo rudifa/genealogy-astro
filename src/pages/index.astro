@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
+import Footer from "../components/Footer.astro";
 import jsonData from "@/data/sample_tree.json";
 import type {GenealogyData} from "@/types";
 import {getTranslations, type Language} from "../i18n/index";
@@ -29,6 +30,7 @@ const t = getTranslations(currentLanguage);
       language={currentLanguage}
       translations={t}
     />
+    <Footer language={currentLanguage} translations={t} />
   </main>
 </Layout>
 
@@ -75,6 +77,11 @@ const t = getTranslations(currentLanguage);
         "An error occurred while removing the person. Please try again.",
       parentNameLength: "{parent} name must be 100 characters or less",
       parentSameName: "{parent} cannot be the same as the person",
+      // Footer
+      projectInfo: "Open Source Genealogy App",
+      developedBy: "Developed by",
+      sourceCode: "Source Code",
+      viewOnGitHub: "View on GitHub",
     },
     fr: {
       pageTitle: "Arbre Généalogique Familial",
@@ -120,6 +127,11 @@ const t = getTranslations(currentLanguage);
       parentNameLength:
         "Le nom de {parent} doit contenir au maximum 100 caractères",
       parentSameName: "{parent} ne peut pas être identique à la personne",
+      // Footer
+      projectInfo: "Application Généalogique Open Source",
+      developedBy: "Développé par",
+      sourceCode: "Code Source",
+      viewOnGitHub: "Voir sur GitHub",
     },
     de: {
       pageTitle: "Familienstammbaum Genealogie",
@@ -163,6 +175,11 @@ const t = getTranslations(currentLanguage);
         "Beim Entfernen der Person ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
       parentNameLength: "{parent}-Name darf maximal 100 Zeichen lang sein",
       parentSameName: "{parent} kann nicht dieselbe wie die Person sein",
+      // Footer
+      projectInfo: "Open Source Genealogie-App",
+      developedBy: "Entwickelt von",
+      sourceCode: "Quellcode",
+      viewOnGitHub: "Auf GitHub ansehen",
     },
   };
 
@@ -239,7 +256,7 @@ const t = getTranslations(currentLanguage);
   .app-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       sans-serif;
   }
@@ -272,7 +289,7 @@ const t = getTranslations(currentLanguage);
   :global(body) {
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
   }
 
   :global(*) {

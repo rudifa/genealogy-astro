@@ -65,4 +65,10 @@ export const fr: Translations = {
   // Language switcher
   language: "Langue",
   selectLanguage: "Sélectionner la Langue",
+
+  // Footer
+  projectInfo: "Application Généalogique Open Source",
+  developedBy: "Développé par",
+  sourceCode: "Code Source",
+  viewOnGitHub: "Voir sur GitHub",
 };
