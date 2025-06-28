@@ -11,7 +11,7 @@
 - save data in browser storage
 - reset to the original sample tree
 - responsive design
-- publish on Vercel
+- published on Vercel as [genealogy-astro](https://genealogy-astro.vercel.app/)
 
 ## Missing features
 
