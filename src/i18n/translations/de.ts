@@ -14,6 +14,7 @@ export const de: Translations = {
   // Toolbar
   addPerson: "Person Hinzufügen",
   clearAll: "Alles Löschen",
+  familyExample: "Familienbeispiel",
   loading: "Laden...",
 
   // Dialog
@@ -39,6 +40,7 @@ export const de: Translations = {
   graphUpdated: "Graph aktualisiert",
   graphCleared: "Graph geleert",
   noDataToClear: "Keine Daten zum Löschen",
+  familyExampleLoaded: "Familienbeispiel geladen",
   personNotFound: "nicht gefunden",
   errorRendering: "Graph-Rendering fehlgeschlagen",
   errorUpdating: "Graph-Aktualisierung fehlgeschlagen",
@@ -55,6 +57,8 @@ export const de: Translations = {
     "Sind Sie sicher, dass Sie {name} entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
   confirmClear:
     "Sind Sie sicher, dass Sie alle {count} {people} aus der Genealogie entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  confirmFamilyExample:
+    "Sind Sie sicher, dass Sie das Familienbeispiel laden möchten? Dies ersetzt Ihre aktuellen Daten und kann nicht rückgängig gemacht werden.",
   actionCannotBeUndone: "Diese Aktion kann nicht rückgängig gemacht werden.",
 
   // Placeholders and misc

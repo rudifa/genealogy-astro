@@ -18,6 +18,7 @@ const {data, language, translations} = Astro.props;
     <LanguageSwitcher currentLanguage={language} translations={translations} />
     <button id='add-button' type='button'>{translations.addPerson}</button>
     <button id='clear-button' type='button'>{translations.clearAll}</button>
+    <button id='reset-button' type='button'>{translations.familyExample}</button>
     <div
       id='loading-indicator'
       class='loading-indicator'
@@ -120,6 +121,17 @@ const {data, language, translations} = Astro.props;
   #clear-button:hover:not(:disabled) {
     background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
     border-color: #bd2130;
+  }
+
+  #reset-button {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    border-color: #6c757d;
+  }
+
+  #reset-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+    border-color: #545b62;
   }
 
   .loading-indicator {
@@ -244,7 +256,66 @@ const {data, language, translations} = Astro.props;
   import {GenealogyData} from "/utility/GenealogyData.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
-  const genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
+  // Initialize genealogy data with localStorage persistence
+  const STORAGE_KEY = "genealogy-app-data";
+  let genealogyData;
+
+  function loadDataFromStorage() {
+    try {
+      const storedData = localStorage.getItem(STORAGE_KEY);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        console.log("Loaded data from localStorage:", parsedData);
+        return new GenealogyData(parsedData);
+      }
+    } catch (error) {
+      console.warn("Failed to load data from localStorage:", error);
+    }
+
+    // Fallback to initial data
+    console.log("Using initial data from server");
+    return new GenealogyData(JSON.parse(genealogyDataJson));
+  }
+
+  function saveDataToStorage() {
+    try {
+      const dataToStore = {
+        persons: genealogyData.persons,
+        // Add any other data properties that need to be persisted
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
+      console.log("Saved data to localStorage");
+    } catch (error) {
+      console.error("Failed to save data to localStorage:", error);
+    }
+  }
+
+  function resetToOriginalData() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
+      console.log("Reset to original data");
+    } catch (error) {
+      console.error("Failed to reset to original data:", error);
+    }
+  }
+
+  // Make functions available globally for debugging/console access
+  window.genealogyDebug = {
+    saveToStorage: saveDataToStorage,
+    resetToOriginal: resetToOriginalData,
+    clearStorage: () => localStorage.removeItem(STORAGE_KEY),
+    getData: () => genealogyData,
+    getStoredData: () => {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch {
+        return null;
+      }
+    }
+  };
+
+  genealogyData = loadDataFromStorage();
   const graphvizPromise = Graphviz.load();
 
   // UI state management
@@ -277,11 +348,13 @@ const {data, language, translations} = Astro.props;
     // Update button text
     const addButton = document.getElementById("add-button");
     const clearButton = document.getElementById("clear-button");
+    const resetButton = document.getElementById("reset-button");
     const loadingIndicator = document.querySelector("#loading-indicator span");
     const graphPlaceholder = document.querySelector("#graph-placeholder p");
 
     if (addButton) addButton.textContent = translations.addPerson;
     if (clearButton) clearButton.textContent = translations.clearAll;
+    if (resetButton) resetButton.textContent = translations.familyExample;
     if (loadingIndicator) loadingIndicator.textContent = translations.loading;
     if (graphPlaceholder)
       graphPlaceholder.textContent = translations.loadingGraph;
@@ -316,16 +389,19 @@ const {data, language, translations} = Astro.props;
     const loadingIndicator = document.getElementById("loading-indicator");
     const addButton = document.getElementById("add-button");
     const clearButton = document.getElementById("clear-button");
+    const resetButton = document.getElementById("reset-button");
 
     if (loading) {
       loadingIndicator.style.display = "flex";
       addButton.disabled = true;
       clearButton.disabled = true;
+      resetButton.disabled = true;
       isRendering = true;
     } else {
       loadingIndicator.style.display = "none";
       addButton.disabled = false;
       clearButton.disabled = false;
+      resetButton.disabled = false;
       isRendering = false;
     }
   }
@@ -334,6 +410,7 @@ const {data, language, translations} = Astro.props;
     // --- Get references to UI elements ---
     const addButton = document.getElementById("add-button");
     const clearButton = document.getElementById("clear-button");
+    const resetButton = document.getElementById("reset-button");
     const graphContainer = document.querySelector(".genealogy-graph");
     const graphPlaceholder = document.getElementById("graph-placeholder");
 
@@ -386,6 +463,8 @@ const {data, language, translations} = Astro.props;
       // --- Listen for data changes from the dialog ---
       document.addEventListener("genealogy-data-changed", async (event) => {
         try {
+          // Save to localStorage whenever data changes
+          saveDataToStorage();
           await renderGraph();
           showNotification(currentTranslations.graphUpdated || "Graph updated", "success");
         } catch (error) {
@@ -473,6 +552,8 @@ const {data, language, translations} = Astro.props;
 
           if (confirm(confirmMessage)) {
             genealogyData.clear();
+            // Save to localStorage after clearing
+            saveDataToStorage();
             await renderGraph();
           }
         } catch (error) {
@@ -482,6 +563,31 @@ const {data, language, translations} = Astro.props;
               "Error clearing genealogy data",
             "error"
           );
+        }
+      });
+
+      resetButton.addEventListener("click", async () => {
+        try {
+          if (isRendering) return;
+
+          const hasStoredData = localStorage.getItem(STORAGE_KEY) !== null;
+          const confirmMessage = hasStoredData
+            ? currentTranslations.confirmFamilyExample || "Are you sure you want to load the family example? This will replace your current data and cannot be undone."
+            : "No changes to reset - already using original data.";
+
+          if (!hasStoredData) {
+            showNotification(confirmMessage, "info");
+            return;
+          }
+
+          if (confirm(confirmMessage)) {
+            resetToOriginalData();
+            await renderGraph();
+            showNotification(currentTranslations.familyExampleLoaded || "Family example loaded", "success");
+          }
+        } catch (error) {
+          console.error("Error loading family example:", error);
+          showNotification("Error loading family example", "error");
         }
       });
 

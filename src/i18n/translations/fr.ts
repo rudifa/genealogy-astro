@@ -14,6 +14,7 @@ export const fr: Translations = {
   // Toolbar
   addPerson: "Ajouter Personne",
   clearAll: "Tout Effacer",
+  familyExample: "Exemple Familial",
   loading: "Chargement...",
 
   // Dialog
@@ -39,6 +40,7 @@ export const fr: Translations = {
   graphUpdated: "Graphique mis à jour",
   graphCleared: "Graphique effacé",
   noDataToClear: "Aucune donnée à effacer",
+  familyExampleLoaded: "Exemple familial chargé",
   personNotFound: "non trouvé",
   errorRendering: "Échec du rendu du graphique",
   errorUpdating: "Échec de la mise à jour du graphique",
@@ -55,6 +57,8 @@ export const fr: Translations = {
     "Êtes-vous sûr de vouloir supprimer {name}? Cette action ne peut pas être annulée.",
   confirmClear:
     "Êtes-vous sûr de vouloir supprimer toutes les {count} {people} de la généalogie? Cette action ne peut pas être annulée.",
+  confirmFamilyExample:
+    "Êtes-vous sûr de vouloir charger l'exemple familial? Cela remplacera vos données actuelles et ne peut pas être annulé.",
   actionCannotBeUndone: "Cette action ne peut pas être annulée.",
 
   // Placeholders and misc

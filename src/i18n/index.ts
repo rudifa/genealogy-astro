@@ -14,6 +14,7 @@ export interface Translations {
   // Toolbar
   addPerson: string;
   clearAll: string;
+  familyExample: string;
   loading: string;
 
   // Dialog
@@ -39,6 +40,7 @@ export interface Translations {
   graphUpdated: string;
   graphCleared: string;
   noDataToClear: string;
+  familyExampleLoaded: string;
   personNotFound: string;
   errorRendering: string;
   errorUpdating: string;
@@ -51,6 +53,7 @@ export interface Translations {
   // Confirmations
   confirmRemove: string;
   confirmClear: string;
+  confirmFamilyExample: string;
   actionCannotBeUndone: string;
 
   // Placeholders and misc
