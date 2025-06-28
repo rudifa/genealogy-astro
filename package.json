@@ -1,14 +1,57 @@
 {
     "name": "genealogy-astro",
     "type": "module",
-    "version": "0.0.1",
+    "version": "1.0.0",
+    "description": "Interactive family tree visualization and management application built with Astro",
+    "author": {
+        "name": "Rudi Farkas",
+        "email": "rudifarkas@gmail.com"
+    },
+    "license": "MIT",
+    "keywords": [
+        "genealogy",
+        "family-tree",
+        "family-history",
+        "astro",
+        "typescript",
+        "visualization",
+        "graphviz",
+        "interactive",
+        "ancestors",
+        "descendants"
+    ],
+    "homepage": "https://github.com/rudifarkas/genealogy-astro#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rudifarkas/genealogy-astro.git"
+    },
+    "bugs": {
+        "url": "https://github.com/rudifarkas/genealogy-astro/issues"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=8.0.0"
+    },
     "scripts": {
         "dev": "astro dev",
-        "build": "astro build",
+        "start": "astro dev",
+        "build": "astro check && astro build",
         "preview": "astro preview",
-        "astro": "astro"
+        "astro": "astro",
+        "check": "astro check",
+        "lint": "astro check",
+        "clean": "rm -rf dist .astro"
     },
     "dependencies": {
         "astro": "^5.10.1"
-    }
+    },
+    "devDependencies": {
+        "@astro/check": "^0.9.0",
+        "typescript": "^5.0.0"
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
 }
