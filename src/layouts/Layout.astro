@@ -1,17 +1,21 @@
 ---
+import type {Language} from "../i18n/index";
+
 export interface Props {
   title: string;
   description?: string;
+  language?: Language;
 }
 
 const {
   title,
   description = "Interactive family tree visualization and genealogy management application.",
+  language = "en" as Language,
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang='en'>
+<html lang={language}>
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />

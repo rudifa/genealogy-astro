@@ -1,0 +1,122 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<header class='app-header'>
+  <div class='header-content'>
+    <div class='title-section'>
+      <h1 class='app-title'>{translations.appTitle}</h1>
+      <p class='app-subtitle'>{translations.appSubtitle}</p>
+    </div>
+  </div>
+</header>
+
+<style>
+  .app-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title-section {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .app-title {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    color: white;
+  }
+
+  .app-subtitle {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .app-header {
+      padding: 10px 0;
+    }
+
+    .header-content {
+      padding: 0 16px;
+    }
+
+    .app-title {
+      font-size: 2rem;
+    }
+
+    .app-subtitle {
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .app-header {
+      padding: 8px 0;
+    }
+
+    .header-content {
+      padding: 0 12px;
+    }
+
+    .app-title {
+      font-size: 1.75rem;
+    }
+
+    .app-subtitle {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+<script type='module' is:inline>
+  // Function to update header translations
+  function updateHeaderTranslations(translations) {
+    const appTitle = document.querySelector(".header-content .app-title");
+    const appSubtitle = document.querySelector(".header-content .app-subtitle");
+
+    if (appTitle) {
+      appTitle.textContent = translations.appTitle;
+    }
+
+    if (appSubtitle) {
+      appSubtitle.textContent = translations.appSubtitle;
+    }
+  }
+
+  // Listen for language changes
+  window.addEventListener("languageChanged", function (event) {
+    const translations = event.detail.translations;
+    if (translations) {
+      updateHeaderTranslations(translations);
+    }
+  });
+</script>

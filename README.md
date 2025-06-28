@@ -5,12 +5,16 @@
 - view the defult sample tree
 - add new persons
 - edit existing persons
-- delete persons
+- remove persons
+- clear all
+- UX in English, French, and German
+- save data in browser storage
+- reset to the original sample tree
+- responsive design
+- publish on Vercel
 
 ## Missing features
 
-- publish on Netlify or Vercel
-- save changes in the browser storage (as long as the page tab is open)
 - save changes to a file
 - load a tree from a file
 - load multiple files and merge them

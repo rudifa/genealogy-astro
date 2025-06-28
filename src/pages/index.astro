@@ -1,24 +1,101 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
+import Footer from "../components/Footer.astro";
 import jsonData from "@/data/sample_tree.json";
 import type {GenealogyData} from "@/types";
+import {getTranslations, translations, type Language} from "../i18n/index";
 
 const genealogyData: GenealogyData = jsonData;
+
+// For now, we'll default to English on the server side
+// The client will handle language detection and updates
+const currentLanguage: Language = "en";
+const t = getTranslations(currentLanguage);
 ---
 
-<Layout title='Genealogy Tree'>
+<Layout
+  title={t.pageTitle}
+  description={t.pageDescription}
+  language={currentLanguage}>
   <main class='app-container'>
-    <header class='app-header'>
-      <h1>Family Tree Explorer</h1>
-      <p class='app-description'>
-        Visualize and manage your family genealogy with an interactive graph.
-        Click on any person to edit their details or add new family members.
-      </p>
-    </header>
-    <GenealogyGraph data={genealogyData} />
+    <Header language={currentLanguage} translations={t} />
+    <GenealogyGraph
+      data={genealogyData}
+      language={currentLanguage}
+      translations={t}
+    />
+    <Footer language={currentLanguage} translations={t} />
   </main>
 </Layout>
+
+<script is:inline define:vars={{translationsData: JSON.stringify(translations)}}
+>
+  // Use translations from the i18n system
+  window.genealogyTranslations = JSON.parse(translationsData);
+  window.currentLanguage = "en";
+
+  window.updatePageLanguage = function (language) {
+    const t =
+      window.genealogyTranslations[language] || window.genealogyTranslations.en;
+
+    // Update page title and meta
+    document.title = t.pageTitle;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", t.pageDescription);
+    }
+    document.documentElement.lang = language;
+
+    // Trigger a custom event to update components
+    window.dispatchEvent(
+      new CustomEvent("languageChanged", {
+        detail: {language: language, translations: t},
+      })
+    );
+  };
+
+  window.detectAndSetLanguage = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang");
+    const storedLang = localStorage.getItem("genealogy-language");
+
+    let selectedLanguage = "en";
+
+    if (urlLang && ["en", "fr", "de"].includes(urlLang)) {
+      selectedLanguage = urlLang;
+      localStorage.setItem("genealogy-language", urlLang);
+    } else if (storedLang && ["en", "fr", "de"].includes(storedLang)) {
+      selectedLanguage = storedLang;
+      // Update URL to reflect stored preference
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", selectedLanguage);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    if (selectedLanguage !== window.currentLanguage) {
+      window.currentLanguage = selectedLanguage;
+      window.updatePageLanguage(window.currentLanguage);
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", window.detectAndSetLanguage);
+
+  // Handle language changes from the language switcher
+  window.addEventListener("languageChanged", function (event) {
+    const language = event.detail.language;
+    if (language !== window.currentLanguage) {
+      window.currentLanguage = language;
+      localStorage.setItem("genealogy-language", language);
+
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", language);
+      window.history.replaceState({}, "", url.toString());
+    }
+  });
+</script>
 
 <style>
   .app-container {
@@ -29,63 +106,14 @@ const genealogyData: GenealogyData = jsonData;
       sans-serif;
   }
 
-  .app-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .app-header h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2.5rem;
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .app-description {
-    margin: 0;
-    font-size: 1.1rem;
-    opacity: 0.9;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.5;
-  }
-
   /* Global styles */
   :global(body) {
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
   }
 
   :global(*) {
     box-sizing: border-box;
-  }
-
-  /* Responsive design */
-  @media (max-width: 768px) {
-    .app-header {
-      padding: 1.5rem 1rem;
-    }
-
-    .app-header h1 {
-      font-size: 2rem;
-    }
-
-    .app-description {
-      font-size: 1rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .app-header h1 {
-      font-size: 1.75rem;
-    }
-
-    .app-description {
-      font-size: 0.9rem;
-    }
   }
 </style>

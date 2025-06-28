@@ -1,0 +1,141 @@
+---
+import {supportedLanguages, type Language} from "../i18n/index";
+
+export interface Props {
+  currentLanguage: Language;
+  translations: any;
+}
+
+const {currentLanguage, translations} = Astro.props;
+---
+
+<div class='language-switcher'>
+  <select id='language-select' class='language-select'>
+    {
+      supportedLanguages.map((lang) => (
+        <option value={lang.code} selected={lang.code === currentLanguage}>
+          {lang.flag} {lang.nativeName}
+        </option>
+      ))
+    }
+  </select>
+</div>
+
+<style>
+  .language-switcher {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .language-select {
+    padding: 8px 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-width: 150px;
+    text-align: center;
+  }
+
+  .language-select:hover {
+    border-color: #adb5bd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .language-select:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow:
+      0 0 0 3px rgba(0, 122, 204, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .language-select option {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  @media (max-width: 768px) {
+    .language-switcher {
+      margin-bottom: 10px;
+      padding: 6px;
+    }
+
+    .language-select {
+      font-size: 13px;
+      padding: 6px 10px;
+      min-width: 130px;
+    }
+
+    .language-select option {
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .language-select {
+      font-size: 12px;
+      padding: 5px 8px;
+      min-width: 120px;
+    }
+
+    .language-select option {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    const languageSelect = document.getElementById("language-select");
+
+    if (languageSelect) {
+      // Set initial value based on current language
+      const currentLang = window.currentLanguage || "en";
+      languageSelect.value = currentLang;
+
+      languageSelect.addEventListener("change", function (event) {
+        const selectedLanguage = event.target.value;
+
+        // Update the global language
+        window.currentLanguage = selectedLanguage;
+
+        // Store language preference in localStorage
+        localStorage.setItem("genealogy-language", selectedLanguage);
+
+        // Update the page language
+        if (window.updatePageLanguage) {
+          window.updatePageLanguage(selectedLanguage);
+        }
+
+        // Update URL
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", selectedLanguage);
+        window.history.replaceState({}, "", url.toString());
+      });
+    }
+
+    // Listen for language changes to update the dropdown
+    window.addEventListener("languageChanged", function (event) {
+      const language = event.detail.language;
+      if (languageSelect && languageSelect.value !== language) {
+        languageSelect.value = language;
+      }
+    });
+  });
+</script>

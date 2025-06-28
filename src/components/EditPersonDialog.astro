@@ -1,5 +1,13 @@
 ---
 import type {Person} from "@/types";
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
 
 // This component is a simple, static dialog.
 // All logic to show, hide, and handle its form is in the client-side
@@ -8,12 +16,16 @@ import type {Person} from "@/types";
 
 <div id='edit-dialog' class='dialog-overlay' style='display: none;'>
   <div class='dialog-content'>
-    <h2>Edit Person</h2>
+    <h2>{translations.editPerson}</h2>
     <div id='error-message' class='error-message' style='display: none;'></div>
     <form id='edit-form'>
       <input type='hidden' id='original-name' name='originalName' />
       <div class='form-field'>
-        <label for='person-name'>Name: <span class='required'>*</span></label>
+        <label for='person-name'
+          >{translations.name}: <span class='required'
+            >{translations.required}</span
+          ></label
+        >
         <input
           type='text'
           id='person-name'
@@ -26,7 +38,7 @@ import type {Person} from "@/types";
         <div class='field-error' id='name-error'></div>
       </div>
       <div class='form-field'>
-        <label for='person-mother'>Mother:</label>
+        <label for='person-mother'>{translations.mother}:</label>
         <input
           type='text'
           id='person-mother'
@@ -38,7 +50,7 @@ import type {Person} from "@/types";
         <div class='field-error' id='mother-error'></div>
       </div>
       <div class='form-field'>
-        <label for='person-father'>Father:</label>
+        <label for='person-father'>{translations.father}:</label>
         <input
           type='text'
           id='person-father'
@@ -50,9 +62,9 @@ import type {Person} from "@/types";
         <div class='field-error' id='father-error'></div>
       </div>
       <div class='dialog-buttons'>
-        <button type='submit' id='save-button'>Save</button>
-        <button type='button' id='remove-button'>Remove</button>
-        <button type='button' id='cancel-button'>Cancel</button>
+        <button type='submit' id='save-button'>{translations.save}</button>
+        <button type='button' id='remove-button'>{translations.remove}</button>
+        <button type='button' id='cancel-button'>{translations.cancel}</button>
       </div>
     </form>
   </div>
@@ -198,8 +210,26 @@ import type {Person} from "@/types";
   }
 </style>
 
-<script type='module'>
+<script type='module' is:inline>
   export function initializeEditDialog(genealogyData) {
+    // Use global translations, with English as fallback
+    let t = window.genealogyTranslations?.[window.currentLanguage] ||
+      window.genealogyTranslations?.en || {
+        editPerson: "Edit Person",
+        addNewPerson: "Add New Person",
+        nameRequired: "Name is required",
+        nameMaxLength: "Name must be 100 characters or less",
+        nameExists: "A person with this name already exists",
+        confirmRemove:
+          "Are you sure you want to remove {name}? This action cannot be undone.",
+        validationErrors: "Please fix the validation errors before saving",
+        errorSaving: "An error occurred while saving. Please try again.",
+        errorRemoving:
+          "An error occurred while removing the person. Please try again.",
+        parentNameLength: "{parent} name must be 100 characters or less",
+        parentSameName: "{parent} cannot be the same as the person",
+      };
+
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
     const form = document.getElementById("edit-form");
@@ -219,14 +249,49 @@ import type {Person} from "@/types";
 
     let isNewPerson = false;
 
+    // Function to update dialog translations
+    function updateDialogTranslations(translations) {
+      t = translations;
+
+      // Update static text elements
+      const dialogTitle = dialog.querySelector("h2");
+      const nameLabel = document.querySelector('label[for="person-name"]');
+      const motherLabel = document.querySelector('label[for="person-mother"]');
+      const fatherLabel = document.querySelector('label[for="person-father"]');
+
+      // Update labels
+      if (nameLabel)
+        nameLabel.innerHTML = `${t.name}: <span class='required'>${t.required}</span>`;
+      if (motherLabel) motherLabel.textContent = `${t.mother}:`;
+      if (fatherLabel) fatherLabel.textContent = `${t.father}:`;
+
+      // Update buttons
+      if (saveButton) saveButton.textContent = t.save;
+      if (removeButton) removeButton.textContent = t.remove;
+      if (cancelButton) cancelButton.textContent = t.cancel;
+
+      // Update dialog title based on current state
+      if (dialogTitle && dialog.style.display === "flex") {
+        dialogTitle.textContent = isNewPerson ? t.addNewPerson : t.editPerson;
+      }
+    }
+
+    // Initialize dialog translations on load
+    updateDialogTranslations(t);
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      updateDialogTranslations(event.detail.translations);
+    });
+
     // --- Validation functions ---
     function validateName(name) {
       const trimmedName = name.trim();
       if (!trimmedName) {
-        return "Name is required";
+        return t.nameRequired;
       }
       if (trimmedName.length > 100) {
-        return "Name must be 100 characters or less";
+        return t.nameMaxLength;
       }
       // Check for duplicate names (only for new persons or when name changed)
       if (isNewPerson || trimmedName !== originalNameInput.value) {
@@ -234,7 +299,7 @@ import type {Person} from "@/types";
           (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
         );
         if (existingPerson) {
-          return "A person with this name already exists";
+          return t.nameExists;
         }
       }
       return null;
@@ -244,13 +309,13 @@ import type {Person} from "@/types";
       if (!parentName.trim()) return null;
 
       if (parentName.trim().length > 100) {
-        return `${fieldName} name must be 100 characters or less`;
+        return t.parentNameLength.replace("{parent}", fieldName);
       }
 
       // Check for circular relationship
       const currentName = nameInput.value.trim();
       if (parentName.trim().toLowerCase() === currentName.toLowerCase()) {
-        return `${fieldName} cannot be the same as the person`;
+        return t.parentSameName.replace("{parent}", fieldName);
       }
 
       return null;
@@ -307,7 +372,7 @@ import type {Person} from "@/types";
 
       // Update dialog title
       const title = dialog.querySelector("h2");
-      title.textContent = isNewPerson ? "Add New Person" : "Edit Person";
+      title.textContent = isNewPerson ? t.addNewPerson : t.editPerson;
 
       // Show/hide remove button based on whether this is a new person
       removeButton.style.display = isNewPerson ? "none" : "block";
@@ -361,7 +426,7 @@ import type {Person} from "@/types";
       e.preventDefault();
 
       if (!validateForm()) {
-        showError("Please fix the validation errors before saving");
+        showError(t.validationErrors);
         return;
       }
 
@@ -378,27 +443,22 @@ import type {Person} from "@/types";
         emitDataChanged();
       } catch (error) {
         console.error("Error saving person:", error);
-        showError("An error occurred while saving. Please try again.");
+        showError(t.errorSaving);
       }
     });
 
     // Remove button removes the person from genealogy data
     removeButton.addEventListener("click", async () => {
       const personName = originalNameInput.value;
-      if (
-        confirm(
-          `Are you sure you want to remove ${personName}? This action cannot be undone.`
-        )
-      ) {
+      const confirmMessage = t.confirmRemove.replace("{name}", personName);
+      if (confirm(confirmMessage)) {
         try {
           genealogyData.removePerson(personName);
           closeEditDialog();
           emitDataChanged();
         } catch (error) {
           console.error("Error removing person:", error);
-          showError(
-            "An error occurred while removing the person. Please try again."
-          );
+          showError(t.errorRemoving);
         }
       }
     });
