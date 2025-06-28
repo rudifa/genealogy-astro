@@ -57,20 +57,24 @@ export class GenealogyData {
     });
     return allNames;
   }
+
   updatePersonsFromNames() {
-    const existingNames = new Set(this.persons.map(p => p.name));
-    const allNames = this.getAllUniqueNames();
+
+    const existingPersonNames = new Set(this.persons.map(p => p.name));
+    const allNames = this.getAllUniqueNames(); // of persons and of parents
+    const missingPersonNames = [];
 
     allNames.forEach(name => {
-      if (!existingNames.has(name)) {
-        this.addPerson({
-          name: name,
-          mother: null,
-          father: null
-        });
+      if (!existingPersonNames.has(name)) {
+        missingPersonNames.push(name);
       }
     });
+
+    missingPersonNames.forEach(name => {
+      this.persons.push({ name, mother: null, father: null });
+    });
   }
+
    genealogyDotString() {
     const dotLines = [
       "strict digraph G {",
