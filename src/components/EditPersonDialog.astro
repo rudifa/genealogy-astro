@@ -71,3 +71,84 @@
     gap: 10px;
   }
 </style>
+
+<script type='module'>
+  export function initializeEditDialog(
+    genealogyData,
+    genealogySvgString,
+    graphContainer
+  ) {
+    // --- Get references to dialog elements ---
+    const dialog = document.getElementById("edit-dialog");
+    const form = document.getElementById("edit-form");
+    const originalNameInput = document.getElementById("original-name");
+    const nameInput = document.getElementById("person-name");
+    const motherInput = document.getElementById("person-mother");
+    const fatherInput = document.getElementById("person-father");
+    const saveButton = document.getElementById("save-button");
+    const cancelButton = document.getElementById("cancel-button");
+    const removeButton = document.getElementById("remove-button");
+
+    // --- Dialog functions ---
+    function openEditDialog(person) {
+      originalNameInput.value = person.name;
+      nameInput.value = person.name;
+      motherInput.value = person.mother || "";
+      fatherInput.value = person.father || "";
+      dialog.style.display = "flex";
+    }
+
+    function closeEditDialog() {
+      dialog.style.display = "none";
+    }
+
+    // --- Dialog event listeners ---
+    // Cancel button closes the dialog
+    cancelButton.addEventListener("click", closeEditDialog);
+
+    // Save button updates the genealogy data and closes the dialog
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const updatedPerson = {
+        name: nameInput.value,
+        mother: motherInput.value || null,
+        father: fatherInput.value || null,
+      };
+
+      genealogyData.updatePerson(originalNameInput.value, updatedPerson);
+
+      console.log("Updated data:", genealogyData);
+
+      // Re-render the graph with the updated data
+      if (graphContainer) {
+        const newSvgString = await genealogySvgString(genealogyData);
+        graphContainer.innerHTML = newSvgString;
+        console.log("Updated svg:", newSvgString);
+      }
+
+      closeEditDialog();
+    });
+
+    // Remove button removes the person from genealogy data
+    removeButton.addEventListener("click", async () => {
+      const personName = originalNameInput.value;
+      if (confirm(`Are you sure you want to remove ${personName}?`)) {
+        genealogyData.removePerson(personName);
+
+        // Re-render the graph with the updated data
+        if (graphContainer) {
+          const newSvgString = await genealogySvgString(genealogyData);
+          graphContainer.innerHTML = newSvgString;
+        }
+
+        closeEditDialog();
+      }
+    });
+
+    // Return the openEditDialog function so it can be called from outside
+    return {openEditDialog};
+  }
+
+  // Make the function available globally
+  window.initializeEditDialog = initializeEditDialog;
+</script>

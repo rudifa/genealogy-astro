@@ -1,5 +1,6 @@
 ---
 import type {GenealogyData as GenealogyDataType} from "@/types";
+import EditPersonDialog from "./EditPersonDialog.astro";
 
 interface Props {
   data: GenealogyDataType;
@@ -17,6 +18,8 @@ const {data} = Astro.props;
     <!-- This container will be populated by the client-side script -->
   </div>
 </div>
+
+<EditPersonDialog />
 
 <style>
   .screen {
@@ -86,23 +89,19 @@ const {data} = Astro.props;
   }
 
   async function initializeGraph() {
-    // --- Get references to dialog elements ---
-    const dialog = document.getElementById("edit-dialog");
-    const form = document.getElementById("edit-form");
-    const originalNameInput = document.getElementById("original-name");
-    const nameInput = document.getElementById("person-name");
-    const motherInput = document.getElementById("person-mother");
-    const fatherInput = document.getElementById("person-father");
-    const saveButton = document.getElementById("save-button");
-    const cancelButton = document.getElementById("cancel-button");
-    const removeButton = document.getElementById("remove-button");
-
     // --- Get references to toolbar buttons ---
     const addButton = document.getElementById("add-button");
     const clearButton = document.getElementById("clear-button");
 
     // --- Graph click handler ---
     const graphContainer = document.querySelector(".genealogy-graph");
+
+    // --- Initialize the edit dialog ---
+    const {openEditDialog} = window.initializeEditDialog(
+      genealogyData,
+      genealogySvgString,
+      graphContainer
+    );
 
     // --- Render the graph on page load ---
     if (graphContainer) {
@@ -139,59 +138,6 @@ const {data} = Astro.props;
         }
       });
     }
-
-    // --- Dialog functions ---
-    function openEditDialog(person) {
-      originalNameInput.value = person.name;
-      nameInput.value = person.name;
-      motherInput.value = person.mother || "";
-      fatherInput.value = person.father || "";
-      dialog.style.display = "flex";
-    }
-
-    function closeEditDialog() {
-      dialog.style.display = "none";
-    }
-
-    // --- Dialog event listeners ---
-    cancelButton.addEventListener("click", closeEditDialog);
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const updatedPerson = {
-        name: nameInput.value,
-        mother: motherInput.value || null,
-        father: fatherInput.value || null,
-      };
-
-      genealogyData.updatePerson(originalNameInput.value, updatedPerson);
-
-      console.log("Updated data:", genealogyData);
-
-      // Re-render the graph with the updated data
-      if (graphContainer) {
-        const newSvgString = await genealogySvgString(genealogyData);
-        graphContainer.innerHTML = newSvgString;
-        console.log("Updated svg:", newSvgString);
-      }
-
-      closeEditDialog();
-    });
-
-    removeButton.addEventListener("click", async () => {
-      const personName = originalNameInput.value;
-      if (confirm(`Are you sure you want to remove ${personName}?`)) {
-        genealogyData.removePerson(personName);
-
-        // Re-render the graph with the updated data
-        if (graphContainer) {
-          const newSvgString = await genealogySvgString(genealogyData);
-          graphContainer.innerHTML = newSvgString;
-        }
-
-        closeEditDialog();
-      }
-    });
 
     // --- Toolbar button event listeners ---
     addButton.addEventListener("click", () => {
