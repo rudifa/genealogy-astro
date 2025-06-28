@@ -1,106 +1,417 @@
 ---
-function genealogyDotString(data) {
-  const dotLines = [
-    "strict digraph G {",
-    '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
-  ];
-
-  for (const person of data.persons) {
-    // Add the main person node with a clickable URL
-    dotLines.push(
-      `  "${person.name}" [label="${person.name}", URL="#person:${encodeURIComponent(person.name)}"];`
-    );
-
-    // Add nodes for parents if they exist
-    if (person.mother) {
-      dotLines.push(`  "${person.mother}" [label="${person.mother}"];`);
-    }
-    if (person.father) {
-      dotLines.push(`  "${person.father}" [label="${person.father}"];`);
-    }
-
-    // If both parents exist, create a union node and connect them
-    if (person.mother && person.father) {
-      const parentsNode = `"${person.mother} + ${person.father}"`;
-      dotLines.push(
-        `  ${parentsNode} [shape=point, label=""];`,
-        `  "${person.mother}" -> ${parentsNode} [dir=none];`,
-        `  "${person.father}" -> ${parentsNode} [dir=none];`,
-        `  ${parentsNode} -> "${person.name}";`
-      );
-    }
-  }
-
-  dotLines.push("}");
-  return dotLines.join("\n");
-}
-
-import {Graphviz} from "@hpcc-js/wasm/graphviz";
-import type {GenealogyData} from "@/types";
+import type {GenealogyData as GenealogyDataType} from "@/types";
+import EditPersonDialog from "./EditPersonDialog.astro";
 
 interface Props {
-  data: GenealogyData;
+  data: GenealogyDataType;
 }
 
 const {data} = Astro.props;
-
-let dotString = genealogyDotString(data);
-// console.log("Generated DOT string:", dotString);
-
-let svg = "";
-try {
-  const graphviz = await Graphviz.load();
-  svg = graphviz.dot(dotString);
-  //   console.log("Graphviz SVG:", svg);
-} catch (error) {
-  console.error("Error rendering graph:", error);
-  svg = `<p>Error rendering graph: ${error.message}</p>`;
-}
 ---
 
-<div class='genealogy-graph' set:html={svg} />
+<div class='screen'>
+  <div class='toolbar'>
+    <button id='add-button' type='button'>Add Person</button>
+    <button id='clear-button' type='button'>Clear All</button>
+    <div
+      id='loading-indicator'
+      class='loading-indicator'
+      style='display: none;'>
+      <div class='spinner'></div>
+      <span>Loading...</span>
+    </div>
+  </div>
+  <div class='genealogy-graph'>
+    <!-- This container will be populated by the client-side script -->
+    <div id='graph-placeholder' class='graph-placeholder'>
+      <p>Loading genealogy graph...</p>
+    </div>
+  </div>
+  <div id='notification' class='notification' style='display: none;'></div>
+</div>
+
+<EditPersonDialog />
 
 <style>
+  .screen {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    position: relative;
+  }
+
+  .toolbar {
+    width: 120px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button {
+    padding: 12px 16px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: #495057;
+  }
+
+  .toolbar button:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  #add-button {
+    background-color: #007acc;
+    color: white;
+    border-color: #007acc;
+  }
+
+  #add-button:hover:not(:disabled) {
+    background-color: #005c99;
+    border-color: #005c99;
+  }
+
+  #clear-button {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+  }
+
+  #clear-button:hover:not(:disabled) {
+    background-color: #c82333;
+    border-color: #bd2130;
+  }
+
+  .loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 12px;
+    color: #6c757d;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007acc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
   .genealogy-graph {
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    position: relative;
+    overflow: auto;
+    background-color: #fafafa;
   }
+
   .genealogy-graph svg {
     max-width: 100%;
     height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: white;
+  }
+
+  .graph-placeholder {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    z-index: 1000;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .notification.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
   }
 </style>
 
-<script is:inline>
-  const graphContainer = document.querySelector(".genealogy-graph");
+<script type='module' define:vars={{genealogyDataJson: JSON.stringify(data)}}>
+  import {GenealogyData} from "/utility/GenealogyData.js";
+  import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
-  if (graphContainer) {
-    graphContainer.addEventListener("click", (event) => {
-      // Find the nearest <a> tag ancestor of the clicked element.
-      // Graphviz wraps clickable nodes in <a> tags.
-      const targetLink = event.target.closest("a");
+  const genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
+  const graphvizPromise = Graphviz.load();
 
-      if (!targetLink) {
-        return;
-      }
+  // UI state management
+  let isRendering = false;
 
-      // Check for our custom URL scheme. Graphviz uses `xlink:href` for SVGs.
-      const url =
-        targetLink.getAttribute("xlink:href") ||
-        targetLink.getAttribute("href");
+  async function genealogySvgString(data) {
+    const dotString = data.genealogyDotString();
 
-      if (url && url.startsWith("#person:")) {
-        // Prevent the browser from trying to navigate to the fragment.
-        event.preventDefault();
-
-        // Extract the person's name from the URL.
-        const personName = decodeURIComponent(url.substring("#person:".length));
-
-        // You can now use the personName, for example, to display more info.
-        console.log(`Person clicked: ${personName}`);
-      }
-    });
+    try {
+      const graphviz = await graphvizPromise;
+      return graphviz.layout(dotString, "svg", "dot");
+    } catch (error) {
+      console.error("Error rendering graph:", error);
+      throw new Error(`Failed to render graph: ${error.message}`);
+    }
   }
+
+  // Notification system
+  function showNotification(message, type = "info", duration = 3000) {
+    const notification = document.getElementById("notification");
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.style.display = "block";
+
+    setTimeout(() => {
+      notification.style.display = "none";
+    }, duration);
+  }
+
+  // Loading state management
+  function setLoadingState(loading) {
+    const loadingIndicator = document.getElementById("loading-indicator");
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+
+    if (loading) {
+      loadingIndicator.style.display = "flex";
+      addButton.disabled = true;
+      clearButton.disabled = true;
+      isRendering = true;
+    } else {
+      loadingIndicator.style.display = "none";
+      addButton.disabled = false;
+      clearButton.disabled = false;
+      isRendering = false;
+    }
+  }
+
+  async function initializeGraph() {
+    // --- Get references to UI elements ---
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+    const graphContainer = document.querySelector(".genealogy-graph");
+    const graphPlaceholder = document.getElementById("graph-placeholder");
+
+    try {
+      // --- Initialize the edit dialog ---
+      const {openEditDialog} = window.initializeEditDialog(genealogyData);
+
+      // --- Function to render the graph ---
+      async function renderGraph() {
+        if (!graphContainer || isRendering) return;
+
+        try {
+          setLoadingState(true);
+
+          // Hide placeholder if it exists
+          if (graphPlaceholder) {
+            graphPlaceholder.style.display = "none";
+          }
+
+          const newSvgString = await genealogySvgString(genealogyData);
+          graphContainer.innerHTML = newSvgString;
+
+          // Show success notification for significant changes
+          if (genealogyData.persons.length === 0) {
+            showNotification("Graph cleared", "info");
+          }
+        } catch (error) {
+          console.error("Error rendering graph:", error);
+          graphContainer.innerHTML = `
+            <div style="text-align: center; color: #dc3545; padding: 20px;">
+              <h3>Error Rendering Graph</h3>
+              <p>${error.message}</p>
+              <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
+                Reload Page
+              </button>
+            </div>
+          `;
+          showNotification("Failed to render graph", "error");
+        } finally {
+          setLoadingState(false);
+        }
+      }
+
+      // --- Listen for data changes from the dialog ---
+      document.addEventListener("genealogy-data-changed", async (event) => {
+        try {
+          await renderGraph();
+          showNotification("Graph updated", "success");
+        } catch (error) {
+          console.error("Error updating graph:", error);
+          showNotification("Failed to update graph", "error");
+        }
+      });
+
+      // --- Render the graph on page load ---
+      await renderGraph();
+
+      if (graphContainer) {
+        // --- Add click event listener to the graph container ---
+        graphContainer.addEventListener("click", (event) => {
+          try {
+            const targetLink = event.target.closest("a");
+
+            if (!targetLink) {
+              return;
+            }
+
+            const url =
+              targetLink.getAttribute("xlink:href") ||
+              targetLink.getAttribute("href");
+
+            if (url && url.startsWith("person:")) {
+              event.preventDefault();
+
+              const personName = decodeURIComponent(
+                url.substring("person:".length)
+              );
+
+              const personData = genealogyData.persons.find(
+                (p) => p.name === personName
+              );
+
+              if (personData) {
+                openEditDialog(personData);
+              } else {
+                showNotification(`Person "${personName}" not found`, "error");
+              }
+            }
+          } catch (error) {
+            console.error("Error handling graph click:", error);
+            showNotification("Error opening person details", "error");
+          }
+        });
+      }
+
+      // --- Toolbar button event listeners ---
+      addButton.addEventListener("click", () => {
+        try {
+          if (isRendering) return;
+
+          const newPerson = {
+            name: "",
+            mother: null,
+            father: null,
+          };
+          openEditDialog(newPerson);
+        } catch (error) {
+          console.error("Error opening add dialog:", error);
+          showNotification("Error opening add person dialog", "error");
+        }
+      });
+
+      clearButton.addEventListener("click", async () => {
+        try {
+          if (isRendering) return;
+
+          const personCount = genealogyData.persons.length;
+          if (personCount === 0) {
+            showNotification("No data to clear", "info");
+            return;
+          }
+
+          const confirmMessage = `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
+
+          if (confirm(confirmMessage)) {
+            genealogyData.clear();
+            await renderGraph();
+          }
+        } catch (error) {
+          console.error("Error clearing data:", error);
+          showNotification("Error clearing genealogy data", "error");
+        }
+      });
+
+      // Add keyboard shortcuts
+      document.addEventListener("keydown", (event) => {
+        // Ctrl/Cmd + N for new person
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key === "n" &&
+          !isRendering
+        ) {
+          event.preventDefault();
+          addButton.click();
+        }
+      });
+    } catch (error) {
+      console.error("Error initializing graph:", error);
+      showNotification("Failed to initialize genealogy graph", "error");
+
+      // Show error in graph container
+      if (graphContainer) {
+        graphContainer.innerHTML = `
+          <div style="text-align: center; color: #dc3545; padding: 20px;">
+            <h3>Initialization Error</h3>
+            <p>Failed to load the genealogy graph application.</p>
+            <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
+              Reload Page
+            </button>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Initialize the graph when the DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeGraph);
 </script>

@@ -1,16 +1,10 @@
 {
     "persons": [
         {
-            "name": "John"
-        },
-        {
             "name": "Mary"
         },
         {
             "name": "Bill"
-        },
-        {
-            "name": "Cathy"
         },
         {
             "father": "John",
@@ -31,6 +25,10 @@
             "father": "Mark",
             "mother": "Jane",
             "name": "Emily"
+        },
+        {
+            "mother": "Cathy",
+            "name": "Danny"
         }
     ]
 }
