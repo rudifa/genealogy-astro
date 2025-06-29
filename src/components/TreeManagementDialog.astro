@@ -65,7 +65,11 @@ const {language, translations} = Astro.props;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.6));
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.75),
+      rgba(15, 23, 42, 0.6)
+    );
     backdrop-filter: blur(8px);
     z-index: 1000;
     display: flex;
@@ -86,11 +90,12 @@ const {language, translations} = Astro.props;
   .dialog-content {
     background: linear-gradient(145deg, #ffffff, #f8fafc);
     border-radius: 20px;
-    box-shadow: 
+    box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       0 0 0 1px rgba(255, 255, 255, 0.05);
     width: 90%;
-    max-width: 520px;
+    max-width: 600px; /* Increased from 520px to give more space */
+    min-width: 480px; /* Ensure minimum width for proper layout */
     max-height: 85vh;
     overflow: hidden;
     display: flex;
@@ -121,13 +126,18 @@ const {language, translations} = Astro.props;
   }
 
   .dialog-header::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
   }
 
   .dialog-header h3 {
@@ -214,13 +224,18 @@ const {language, translations} = Astro.props;
   }
 
   .current-tree-name::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
     transition: left 0.5s;
   }
 
@@ -256,13 +271,15 @@ const {language, translations} = Astro.props;
   }
 
   .tree-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-gap: 16px;
     align-items: center;
     padding: 16px 20px;
     border-bottom: 1px solid #f1f5f9;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
+    min-height: 56px;
   }
 
   .tree-item:last-child {
@@ -289,6 +306,10 @@ const {language, translations} = Astro.props;
     color: #334155;
     font-size: 15px;
     letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .tree-item.active .tree-item-name {
@@ -296,28 +317,51 @@ const {language, translations} = Astro.props;
     font-weight: 700;
   }
 
-  .tree-item-actions {
+  .tree-action-indicator {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 32px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-family: monospace;
+  }
+
+  .tree-action-indicator.active {
+    color: #059669;
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    border: 1px solid #10b981;
+  }
+
+  .tree-action-placeholder {
+    width: 50px;
+    height: 32px;
   }
 
   .tree-action-button {
-    padding: 8px 16px;
+    padding: 6px 10px;
     border: 1px solid transparent;
     background: white;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    min-width: 50px;
+    max-width: 50px;
+    text-align: center;
+    white-space: nowrap;
   }
 
   .tree-action-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -346,7 +390,12 @@ const {language, translations} = Astro.props;
   }
 
   .tree-action-button.switch::before {
-    background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(30, 64, 175, 0.1),
+      transparent
+    );
   }
 
   .tree-action-button.switch:hover {
@@ -362,7 +411,12 @@ const {language, translations} = Astro.props;
   }
 
   .tree-action-button.delete::before {
-    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(220, 38, 38, 0.1),
+      transparent
+    );
   }
 
   .tree-action-button.delete:hover {
@@ -448,13 +502,18 @@ const {language, translations} = Astro.props;
   }
 
   #create-tree-button::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
     transition: left 0.5s;
   }
 
@@ -516,8 +575,10 @@ const {language, translations} = Astro.props;
   @media (max-width: 640px) {
     .dialog-content {
       width: 95%;
+      min-width: 320px; /* Reduce minimum width for mobile */
       margin: 10px;
       border-radius: 16px;
+      max-width: 580px; /* Still provide adequate space */
     }
 
     .dialog-header {
@@ -541,12 +602,24 @@ const {language, translations} = Astro.props;
     }
 
     .tree-action-button {
-      padding: 6px 12px;
+      padding: 5px 8px;
+      font-size: 10px;
+      min-width: 45px;
+      max-width: 45px;
+    }
+
+    .tree-action-indicator {
+      width: 45px;
       font-size: 12px;
+    }
+
+    .tree-action-placeholder {
+      width: 45px;
     }
 
     .tree-item {
       padding: 14px 16px;
+      grid-gap: 12px;
     }
 
     .tree-item:hover {
@@ -554,20 +627,40 @@ const {language, translations} = Astro.props;
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 400px) {
     .dialog-content {
       width: 98%;
+      min-width: 300px; /* Minimum practical width */
       margin: 5px;
     }
 
-    .tree-item-actions {
-      flex-direction: column;
-      gap: 6px;
+    .tree-item {
+      padding: 12px 16px;
+      grid-gap: 8px;
+    }
+
+    .tree-item-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+      font-size: 14px;
     }
 
     .tree-action-button {
-      width: 100%;
-      justify-content: center;
+      padding: 6px 8px;
+      font-size: 10px;
+      min-width: 40px;
+      max-width: 40px;
+    }
+
+    .tree-action-indicator {
+      width: 40px;
+      font-size: 11px;
+    }
+
+    .tree-action-placeholder {
+      width: 40px;
     }
   }
 </style>
@@ -622,17 +715,23 @@ const {language, translations} = Astro.props;
         const treeItem = document.createElement("div");
         treeItem.className = `tree-item ${treeName === currentTree ? "active" : ""}`;
 
+        // Column 1: Tree name
         const nameSpan = document.createElement("span");
         nameSpan.className = "tree-item-name";
         nameSpan.textContent = treeName;
+        treeItem.appendChild(nameSpan);
 
-        const actionsDiv = document.createElement("div");
-        actionsDiv.className = "tree-item-actions";
-
-        if (treeName !== currentTree) {
+        // Column 2: Active indicator or Switch button
+        if (treeName === currentTree) {
+          const activeIndicator = document.createElement("span");
+          activeIndicator.className = "tree-action-indicator active";
+          activeIndicator.textContent = " ✅";
+          activeIndicator.title = "Current active tree";
+          treeItem.appendChild(activeIndicator);
+        } else {
           const switchButton = document.createElement("button");
           switchButton.className = "tree-action-button switch";
-          switchButton.textContent = "Switch";
+          switchButton.textContent = "🔳";
           switchButton.onclick = async () => {
             try {
               const success =
@@ -649,14 +748,14 @@ const {language, translations} = Astro.props;
               alert(`Error switching to tree: ${(error as Error).message}`);
             }
           };
-          actionsDiv.appendChild(switchButton);
+          treeItem.appendChild(switchButton);
         }
 
-        // Don't allow deleting the default tree
+        // Column 3: Delete button or placeholder
         if (treeName !== "Family Example") {
           const deleteButton = document.createElement("button");
           deleteButton.className = "tree-action-button delete";
-          deleteButton.textContent = "Delete";
+          deleteButton.textContent = "❌";
           deleteButton.onclick = async () => {
             if (
               confirm(
@@ -669,7 +768,7 @@ const {language, translations} = Astro.props;
                 if (success) {
                   updateTreeList();
                   updateCurrentTreeDisplay();
-                  // Close dialog after successful switch
+                  // Close dialog after successful deletion
                   hideDialog();
                 } else {
                   alert("Failed to delete tree");
@@ -679,21 +778,25 @@ const {language, translations} = Astro.props;
               }
             }
           };
-          actionsDiv.appendChild(deleteButton);
+          treeItem.appendChild(deleteButton);
+        } else {
+          // Add a placeholder for Family Example to maintain consistent spacing
+          const placeholder = document.createElement("span");
+          placeholder.className = "tree-action-placeholder";
+          placeholder.textContent = ""; // Empty placeholder
+          treeItem.appendChild(placeholder);
         }
 
-        treeItem.appendChild(nameSpan);
-        treeItem.appendChild(actionsDiv);
         treeList.appendChild(treeItem);
       });
     }
 
     function updateCreateButtonState() {
       if (!newTreeInput || !createButton) return;
-      
+
       const treeName = (newTreeInput as HTMLInputElement).value.trim();
       const isEmpty = treeName === "";
-      
+
       (createButton as HTMLButtonElement).disabled = isEmpty;
     }
 
@@ -747,7 +850,10 @@ const {language, translations} = Astro.props;
     if (newTreeInput) {
       newTreeInput.addEventListener("input", updateCreateButtonState);
       newTreeInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && !(createButton as HTMLButtonElement).disabled) {
+        if (
+          e.key === "Enter" &&
+          !(createButton as HTMLButtonElement).disabled
+        ) {
           createNewTree();
         }
       });
