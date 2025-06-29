@@ -142,7 +142,7 @@ const {language, translations} = Astro.props;
 
   .dialog-header h3 {
     margin: 0;
-    font-size: 22px;
+    font-size: 26.4px; /* 22px * 1.2 */
     font-weight: 700;
     letter-spacing: -0.025em;
     background: linear-gradient(135deg, #ffffff, #e2e8f0);
@@ -154,7 +154,7 @@ const {language, translations} = Astro.props;
   .close-button {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 20px;
+    font-size: 36px; /* 30px * 1.2 */
     color: #e2e8f0;
     cursor: pointer;
     padding: 0;
@@ -204,7 +204,7 @@ const {language, translations} = Astro.props;
     margin-bottom: 12px;
     font-weight: 600;
     color: #1e293b;
-    font-size: 15px;
+    font-size: 18px; /* 15px * 1.2 */
     letter-spacing: -0.01em;
   }
 
@@ -216,7 +216,7 @@ const {language, translations} = Astro.props;
     padding: 12px 20px;
     border-radius: 12px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16.8px; /* 14px * 1.2 */
     letter-spacing: 0.025em;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     position: relative;
@@ -304,7 +304,7 @@ const {language, translations} = Astro.props;
   .tree-item-name {
     font-weight: 600;
     color: #334155;
-    font-size: 15px;
+    font-size: 18px !important; /* 15px * 1.2 - force precedence */
     letter-spacing: -0.01em;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -315,6 +315,12 @@ const {language, translations} = Astro.props;
   .tree-item.active .tree-item-name {
     color: #1e40af;
     font-weight: 700;
+    font-size: 22.5px !important; /* Ensure active tree names also get larger font */
+  }
+
+  /* Additional specificity for tree names */
+  .tree-list .tree-item .tree-item-name {
+    font-size: 22.5px !important;
   }
 
   .tree-action-indicator {
@@ -323,7 +329,7 @@ const {language, translations} = Astro.props;
     justify-content: center;
     width: 50px;
     height: 32px;
-    font-size: 14px;
+    font-size: 16.8px; /* 14px * 1.2 */
     font-weight: 700;
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -347,7 +353,7 @@ const {language, translations} = Astro.props;
     background: white;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 13.2px; /* 11px * 1.2 */
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
@@ -448,7 +454,7 @@ const {language, translations} = Astro.props;
     padding: 14px 18px;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
-    font-size: 15px;
+    font-size: 18px; /* 15px * 1.2 */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: white;
     font-weight: 500;
@@ -469,7 +475,7 @@ const {language, translations} = Astro.props;
     margin-bottom: 0 !important;
     cursor: pointer;
     color: #475569;
-    font-size: 14px;
+    font-size: 21px; /* 14px * 1.5 */
     transition: color 0.2s ease;
   }
 
@@ -492,7 +498,7 @@ const {language, translations} = Astro.props;
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 18px; /* 15px * 1.2 */
     font-weight: 600;
     letter-spacing: 0.025em;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -553,7 +559,7 @@ const {language, translations} = Astro.props;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16.8px; /* 14px * 1.2 */
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     letter-spacing: 0.025em;
@@ -586,7 +592,7 @@ const {language, translations} = Astro.props;
     }
 
     .dialog-header h3 {
-      font-size: 20px;
+      font-size: 24px; /* 20px * 1.2 */
     }
 
     .dialog-body {
@@ -603,14 +609,14 @@ const {language, translations} = Astro.props;
 
     .tree-action-button {
       padding: 5px 8px;
-      font-size: 10px;
+      font-size: 12px; /* 10px * 1.2 */
       min-width: 45px;
       max-width: 45px;
     }
 
     .tree-action-indicator {
       width: 45px;
-      font-size: 12px;
+      font-size: 14.4px; /* 12px * 1.2*/
     }
 
     .tree-action-placeholder {
@@ -644,19 +650,19 @@ const {language, translations} = Astro.props;
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
-      font-size: 14px;
+      font-size: 16.8px !important; /* 14px * 1.2 - force precedence */
     }
 
     .tree-action-button {
       padding: 6px 8px;
-      font-size: 10px;
+      font-size: 12px; /* 10px * 1.2 */
       min-width: 40px;
       max-width: 40px;
     }
 
     .tree-action-indicator {
       width: 40px;
-      font-size: 11px;
+      font-size: 13.2px; /* 11px * 1.2 */
     }
 
     .tree-action-placeholder {
@@ -719,6 +725,7 @@ const {language, translations} = Astro.props;
         const nameSpan = document.createElement("span");
         nameSpan.className = "tree-item-name";
         nameSpan.textContent = treeName;
+        nameSpan.style.fontSize = "18px"; // Explicitly set font size to ensure it takes effect
         treeItem.appendChild(nameSpan);
 
         // Column 2: Active indicator or Switch button
@@ -727,11 +734,13 @@ const {language, translations} = Astro.props;
           activeIndicator.className = "tree-action-indicator active";
           activeIndicator.textContent = " ✅";
           activeIndicator.title = "Current active tree";
+          activeIndicator.style.fontSize = "18px";
           treeItem.appendChild(activeIndicator);
         } else {
           const switchButton = document.createElement("button");
           switchButton.className = "tree-action-button switch";
           switchButton.textContent = "🔳";
+          switchButton.style.fontSize = "18px";
           switchButton.onclick = async () => {
             try {
               const success =
@@ -756,6 +765,7 @@ const {language, translations} = Astro.props;
           const deleteButton = document.createElement("button");
           deleteButton.className = "tree-action-button delete";
           deleteButton.textContent = "❌";
+          deleteButton.style.fontSize = "18px";
           deleteButton.onclick = async () => {
             if (
               confirm(
