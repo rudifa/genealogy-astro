@@ -18,8 +18,8 @@ const {data, language, translations} = Astro.props;
   <div class='toolbar'>
     <LanguageSwitcher currentLanguage={language} translations={translations} />
     <div id='current-tree-display' class='current-tree-display'>
-      <span class='tree-label'>Tree:</span>
-      <span id='current-tree-name' class='tree-name'>My Family</span>
+      <span class='tree-label'>👁</span>
+      <span id='current-tree-name' class='tree-name'>Family Example</span>
     </div>
     <button id='add-button' type='button'>{translations.addPerson}</button>
     <button id='clear-button' type='button'>{translations.clearAll}</button>
@@ -287,11 +287,10 @@ const {data, language, translations} = Astro.props;
 
   // Initialize genealogy data with multi-tree localStorage persistence
   const STORAGE_KEY = "genealogy-app-data";
-  const DEFAULT_TREE_NAME = "My Family";
   const EXAMPLE_TREE_NAME = "Family Example";
 
   let genealogyData;
-  let currentTreeName = DEFAULT_TREE_NAME;
+  let currentTreeName = EXAMPLE_TREE_NAME;
 
   function getStorageData() {
     try {
@@ -308,11 +307,8 @@ const {data, language, translations} = Astro.props;
   function initializeStorageStructure() {
     const initialData = JSON.parse(genealogyDataJson);
     return {
-      activeTreeName: DEFAULT_TREE_NAME,
+      activeTreeName: EXAMPLE_TREE_NAME,
       trees: {
-        [DEFAULT_TREE_NAME]: {
-          persons: initialData.persons || [],
-        },
         [EXAMPLE_TREE_NAME]: {
           persons: initialData.persons || [],
         },
@@ -326,11 +322,11 @@ const {data, language, translations} = Astro.props;
 
       if (storedData && storedData.trees) {
         // Use stored active tree or default
-        currentTreeName = storedData.activeTreeName || DEFAULT_TREE_NAME;
+        currentTreeName = storedData.activeTreeName || EXAMPLE_TREE_NAME;
 
         // Ensure the active tree exists
         if (!storedData.trees[currentTreeName]) {
-          currentTreeName = DEFAULT_TREE_NAME;
+          currentTreeName = EXAMPLE_TREE_NAME;
           if (!storedData.trees[currentTreeName]) {
             // If no default tree, create it
             storedData.trees[currentTreeName] = {persons: []};
@@ -350,7 +346,7 @@ const {data, language, translations} = Astro.props;
 
     // Fallback to initial data
     console.log("Using initial data from server");
-    currentTreeName = DEFAULT_TREE_NAME;
+    currentTreeName = EXAMPLE_TREE_NAME;
     return new GenealogyData(JSON.parse(genealogyDataJson));
   }
 
@@ -370,7 +366,11 @@ const {data, language, translations} = Astro.props;
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
-      console.log(`Saved data to localStorage for tree: ${currentTreeName}`);
+      console.log(
+        `Saved data to localStorage for tree: ${currentTreeName}, trees: ${Object.keys(
+          storedData.trees
+        )}`
+      );
     } catch (error) {
       console.error("Failed to save data to localStorage:", error);
     }
@@ -435,8 +435,8 @@ const {data, language, translations} = Astro.props;
 
   function deleteTree(treeName) {
     try {
-      if (treeName === DEFAULT_TREE_NAME) {
-        throw new Error("Cannot delete the default tree");
+      if (treeName === EXAMPLE_TREE_NAME) {
+        throw new Error("Cannot delete the Family Example tree");
       }
 
       const storedData = getStorageData();
@@ -448,10 +448,10 @@ const {data, language, translations} = Astro.props;
 
       // If we're deleting the active tree, switch to default
       if (currentTreeName === treeName) {
-        currentTreeName = DEFAULT_TREE_NAME;
-        storedData.activeTreeName = DEFAULT_TREE_NAME;
+        currentTreeName = EXAMPLE_TREE_NAME;
+        storedData.activeTreeName = EXAMPLE_TREE_NAME;
         genealogyData = new GenealogyData(
-          storedData.trees[DEFAULT_TREE_NAME] || {persons: []}
+          storedData.trees[EXAMPLE_TREE_NAME] || {persons: []}
         );
       }
 
@@ -473,13 +473,13 @@ const {data, language, translations} = Astro.props;
     } catch (error) {
       console.error("Failed to get available trees:", error);
     }
-    return [DEFAULT_TREE_NAME];
+    return [EXAMPLE_TREE_NAME];
   }
 
   function resetToOriginalData() {
     try {
       localStorage.removeItem(STORAGE_KEY);
-      currentTreeName = DEFAULT_TREE_NAME;
+      currentTreeName = EXAMPLE_TREE_NAME;
       genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
       console.log("Reset to original data");
     } catch (error) {
@@ -550,8 +550,8 @@ const {data, language, translations} = Astro.props;
           return true; // No change needed
         }
 
-        if (oldName === DEFAULT_TREE_NAME) {
-          throw new Error("Cannot rename the default tree");
+        if (oldName === EXAMPLE_TREE_NAME) {
+          throw new Error("Cannot rename the Family Example tree");
         }
 
         const storedData = getStorageData();
@@ -901,19 +901,13 @@ const {data, language, translations} = Astro.props;
 
           const confirmMessage =
             currentTreeName === EXAMPLE_TREE_NAME
-              ? "Are you sure you want to reset the Family Example tree to its original state?"
-              : `Are you sure you want to reset the "${currentTreeName}" tree to the family example data?`;
+              ? "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data."
+              : `Are you sure you want to load the family example data into the "${currentTreeName}" tree? This will replace all current data.`;
 
           if (confirm(confirmMessage)) {
-            if (currentTreeName === EXAMPLE_TREE_NAME) {
-              // Reset example tree to original data
-              const originalData = JSON.parse(genealogyDataJson);
-              genealogyData = new GenealogyData(originalData);
-            } else {
-              // Load family example data into current tree
-              const originalData = JSON.parse(genealogyDataJson);
-              genealogyData = new GenealogyData(originalData);
-            }
+            // Always load the original family example data
+            const originalData = JSON.parse(genealogyDataJson);
+            genealogyData = new GenealogyData(originalData);
 
             saveDataToStorage();
             await renderGraph();
