@@ -12,7 +12,7 @@ const {language, translations} = Astro.props;
 <div id='tree-management-dialog' class='dialog-overlay' style='display: none;'>
   <div class='dialog-content'>
     <div class='dialog-header'>
-      <h3>Manage Family Trees</h3>
+      <h3>{translations.manageFamilyTrees}</h3>
       <button id='close-tree-dialog' class='close-button' type='button'
         >×</button
       >
@@ -20,33 +20,35 @@ const {language, translations} = Astro.props;
 
     <div class='dialog-body'>
       <div class='tree-list-section'>
-        <label>Available Trees:</label>
+        <label>{translations.availableTrees}</label>
         <div id='tree-list' class='tree-list'>
           <!-- Trees will be populated by JavaScript -->
         </div>
       </div>
 
       <div class='new-tree-section'>
-        <label for='new-tree-name'>Create New Tree:</label>
+        <label for='new-tree-name'>{translations.createNewTree}</label>
         <div class='new-tree-inputs'>
           <input
             type='text'
             id='new-tree-name'
-            placeholder='Enter tree name...'
+            placeholder={translations.enterTreeName}
             maxlength='50'
           />
           <label class='checkbox-label'>
             <input type='checkbox' id='copy-current-tree' />
-            Copy current tree data
+            {translations.copyCurrentTreeData}
           </label>
-          <button id='create-tree-button' type='button'>Create</button>
+          <button id='create-tree-button' type='button'
+            >{translations.create}</button
+          >
         </div>
       </div>
     </div>
 
     <div class='dialog-footer'>
       <button id='dialog-cancel' type='button' class='secondary-button'
-        >Cancel</button
+        >{translations.cancel}</button
       >
     </div>
   </div>
@@ -711,7 +713,7 @@ const {language, translations} = Astro.props;
   }
 </style>
 
-<script>
+<script define:vars={{translations}}>
   // Tree Management Dialog functionality
   function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-management-dialog");
@@ -723,13 +725,67 @@ const {language, translations} = Astro.props;
     const treeList = document.getElementById("tree-list");
     const currentTreeDisplay = document.getElementById("dialog-current-tree");
 
+    // Store current translations (will be updated by language changes)
+    let currentTranslations = translations;
+
+    // Update dialog content with new translations
+    function updateDialogTranslations(newTranslations) {
+      currentTranslations = newTranslations;
+
+      // Update static text elements
+      const title = dialog?.querySelector(".dialog-header h3");
+      if (title) title.textContent = currentTranslations.manageFamilyTrees;
+
+      const availableTreesLabel = dialog?.querySelector(
+        ".tree-list-section label"
+      );
+      if (availableTreesLabel)
+        availableTreesLabel.textContent = currentTranslations.availableTrees;
+
+      const createNewTreeLabel = dialog?.querySelector(
+        '.new-tree-section label[for="new-tree-name"]'
+      );
+      if (createNewTreeLabel)
+        createNewTreeLabel.textContent = currentTranslations.createNewTree;
+
+      const newTreeInput = dialog?.querySelector("#new-tree-name");
+      if (newTreeInput)
+        newTreeInput.placeholder = currentTranslations.enterTreeName;
+
+      const copyCheckboxLabel = dialog?.querySelector(".checkbox-label");
+      if (copyCheckboxLabel) {
+        const checkboxText = copyCheckboxLabel.childNodes[2]; // Text node after checkbox
+        if (checkboxText)
+          checkboxText.textContent =
+            " " + currentTranslations.copyCurrentTreeData;
+      }
+
+      const createButton = dialog?.querySelector("#create-tree-button");
+      if (createButton) createButton.textContent = currentTranslations.create;
+
+      const cancelButton = dialog?.querySelector("#dialog-cancel");
+      if (cancelButton) cancelButton.textContent = currentTranslations.cancel;
+
+      // Update tree list tooltips if it's open
+      updateTreeList();
+    }
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      console.log(
+        "TreeManagementDialog: Language changed to",
+        event.detail.language
+      );
+      updateDialogTranslations(event.detail.translations);
+    });
+
     function showDialog() {
       if (dialog) {
         updateTreeList();
         updateCurrentTreeDisplay();
         dialog.style.display = "flex";
         if (newTreeInput) {
-          (newTreeInput as HTMLInputElement).value = "";
+          newTreeInput.value = "";
           updateCreateButtonState(); // Initialize button state
           newTreeInput.focus();
         }
@@ -750,22 +806,18 @@ const {language, translations} = Astro.props;
     }
 
     // Create a TreeListItem-like component client-side using innerHTML for exact structure
-    function createTreeItemElement(
-      treeName: string,
-      isActive: boolean,
-      canDelete: boolean
-    ) {
+    function createTreeItemElement(treeName, isActive, canDelete) {
       const treeItem = document.createElement("div");
       treeItem.className = isActive ? "tree-item active" : "tree-item";
       treeItem.setAttribute("data-tree-name", treeName);
 
       // Use innerHTML to create exact structure as Astro component
       const activeIndicatorHTML = isActive
-        ? `<span class="tree-action-indicator active" title="Current active tree">✅</span>`
-        : `<button class="tree-action-button switch" type="button" data-action="switch">🔳</button>`;
+        ? `<span class="tree-action-indicator active" title="${currentTranslations.currentActiveTree}">✅</span>`
+        : `<button class="tree-action-button switch" type="button" data-action="switch" title="${currentTranslations.switchToTree}">🔳</button>`;
 
       const deleteButtonHTML = canDelete
-        ? `<button class="tree-action-button delete" type="button" data-action="delete">❌</button>`
+        ? `<button class="tree-action-button delete" type="button" data-action="delete" title="${currentTranslations.deleteTree}">❌</button>`
         : `<span class="tree-action-placeholder"></span>`;
 
       treeItem.innerHTML = `
@@ -783,7 +835,7 @@ const {language, translations} = Astro.props;
       treeItem.style.flexWrap = "nowrap";
       treeItem.style.width = "100%";
 
-      const nameSpan = treeItem.querySelector(".tree-item-name") as HTMLElement;
+      const nameSpan = treeItem.querySelector(".tree-item-name");
       if (nameSpan) {
         nameSpan.style.flex = "1 1 auto";
         nameSpan.style.overflow = "hidden";
@@ -793,7 +845,7 @@ const {language, translations} = Astro.props;
         nameSpan.style.fontSize = "18px"; // Explicitly set font size to ensure it takes effect
       }
 
-      const actionsDiv = treeItem.querySelector(".tree-actions") as HTMLElement;
+      const actionsDiv = treeItem.querySelector(".tree-actions");
       if (actionsDiv) {
         actionsDiv.style.display = "flex";
         actionsDiv.style.flexShrink = "0";
@@ -807,7 +859,7 @@ const {language, translations} = Astro.props;
         ".tree-action-button, .tree-action-indicator, .tree-action-placeholder"
       );
       actionElements.forEach((element) => {
-        const htmlElement = element as HTMLElement;
+        const htmlElement = element;
         htmlElement.style.width = "50px";
         htmlElement.style.minWidth = "50px";
         htmlElement.style.maxWidth = "50px";
@@ -833,16 +885,21 @@ const {language, translations} = Astro.props;
         switchButton.addEventListener("click", async () => {
           try {
             const success =
-              await window.genealogyTreeManager!.switchToTree(treeName);
+              await window.genealogyTreeManager.switchToTree(treeName);
             if (success) {
               updateTreeList();
               updateCurrentTreeDisplay();
               hideDialog();
             } else {
-              alert("Failed to switch to tree");
+              alert(currentTranslations.failedToSwitchTree);
             }
           } catch (error) {
-            alert(`Error switching to tree: ${(error as Error).message}`);
+            alert(
+              currentTranslations.errorSwitchingTree.replace(
+                "{error}",
+                error.message
+              )
+            );
           }
         });
       }
@@ -852,21 +909,26 @@ const {language, translations} = Astro.props;
         deleteButton.addEventListener("click", async () => {
           if (
             confirm(
-              `Are you sure you want to delete the tree "${treeName}"? This action cannot be undone.`
+              currentTranslations.confirmDeleteTree.replace("{name}", treeName)
             )
           ) {
             try {
               const success =
-                await window.genealogyTreeManager!.deleteTree(treeName);
+                await window.genealogyTreeManager.deleteTree(treeName);
               if (success) {
                 updateTreeList();
                 updateCurrentTreeDisplay();
                 hideDialog();
               } else {
-                alert("Failed to delete tree");
+                alert(currentTranslations.failedToDeleteTree);
               }
             } catch (error) {
-              alert(`Error deleting tree: ${(error as Error).message}`);
+              alert(
+                currentTranslations.errorDeletingTree.replace(
+                  "{error}",
+                  error.message
+                )
+              );
             }
           }
         });
@@ -895,22 +957,22 @@ const {language, translations} = Astro.props;
     function updateCreateButtonState() {
       if (!newTreeInput || !createButton) return;
 
-      const treeName = (newTreeInput as HTMLInputElement).value.trim();
+      const treeName = newTreeInput.value.trim();
       const isEmpty = treeName === "";
 
-      (createButton as HTMLButtonElement).disabled = isEmpty;
+      createButton.disabled = isEmpty;
     }
 
     async function createNewTree() {
       if (!newTreeInput || !window.genealogyTreeManager) return;
 
-      const treeName = (newTreeInput as HTMLInputElement).value.trim();
+      const treeName = newTreeInput.value.trim();
       if (!treeName) {
-        alert("Please enter a tree name");
+        alert(currentTranslations.enterTreeNamePrompt);
         return;
       }
 
-      const copyData = (copyCheckbox as HTMLInputElement)?.checked || false;
+      const copyData = copyCheckbox?.checked || false;
 
       try {
         const success = await window.genealogyTreeManager.createNewTree(
@@ -918,8 +980,8 @@ const {language, translations} = Astro.props;
           copyData
         );
         if (success) {
-          (newTreeInput as HTMLInputElement).value = "";
-          if (copyCheckbox) (copyCheckbox as HTMLInputElement).checked = false;
+          newTreeInput.value = "";
+          if (copyCheckbox) copyCheckbox.checked = false;
           updateCreateButtonState(); // Update button state after clearing input
           updateTreeList();
 
@@ -931,7 +993,12 @@ const {language, translations} = Astro.props;
           hideDialog();
         }
       } catch (error) {
-        alert(`Error creating tree: ${(error as Error).message}`);
+        alert(
+          currentTranslations.errorCreatingTree.replace(
+            "{error}",
+            error.message
+          )
+        );
       }
     }
 
@@ -951,10 +1018,7 @@ const {language, translations} = Astro.props;
     if (newTreeInput) {
       newTreeInput.addEventListener("input", updateCreateButtonState);
       newTreeInput.addEventListener("keypress", (e) => {
-        if (
-          e.key === "Enter" &&
-          !(createButton as HTMLButtonElement).disabled
-        ) {
+        if (e.key === "Enter" && !createButton.disabled) {
           createNewTree();
         }
       });

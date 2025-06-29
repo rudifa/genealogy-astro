@@ -15,6 +15,7 @@ export const de: Translations = {
   addPerson: "Person Hinzufügen",
   clearAll: "Alles Löschen",
   familyExample: "Familienbeispiel",
+  manageTrees: "Bäume Verwalten",
   loading: "Laden...",
 
   // Dialog
@@ -59,6 +60,10 @@ export const de: Translations = {
     "Sind Sie sicher, dass Sie alle {count} {people} aus der Genealogie entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
   confirmFamilyExample:
     "Sind Sie sicher, dass Sie das Familienbeispiel laden möchten? Dies ersetzt Ihre aktuellen Daten und kann nicht rückgängig gemacht werden.",
+  confirmResetFamilyExample:
+    "Sind Sie sicher, dass Sie den Familienbeispiel-Baum auf seinen ursprünglichen Zustand zurücksetzen möchten? Dies ersetzt alle aktuellen Daten.",
+  confirmLoadFamilyExample:
+    'Sind Sie sicher, dass Sie die Familienbeispiel-Daten in den "{treeName}"-Baum laden möchten? Dies ersetzt alle aktuellen Daten.',
   actionCannotBeUndone: "Diese Aktion kann nicht rückgängig gemacht werden.",
 
   // Placeholders and misc
@@ -71,6 +76,26 @@ export const de: Translations = {
   // Language switcher
   language: "Sprache",
   selectLanguage: "Sprache Auswählen",
+
+  // Tree Management Dialog
+  manageFamilyTrees: "Familienstammbäume Verwalten",
+  availableTrees: "Verfügbare Bäume:",
+  createNewTree: "Neuen Baum Erstellen:",
+  copyCurrentTreeData: "Aktuelle Baumdaten kopieren",
+  create: "Erstellen",
+  enterTreeName: "Baumname eingeben...",
+  currentActiveTree: "Aktueller aktiver Baum",
+  switchToTree: "Zu diesem Baum wechseln",
+  deleteTree: "Diesen Baum löschen",
+  confirmDeleteTree:
+    'Sind Sie sicher, dass Sie den Baum "{name}" löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+  enterTreeNamePrompt: "Bitte geben Sie einen Baumname ein",
+  failedToSwitchTree: "Wechsel zum Baum fehlgeschlagen",
+  failedToDeleteTree: "Löschen des Baums fehlgeschlagen",
+  failedToCreateTree: "Erstellen des Baums fehlgeschlagen",
+  errorSwitchingTree: "Fehler beim Wechseln zum Baum: {error}",
+  errorDeletingTree: "Fehler beim Löschen des Baums: {error}",
+  errorCreatingTree: "Fehler beim Erstellen des Baums: {error}",
 
   // Footer
   projectInfo: "Open Source Genealogie-App",

@@ -25,7 +25,9 @@ const {data, language, translations} = Astro.props;
     <button id='clear-button' type='button'>{translations.clearAll}</button>
     <button id='reset-button' type='button'>{translations.familyExample}</button
     >
-    <button id='manage-trees-button' type='button'>{"Families"}</button>
+    <button id='manage-trees-button' type='button'
+      >{translations.manageTrees}</button
+    >
     <div
       id='loading-indicator'
       class='loading-indicator'
@@ -161,6 +163,27 @@ const {data, language, translations} = Astro.props;
   #reset-button:hover:not(:disabled) {
     background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
     border-color: #545b62;
+  }
+
+  #manage-trees-button {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-color: #28a745;
+    font-weight: 600;
+    position: relative;
+  }
+
+  #manage-trees-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+    border-color: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  #manage-trees-button:before {
+    content: "";
+    margin-right: 0px;
+    font-size: 16px;
   }
 
   .loading-indicator {
@@ -604,6 +627,10 @@ const {data, language, translations} = Astro.props;
     personNotFound: "not found",
     confirmClear:
       "Are you sure you want to remove all {count} {people} from the genealogy? This action cannot be undone.",
+    confirmResetFamilyExample:
+      "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data.",
+    confirmLoadFamilyExample:
+      'Are you sure you want to load the family example data into the "{treeName}" tree? This will replace all current data.',
     initializationError: "Initialization Error",
     failedToLoad: "Failed to load the genealogy graph application.",
     errorRenderingGraph: "Error Rendering Graph",
@@ -618,12 +645,15 @@ const {data, language, translations} = Astro.props;
     const addButton = document.getElementById("add-button");
     const clearButton = document.getElementById("clear-button");
     const resetButton = document.getElementById("reset-button");
+    const manageTreesButton = document.getElementById("manage-trees-button");
     const loadingIndicator = document.querySelector("#loading-indicator span");
     const graphPlaceholder = document.querySelector("#graph-placeholder p");
 
     if (addButton) addButton.textContent = translations.addPerson;
     if (clearButton) clearButton.textContent = translations.clearAll;
     if (resetButton) resetButton.textContent = translations.familyExample;
+    if (manageTreesButton)
+      manageTreesButton.textContent = translations.manageTrees;
     if (loadingIndicator) loadingIndicator.textContent = translations.loading;
     if (graphPlaceholder)
       graphPlaceholder.textContent = translations.loadingGraph;
@@ -901,8 +931,12 @@ const {data, language, translations} = Astro.props;
 
           const confirmMessage =
             currentTreeName === EXAMPLE_TREE_NAME
-              ? "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data."
-              : `Are you sure you want to load the family example data into the "${currentTreeName}" tree? This will replace all current data.`;
+              ? currentTranslations.confirmResetFamilyExample ||
+                "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data."
+              : (
+                  currentTranslations.confirmLoadFamilyExample ||
+                  'Are you sure you want to load the family example data into the "{treeName}" tree? This will replace all current data.'
+                ).replace("{treeName}", currentTreeName);
 
           if (confirm(confirmMessage)) {
             // Always load the original family example data
