@@ -58,111 +58,211 @@ const {language, translations} = Astro.props;
 </div>
 
 <style>
+  /* Modern Tree Management Dialog Styles */
   .dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.6));
+    backdrop-filter: blur(8px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .dialog-content {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border-radius: 20px;
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
     width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
+    max-width: 520px;
+    max-height: 85vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid #dee2e6;
+    padding: 28px 32px 20px;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: white;
+    position: relative;
+  }
+
+  .dialog-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   }
 
   .dialog-header h3 {
     margin: 0;
-    color: #333;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background: linear-gradient(135deg, #ffffff, #e2e8f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .close-button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #6c757d;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+    color: #e2e8f0;
     cursor: pointer;
     padding: 0;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
   }
 
   .close-button:hover {
-    background-color: #f8f9fa;
-    color: #333;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  .close-button:active {
+    transform: scale(0.95);
   }
 
   .dialog-body {
-    padding: 20px 24px;
+    padding: 32px;
     overflow-y: auto;
     flex: 1;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
   }
 
   .current-tree-section,
   .tree-list-section,
   .new-tree-section {
-    margin-bottom: 24px;
+    margin-bottom: 32px;
+  }
+
+  .current-tree-section:last-child,
+  .tree-list-section:last-child,
+  .new-tree-section:last-child {
+    margin-bottom: 0;
   }
 
   .current-tree-section label,
   .tree-list-section label,
   .new-tree-section label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #495057;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
   .current-tree-name {
-    display: inline-block;
-    background-color: #e9ecef;
-    padding: 6px 12px;
-    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
     font-weight: 600;
-    color: #495057;
+    font-size: 14px;
+    letter-spacing: 0.025em;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .current-tree-name::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .current-tree-name:hover::before {
+    left: 100%;
   }
 
   .tree-list {
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    max-height: 150px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    max-height: 200px;
     overflow-y: auto;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .tree-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .tree-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+  }
+
+  .tree-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  .tree-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 
   .tree-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #dee2e6;
-    transition: background-color 0.2s ease;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
   }
 
   .tree-item:last-child {
@@ -170,157 +270,304 @@ const {language, translations} = Astro.props;
   }
 
   .tree-item:hover {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    transform: translateX(4px);
   }
 
   .tree-item.active {
-    background-color: #e3f2fd;
-    border-left: 4px solid #007acc;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    border-left: 4px solid #3b82f6;
+    box-shadow: inset 0 1px 0 rgba(59, 130, 246, 0.1);
+  }
+
+  .tree-item.active:hover {
+    transform: none;
   }
 
   .tree-item-name {
-    font-weight: 500;
-    color: #333;
+    font-weight: 600;
+    color: #334155;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
   .tree-item.active .tree-item-name {
-    color: #007acc;
-    font-weight: 600;
+    color: #1e40af;
+    font-weight: 700;
   }
 
   .tree-item-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
 
   .tree-action-button {
-    padding: 4px 8px;
-    border: 1px solid #dee2e6;
+    padding: 8px 16px;
+    border: 1px solid transparent;
     background: white;
-    border-radius: 4px;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tree-action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    transition: left 0.3s;
+  }
+
+  .tree-action-button:hover::before {
+    left: 100%;
   }
 
   .tree-action-button:hover {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .tree-action-button:active {
+    transform: translateY(0);
   }
 
   .tree-action-button.switch {
-    color: #007acc;
-    border-color: #007acc;
+    color: #1e40af;
+    border-color: #bfdbfe;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  }
+
+  .tree-action-button.switch::before {
+    background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.1), transparent);
   }
 
   .tree-action-button.switch:hover {
-    background-color: #007acc;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: white;
+    border-color: #3b82f6;
   }
 
   .tree-action-button.delete {
-    color: #dc3545;
-    border-color: #dc3545;
+    color: #dc2626;
+    border-color: #fecaca;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+  }
+
+  .tree-action-button.delete::before {
+    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
   }
 
   .tree-action-button.delete:hover {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
+    border-color: #ef4444;
   }
 
   .tree-action-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none !important;
+  }
+
+  .new-tree-section {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
   }
 
   .new-tree-inputs {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .new-tree-inputs input[type="text"] {
-    padding: 8px 12px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    font-weight: 500;
+  }
+
+  .new-tree-inputs input[type="text"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
   }
 
   .checkbox-label {
     display: flex !important;
     align-items: center;
-    gap: 8px;
-    font-weight: normal !important;
+    gap: 12px;
+    font-weight: 500 !important;
     margin-bottom: 0 !important;
     cursor: pointer;
+    color: #475569;
+    font-size: 14px;
+    transition: color 0.2s ease;
+  }
+
+  .checkbox-label:hover {
+    color: #334155;
   }
 
   .checkbox-label input[type="checkbox"] {
     margin: 0;
+    width: 18px;
+    height: 18px;
+    accent-color: #3b82f6;
+    cursor: pointer;
   }
 
   #create-tree-button {
-    padding: 8px 16px;
-    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    border: 1px solid #007acc;
-    border-radius: 4px;
+    border: none;
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #create-tree-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
   }
 
   #create-tree-button:hover {
-    background: linear-gradient(135deg, #005c99 0%, #004080 100%);
-    border-color: #005c99;
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+  }
+
+  #create-tree-button:hover::before {
+    left: 100%;
+  }
+
+  #create-tree-button:active {
+    transform: translateY(0);
   }
 
   #create-tree-button:disabled {
-    background: #6c757d;
-    border-color: #6c757d;
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 
   .dialog-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #dee2e6;
+    padding: 24px 32px 28px;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-top: 1px solid rgba(226, 232, 240, 0.5);
     display: flex;
     justify-content: flex-end;
   }
 
   .secondary-button {
-    padding: 8px 16px;
+    padding: 12px 24px;
     background: white;
-    color: #6c757d;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.025em;
   }
 
   .secondary-button:hover {
-    background-color: #f8f9fa;
-    border-color: #adb5bd;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  /* Responsive styles */
-  @media (max-width: 576px) {
+  .secondary-button:active {
+    transform: translateY(0);
+  }
+
+  /* Enhanced Responsive styles */
+  @media (max-width: 640px) {
     .dialog-content {
       width: 95%;
-      margin: 20px;
+      margin: 10px;
+      border-radius: 16px;
     }
 
-    .dialog-header,
-    .dialog-body,
+    .dialog-header {
+      padding: 20px 24px 16px;
+    }
+
+    .dialog-header h3 {
+      font-size: 20px;
+    }
+
+    .dialog-body {
+      padding: 24px;
+    }
+
     .dialog-footer {
-      padding-left: 16px;
-      padding-right: 16px;
+      padding: 20px 24px;
     }
 
     .new-tree-inputs {
-      gap: 8px;
+      gap: 12px;
+    }
+
+    .tree-action-button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .tree-item {
+      padding: 14px 16px;
+    }
+
+    .tree-item:hover {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .dialog-content {
+      width: 98%;
+      margin: 5px;
+    }
+
+    .tree-item-actions {
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tree-action-button {
+      width: 100%;
+      justify-content: center;
     }
   }
 </style>
@@ -344,6 +591,7 @@ const {language, translations} = Astro.props;
         dialog.style.display = "flex";
         if (newTreeInput) {
           (newTreeInput as HTMLInputElement).value = "";
+          updateCreateButtonState(); // Initialize button state
           newTreeInput.focus();
         }
       }
@@ -440,6 +688,15 @@ const {language, translations} = Astro.props;
       });
     }
 
+    function updateCreateButtonState() {
+      if (!newTreeInput || !createButton) return;
+      
+      const treeName = (newTreeInput as HTMLInputElement).value.trim();
+      const isEmpty = treeName === "";
+      
+      (createButton as HTMLButtonElement).disabled = isEmpty;
+    }
+
     async function createNewTree() {
       if (!newTreeInput || !window.genealogyTreeManager) return;
 
@@ -459,6 +716,7 @@ const {language, translations} = Astro.props;
         if (success) {
           (newTreeInput as HTMLInputElement).value = "";
           if (copyCheckbox) (copyCheckbox as HTMLInputElement).checked = false;
+          updateCreateButtonState(); // Update button state after clearing input
           updateTreeList();
 
           // Switch to the new tree
@@ -487,8 +745,9 @@ const {language, translations} = Astro.props;
     }
 
     if (newTreeInput) {
+      newTreeInput.addEventListener("input", updateCreateButtonState);
       newTreeInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !(createButton as HTMLButtonElement).disabled) {
           createNewTree();
         }
       });
