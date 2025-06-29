@@ -1,0 +1,518 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<div id='tree-management-dialog' class='dialog-overlay' style='display: none;'>
+  <div class='dialog-content'>
+    <div class='dialog-header'>
+      <h3>Manage Family Trees</h3>
+      <button id='close-tree-dialog' class='close-button' type='button'
+        >×</button
+      >
+    </div>
+
+    <div class='dialog-body'>
+      <div class='current-tree-section'>
+        <label>Current Tree:</label>
+        <span id='dialog-current-tree' class='current-tree-name'></span>
+      </div>
+
+      <div class='tree-list-section'>
+        <label>Available Trees:</label>
+        <div id='tree-list' class='tree-list'>
+          <!-- Trees will be populated by JavaScript -->
+        </div>
+      </div>
+
+      <div class='new-tree-section'>
+        <label for='new-tree-name'>Create New Tree:</label>
+        <div class='new-tree-inputs'>
+          <input
+            type='text'
+            id='new-tree-name'
+            placeholder='Enter tree name...'
+            maxlength='50'
+          />
+          <label class='checkbox-label'>
+            <input type='checkbox' id='copy-current-tree' />
+            Copy current tree data
+          </label>
+          <button id='create-tree-button' type='button'>Create</button>
+        </div>
+      </div>
+    </div>
+
+    <div class='dialog-footer'>
+      <button id='dialog-cancel' type='button' class='secondary-button'
+        >Cancel</button
+      >
+    </div>
+  </div>
+</div>
+
+<style>
+  .dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dialog-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .dialog-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .close-button:hover {
+    background-color: #f8f9fa;
+    color: #333;
+  }
+
+  .dialog-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .current-tree-section,
+  .tree-list-section,
+  .new-tree-section {
+    margin-bottom: 24px;
+  }
+
+  .current-tree-section label,
+  .tree-list-section label,
+  .new-tree-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+  }
+
+  .current-tree-name {
+    display: inline-block;
+    background-color: #e9ecef;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .tree-list {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .tree-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+  }
+
+  .tree-item:last-child {
+    border-bottom: none;
+  }
+
+  .tree-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  .tree-item.active {
+    background-color: #e3f2fd;
+    border-left: 4px solid #007acc;
+  }
+
+  .tree-item-name {
+    font-weight: 500;
+    color: #333;
+  }
+
+  .tree-item.active .tree-item-name {
+    color: #007acc;
+    font-weight: 600;
+  }
+
+  .tree-item-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .tree-action-button {
+    padding: 4px 8px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .tree-action-button:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+  }
+
+  .tree-action-button.switch {
+    color: #007acc;
+    border-color: #007acc;
+  }
+
+  .tree-action-button.switch:hover {
+    background-color: #007acc;
+    color: white;
+  }
+
+  .tree-action-button.delete {
+    color: #dc3545;
+    border-color: #dc3545;
+  }
+
+  .tree-action-button.delete:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .tree-action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .new-tree-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .new-tree-inputs input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal !important;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    margin: 0;
+  }
+
+  #create-tree-button {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
+    color: white;
+    border: 1px solid #007acc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  #create-tree-button:hover {
+    background: linear-gradient(135deg, #005c99 0%, #004080 100%);
+    border-color: #005c99;
+  }
+
+  #create-tree-button:disabled {
+    background: #6c757d;
+    border-color: #6c757d;
+    cursor: not-allowed;
+  }
+
+  .dialog-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .secondary-button {
+    padding: 8px 16px;
+    background: white;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+  }
+
+  .secondary-button:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+  }
+
+  /* Responsive styles */
+  @media (max-width: 576px) {
+    .dialog-content {
+      width: 95%;
+      margin: 20px;
+    }
+
+    .dialog-header,
+    .dialog-body,
+    .dialog-footer {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .new-tree-inputs {
+      gap: 8px;
+    }
+  }
+</style>
+
+<script>
+  // Tree Management Dialog functionality
+  function initializeTreeManagementDialog() {
+    const dialog = document.getElementById("tree-management-dialog");
+    const closeButton = document.getElementById("close-tree-dialog");
+    const cancelButton = document.getElementById("dialog-cancel");
+    const createButton = document.getElementById("create-tree-button");
+    const newTreeInput = document.getElementById("new-tree-name");
+    const copyCheckbox = document.getElementById("copy-current-tree");
+    const treeList = document.getElementById("tree-list");
+    const currentTreeDisplay = document.getElementById("dialog-current-tree");
+
+    function showDialog() {
+      if (dialog) {
+        updateTreeList();
+        updateCurrentTreeDisplay();
+        dialog.style.display = "flex";
+        if (newTreeInput) {
+          (newTreeInput as HTMLInputElement).value = "";
+          newTreeInput.focus();
+        }
+      }
+    }
+
+    function hideDialog() {
+      if (dialog) {
+        dialog.style.display = "none";
+      }
+    }
+
+    function updateCurrentTreeDisplay() {
+      if (currentTreeDisplay && window.genealogyTreeManager) {
+        currentTreeDisplay.textContent =
+          window.genealogyTreeManager.getCurrentTreeName();
+      }
+    }
+
+    function updateTreeList() {
+      if (!treeList || !window.genealogyTreeManager) return;
+
+      const trees = window.genealogyTreeManager.getAvailableTrees();
+      const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+
+      treeList.innerHTML = "";
+
+      trees.forEach((treeName) => {
+        const treeItem = document.createElement("div");
+        treeItem.className = `tree-item ${treeName === currentTree ? "active" : ""}`;
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "tree-item-name";
+        nameSpan.textContent = treeName;
+
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "tree-item-actions";
+
+        if (treeName !== currentTree) {
+          const switchButton = document.createElement("button");
+          switchButton.className = "tree-action-button switch";
+          switchButton.textContent = "Switch";
+          switchButton.onclick = async () => {
+            try {
+              const success =
+                await window.genealogyTreeManager!.switchToTree(treeName);
+              if (success) {
+                updateTreeList();
+                updateCurrentTreeDisplay();
+                // Close dialog after successful switch
+                hideDialog();
+              } else {
+                alert("Failed to switch to tree");
+              }
+            } catch (error) {
+              alert(`Error switching to tree: ${(error as Error).message}`);
+            }
+          };
+          actionsDiv.appendChild(switchButton);
+        }
+
+        // Don't allow deleting the default tree
+        if (treeName !== "My Family") {
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "tree-action-button delete";
+          deleteButton.textContent = "Delete";
+          deleteButton.onclick = async () => {
+            if (
+              confirm(
+                `Are you sure you want to delete the tree "${treeName}"? This action cannot be undone.`
+              )
+            ) {
+              try {
+                const success =
+                  await window.genealogyTreeManager!.deleteTree(treeName);
+                if (success) {
+                  updateTreeList();
+                  updateCurrentTreeDisplay();
+                  // Close dialog after successful switch
+                  hideDialog();
+                } else {
+                  alert("Failed to delete tree");
+                }
+              } catch (error) {
+                alert(`Error deleting tree: ${(error as Error).message}`);
+              }
+            }
+          };
+          actionsDiv.appendChild(deleteButton);
+        }
+
+        treeItem.appendChild(nameSpan);
+        treeItem.appendChild(actionsDiv);
+        treeList.appendChild(treeItem);
+      });
+    }
+
+    async function createNewTree() {
+      if (!newTreeInput || !window.genealogyTreeManager) return;
+
+      const treeName = (newTreeInput as HTMLInputElement).value.trim();
+      if (!treeName) {
+        alert("Please enter a tree name");
+        return;
+      }
+
+      const copyData = (copyCheckbox as HTMLInputElement)?.checked || false;
+
+      try {
+        const success = await window.genealogyTreeManager.createNewTree(
+          treeName,
+          copyData
+        );
+        if (success) {
+          (newTreeInput as HTMLInputElement).value = "";
+          if (copyCheckbox) (copyCheckbox as HTMLInputElement).checked = false;
+          updateTreeList();
+
+          // Switch to the new tree
+          await window.genealogyTreeManager.switchToTree(treeName);
+          updateTreeList();
+          updateCurrentTreeDisplay();
+          // Close dialog after successful creation and switch
+          hideDialog();
+        }
+      } catch (error) {
+        alert(`Error creating tree: ${(error as Error).message}`);
+      }
+    }
+
+    // Event listeners
+    if (closeButton) {
+      closeButton.addEventListener("click", hideDialog);
+    }
+
+    if (cancelButton) {
+      cancelButton.addEventListener("click", hideDialog);
+    }
+
+    if (createButton) {
+      createButton.addEventListener("click", createNewTree);
+    }
+
+    if (newTreeInput) {
+      newTreeInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          createNewTree();
+        }
+      });
+    }
+
+    // Close dialog when clicking outside
+    if (dialog) {
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) {
+          hideDialog();
+        }
+      });
+    }
+
+    // Make the dialog functions available globally
+    window.treeManagementDialog = {
+      show: showDialog,
+      hide: hideDialog,
+      updateTreeList: updateTreeList,
+    };
+
+    return {showDialog, hideDialog};
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeTreeManagementDialog);
+</script>
