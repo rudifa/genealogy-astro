@@ -82,15 +82,15 @@ const {language, translations} = Astro.props;
     color: rgba(255, 255, 255, 0.8);
   }
 
-  .author-link {
-    color: #ffeb3b;
+  .author-info .author-link {
+    color: #ffeb3b !important;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s ease;
   }
 
-  .author-link:hover {
-    color: #fff59d;
+  .author-info .author-link:hover {
+    color: #fff59d !important;
     text-decoration: underline;
   }
 
@@ -202,10 +202,10 @@ const {language, translations} = Astro.props;
     }
 
     if (authorInfo) {
-      // Update the text but preserve the link
+      // Update the text but preserve the link with proper styling
       const authorLink = authorInfo.querySelector(".author-link");
       if (authorLink) {
-        authorInfo.innerHTML = `${translations.developedBy} <a href="https://github.com/rudifa" target="_blank" rel="noopener noreferrer" class="author-link">@rudifa</a>`;
+        authorInfo.innerHTML = `${translations.developedBy} <a href="https://github.com/rudifa" target="_blank" rel="noopener noreferrer" class="author-link" style="color: #ffeb3b !important;">@rudifa</a>`;
       }
     }
 
