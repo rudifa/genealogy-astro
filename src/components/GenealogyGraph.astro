@@ -428,7 +428,9 @@ const {data, language, translations} = Astro.props;
   function createNewTree(treeName, copyFromCurrent = false) {
     try {
       if (!treeName || treeName.trim() === "") {
-        throw new Error("Tree name cannot be empty");
+        throw new Error(
+          currentTranslations.treeNameEmpty || "Tree name cannot be empty"
+        );
       }
 
       treeName = treeName.trim();
@@ -439,7 +441,10 @@ const {data, language, translations} = Astro.props;
       }
 
       if (storedData.trees[treeName]) {
-        throw new Error("Tree with this name already exists");
+        throw new Error(
+          currentTranslations.treeNameExists ||
+            "Tree with this name already exists"
+        );
       }
 
       // Create new tree
@@ -459,12 +464,15 @@ const {data, language, translations} = Astro.props;
   function deleteTree(treeName) {
     try {
       if (treeName === EXAMPLE_TREE_NAME) {
-        throw new Error("Cannot delete the Family Example tree");
+        throw new Error(
+          currentTranslations.cannotDeleteFamilyExample ||
+            "Cannot delete the Family Example tree"
+        );
       }
 
       const storedData = getStorageData();
       if (!storedData || !storedData.trees || !storedData.trees[treeName]) {
-        throw new Error("Tree not found");
+        throw new Error(currentTranslations.treeNotFound || "Tree not found");
       }
 
       delete storedData.trees[treeName];
@@ -564,7 +572,9 @@ const {data, language, translations} = Astro.props;
     renameTree: async (oldName, newName) => {
       try {
         if (!newName || newName.trim() === "") {
-          throw new Error("Tree name cannot be empty");
+          throw new Error(
+            currentTranslations.treeNameEmpty || "Tree name cannot be empty"
+          );
         }
 
         newName = newName.trim();
@@ -574,16 +584,22 @@ const {data, language, translations} = Astro.props;
         }
 
         if (oldName === EXAMPLE_TREE_NAME) {
-          throw new Error("Cannot rename the Family Example tree");
+          throw new Error(
+            currentTranslations.cannotRenameFamilyExample ||
+              "Cannot rename the Family Example tree"
+          );
         }
 
         const storedData = getStorageData();
         if (!storedData || !storedData.trees || !storedData.trees[oldName]) {
-          throw new Error("Tree not found");
+          throw new Error(currentTranslations.treeNotFound || "Tree not found");
         }
 
         if (storedData.trees[newName]) {
-          throw new Error("Tree with this name already exists");
+          throw new Error(
+            currentTranslations.treeNameExists ||
+              "Tree with this name already exists"
+          );
         }
 
         // Copy tree data to new name
@@ -631,10 +647,21 @@ const {data, language, translations} = Astro.props;
       "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data.",
     confirmLoadFamilyExample:
       'Are you sure you want to load the family example data into the "{treeName}" tree? This will replace all current data.',
+    treeNameEmpty: "Tree name cannot be empty",
+    treeNameExists: "A tree with this name already exists",
+    treeNotFound: "Tree not found",
+    cannotDeleteFamilyExample: "Cannot delete the Family Example tree",
+    cannotRenameFamilyExample: "Cannot rename the Family Example tree",
     initializationError: "Initialization Error",
     failedToLoad: "Failed to load the genealogy graph application.",
     errorRenderingGraph: "Error Rendering Graph",
     reloadPage: "Reload Page",
+    person: "person",
+    people: "people",
+    switchedToTree: "Switched to tree: {treeName}",
+    errorUpdateAfterTreeChange: "Failed to update graph after tree change",
+    errorLoadingFamilyExample: "Error loading family example",
+    errorOpeningTreeManagement: "Error opening tree management",
   };
 
   // Translation management
@@ -803,14 +830,24 @@ const {data, language, translations} = Astro.props;
           await renderGraph();
           updateTreeNameDisplay();
           const treeName = event.detail?.treeName || currentTreeName;
-          showNotification(`Switched to tree: ${treeName}`, "success");
+          showNotification(
+            currentTranslations.switchedToTree?.replace(
+              "{treeName}",
+              treeName
+            ) || `Switched to tree: ${treeName}`,
+            "success"
+          );
           console.log(
             "genealogy-tree-changed event, switched to tree:",
             treeName
           );
         } catch (error) {
           console.error("Error rendering graph after tree change:", error);
-          showNotification("Failed to update graph after tree change", "error");
+          showNotification(
+            currentTranslations.errorUpdateAfterTreeChange ||
+              "Failed to update graph after tree change",
+            "error"
+          );
         }
       });
 
@@ -903,10 +940,22 @@ const {data, language, translations} = Astro.props;
             return;
           }
 
-          const confirmMessage = currentTranslations.confirmClear
-            ? currentTranslations.confirmClear
+          // Get the most current translations to avoid stale state
+          const latestLang = window.currentLanguage || "en";
+          const latestTranslations =
+            window.genealogyTranslations?.[latestLang] ||
+            window.genealogyTranslations?.en ||
+            currentTranslations;
+
+          const confirmMessage = latestTranslations.confirmClear
+            ? latestTranslations.confirmClear
                 .replace("{count}", personCount)
-                .replace("{people}", personCount === 1 ? "person" : "people")
+                .replace(
+                  "{people}",
+                  personCount === 1
+                    ? latestTranslations.person
+                    : latestTranslations.people
+                )
             : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
 
           if (confirm(confirmMessage)) {
@@ -953,7 +1002,11 @@ const {data, language, translations} = Astro.props;
           }
         } catch (error) {
           console.error("Error loading family example:", error);
-          showNotification("Error loading family example", "error");
+          showNotification(
+            currentTranslations.errorLoadingFamilyExample ||
+              "Error loading family example",
+            "error"
+          );
         }
       });
 
@@ -980,7 +1033,11 @@ const {data, language, translations} = Astro.props;
             }
           } catch (error) {
             console.error("Error opening tree management:", error);
-            showNotification("Error opening tree management", "error");
+            showNotification(
+              currentTranslations.errorOpeningTreeManagement ||
+                "Error opening tree management",
+              "error"
+            );
           }
         });
       }

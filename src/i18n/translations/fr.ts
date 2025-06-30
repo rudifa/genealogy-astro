@@ -72,6 +72,8 @@ export const fr: Translations = {
   initializationError: "Erreur d'Initialisation",
   failedToLoad: "Échec du chargement de l'application d'arbre généalogique.",
   errorRenderingGraph: "Erreur de Rendu du Graphique",
+  person: "personne",
+  people: "personnes",
 
   // Language switcher
   language: "Langue",
@@ -97,9 +99,24 @@ export const fr: Translations = {
   errorDeletingTree: "Erreur lors de la suppression de l'arbre: {error}",
   errorCreatingTree: "Erreur lors de la création de l'arbre: {error}",
 
+  // Tree validation errors
+  treeNameEmpty: "Le nom de l'arbre ne peut pas être vide",
+  treeNameExists: "Un arbre avec ce nom existe déjà",
+  treeNotFound: "Arbre non trouvé",
+  cannotDeleteFamilyExample: "Impossible de supprimer l'arbre Exemple Familial",
+  cannotRenameFamilyExample: "Impossible de renommer l'arbre Exemple Familial",
+
   // Footer
   projectInfo: "Application Généalogique Open Source",
   developedBy: "Développé par",
   sourceCode: "Code Source",
   viewOnGitHub: "Voir sur GitHub",
+
+  // Tree management notifications
+  switchedToTree: "Basculé vers l'arbre : {treeName}",
+  errorUpdateAfterTreeChange:
+    "Échec de mise à jour du graphique après changement d'arbre",
+  errorLoadingFamilyExample: "Erreur lors du chargement de l'exemple familial",
+  errorOpeningTreeManagement:
+    "Erreur lors de l'ouverture de la gestion des arbres",
 };

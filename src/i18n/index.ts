@@ -65,6 +65,8 @@ export interface Translations {
   initializationError: string;
   failedToLoad: string;
   errorRenderingGraph: string;
+  person: string;
+  people: string;
 
   // Language switcher
   language: string;
@@ -89,11 +91,24 @@ export interface Translations {
   errorDeletingTree: string;
   errorCreatingTree: string;
 
+  // Tree validation errors
+  treeNameEmpty: string;
+  treeNameExists: string;
+  treeNotFound: string;
+  cannotDeleteFamilyExample: string;
+  cannotRenameFamilyExample: string;
+
   // Footer
   projectInfo: string;
   developedBy: string;
   sourceCode: string;
   viewOnGitHub: string;
+
+  // Tree management notifications
+  switchedToTree: string;
+  errorUpdateAfterTreeChange: string;
+  errorLoadingFamilyExample: string;
+  errorOpeningTreeManagement: string;
 }
 
 export const translations: Record<Language, Translations> = {

@@ -71,6 +71,8 @@ export const en: Translations = {
   initializationError: "Initialization Error",
   failedToLoad: "Failed to load the genealogy graph application.",
   errorRenderingGraph: "Error Rendering Graph",
+  person: "person",
+  people: "people",
 
   // Language switcher
   language: "Language",
@@ -96,9 +98,22 @@ export const en: Translations = {
   errorDeletingTree: "Error deleting tree: {error}",
   errorCreatingTree: "Error creating tree: {error}",
 
+  // Tree validation errors
+  treeNameEmpty: "Tree name cannot be empty",
+  treeNameExists: "A tree with this name already exists",
+  treeNotFound: "Tree not found",
+  cannotDeleteFamilyExample: "Cannot delete the Family Example tree",
+  cannotRenameFamilyExample: "Cannot rename the Family Example tree",
+
   // Footer
   projectInfo: "Open Source Genealogy App",
   developedBy: "Developed by",
   sourceCode: "Source Code",
   viewOnGitHub: "View on GitHub",
+
+  // Tree management notifications
+  switchedToTree: "Switched to tree: {treeName}",
+  errorUpdateAfterTreeChange: "Failed to update graph after tree change",
+  errorLoadingFamilyExample: "Error loading family example",
+  errorOpeningTreeManagement: "Error opening tree management",
 };

@@ -72,6 +72,8 @@ export const de: Translations = {
   initializationError: "Initialisierungsfehler",
   failedToLoad: "Fehler beim Laden der Genealogie-Graph-Anwendung.",
   errorRenderingGraph: "Fehler beim Graph-Rendering",
+  person: "Person",
+  people: "Personen",
 
   // Language switcher
   language: "Sprache",
@@ -97,9 +99,25 @@ export const de: Translations = {
   errorDeletingTree: "Fehler beim Löschen des Baums: {error}",
   errorCreatingTree: "Fehler beim Erstellen des Baums: {error}",
 
+  // Tree validation errors
+  treeNameEmpty: "Baumname darf nicht leer sein",
+  treeNameExists: "Ein Baum mit diesem Namen existiert bereits",
+  treeNotFound: "Baum nicht gefunden",
+  cannotDeleteFamilyExample:
+    "Der Familienbeispiel-Baum kann nicht gelöscht werden",
+  cannotRenameFamilyExample:
+    "Der Familienbeispiel-Baum kann nicht umbenannt werden",
+
   // Footer
   projectInfo: "Open Source Genealogie-App",
   developedBy: "Entwickelt von",
   sourceCode: "Quellcode",
   viewOnGitHub: "Auf GitHub ansehen",
+
+  // Tree management notifications
+  switchedToTree: "Gewechselt zu Baum: {treeName}",
+  errorUpdateAfterTreeChange:
+    "Fehler beim Aktualisieren des Graphen nach Baumwechsel",
+  errorLoadingFamilyExample: "Fehler beim Laden des Familienbeispiels",
+  errorOpeningTreeManagement: "Fehler beim Öffnen der Baumverwaltung",
 };
