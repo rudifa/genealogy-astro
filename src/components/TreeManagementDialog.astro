@@ -713,7 +713,7 @@ const {language, translations} = Astro.props;
   }
 </style>
 
-<script define:vars={{translations}}>
+<script is:inline define:vars={{translations}}>
   // Tree Management Dialog functionality
   function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-management-dialog");

@@ -286,9 +286,15 @@ const {data, language, translations} = Astro.props;
   }
 </style>
 
-<script type='module' define:vars={{genealogyDataJson: JSON.stringify(data)}}>
+<script
+  is:inline
+  type='module'
+  define:vars={{genealogyDataJson: JSON.stringify(data)}}
+>
   import {GenealogyData} from "/utility/GenealogyData.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
+
+  // genealogyDataJson is provided by Astro's define:vars
 
   // Initialize genealogy data with multi-tree localStorage persistence
   const STORAGE_KEY = "genealogy-app-data";
@@ -296,6 +302,11 @@ const {data, language, translations} = Astro.props;
 
   let genealogyData;
   let currentTreeName = EXAMPLE_TREE_NAME;
+
+  function initialGenealogyData() {
+    // @ts-ignore - genealogyDataJson is provided by Astro's define:vars
+    return JSON.parse(genealogyDataJson);
+  }
 
   function getStorageData() {
     try {
@@ -310,7 +321,7 @@ const {data, language, translations} = Astro.props;
   }
 
   function initializeStorageStructure() {
-    const initialData = JSON.parse(genealogyDataJson);
+    const initialData = initialGenealogyData();
     return {
       activeTreeName: EXAMPLE_TREE_NAME,
       trees: {
@@ -352,7 +363,7 @@ const {data, language, translations} = Astro.props;
     // Fallback to initial data
     console.log("Using initial data from server");
     currentTreeName = EXAMPLE_TREE_NAME;
-    return new GenealogyData(JSON.parse(genealogyDataJson));
+    return new GenealogyData(initialGenealogyData());
   }
 
   function saveDataToStorage() {
@@ -493,7 +504,7 @@ const {data, language, translations} = Astro.props;
     try {
       localStorage.removeItem(STORAGE_KEY);
       currentTreeName = EXAMPLE_TREE_NAME;
-      genealogyData = new GenealogyData(JSON.parse(genealogyDataJson));
+      genealogyData = new GenealogyData(initialGenealogyData());
       console.log("Reset to original data");
     } catch (error) {
       console.error("Failed to reset to original data:", error);
@@ -970,7 +981,7 @@ const {data, language, translations} = Astro.props;
 
           if (confirm(confirmMessage)) {
             // Always load the original family example data
-            const originalData = JSON.parse(genealogyDataJson);
+            const originalData = initialGenealogyData();
             genealogyData = new GenealogyData(originalData);
 
             saveDataToStorage();
