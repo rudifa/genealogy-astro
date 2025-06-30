@@ -15,6 +15,7 @@ export const fr: Translations = {
   addPerson: "Ajouter Personne",
   clearAll: "Tout Effacer",
   familyExample: "Exemple Familial",
+  manageTrees: "Gérer les Arbres",
   loading: "Chargement...",
 
   // Dialog
@@ -59,6 +60,10 @@ export const fr: Translations = {
     "Êtes-vous sûr de vouloir supprimer toutes les {count} {people} de la généalogie? Cette action ne peut pas être annulée.",
   confirmFamilyExample:
     "Êtes-vous sûr de vouloir charger l'exemple familial? Cela remplacera vos données actuelles et ne peut pas être annulé.",
+  confirmResetFamilyExample:
+    "Êtes-vous sûr de vouloir réinitialiser l'arbre Exemple Familial à son état d'origine? Cela remplacera toutes les données actuelles.",
+  confirmLoadFamilyExample:
+    "Êtes-vous sûr de vouloir charger les données de l'exemple familial dans l'arbre \"{treeName}\"? Cela remplacera toutes les données actuelles.",
   actionCannotBeUndone: "Cette action ne peut pas être annulée.",
 
   // Placeholders and misc
@@ -67,14 +72,51 @@ export const fr: Translations = {
   initializationError: "Erreur d'Initialisation",
   failedToLoad: "Échec du chargement de l'application d'arbre généalogique.",
   errorRenderingGraph: "Erreur de Rendu du Graphique",
+  person: "personne",
+  people: "personnes",
 
   // Language switcher
   language: "Langue",
   selectLanguage: "Sélectionner la Langue",
+
+  // Tree Management Dialog
+  manageFamilyTrees: "Gérer les Arbres Généalogiques",
+  availableTrees: "Arbres Disponibles:",
+  createNewTree: "Créer un Nouvel Arbre:",
+  copyCurrentTreeData: "Copier les données de l'arbre actuel",
+  create: "Créer",
+  enterTreeName: "Entrez le nom de l'arbre...",
+  currentActiveTree: "Arbre actuel actif",
+  switchToTree: "Basculer vers cet arbre",
+  deleteTree: "Supprimer cet arbre",
+  confirmDeleteTree:
+    'Êtes-vous sûr de vouloir supprimer l\'arbre "{name}"? Cette action ne peut pas être annulée.',
+  enterTreeNamePrompt: "Veuillez entrer un nom d'arbre",
+  failedToSwitchTree: "Échec du basculement vers l'arbre",
+  failedToDeleteTree: "Échec de la suppression de l'arbre",
+  failedToCreateTree: "Échec de la création de l'arbre",
+  errorSwitchingTree: "Erreur lors du basculement vers l'arbre: {error}",
+  errorDeletingTree: "Erreur lors de la suppression de l'arbre: {error}",
+  errorCreatingTree: "Erreur lors de la création de l'arbre: {error}",
+
+  // Tree validation errors
+  treeNameEmpty: "Le nom de l'arbre ne peut pas être vide",
+  treeNameExists: "Un arbre avec ce nom existe déjà",
+  treeNotFound: "Arbre non trouvé",
+  cannotDeleteFamilyExample: "Impossible de supprimer l'arbre Exemple Familial",
+  cannotRenameFamilyExample: "Impossible de renommer l'arbre Exemple Familial",
 
   // Footer
   projectInfo: "Application Généalogique Open Source",
   developedBy: "Développé par",
   sourceCode: "Code Source",
   viewOnGitHub: "Voir sur GitHub",
+
+  // Tree management notifications
+  switchedToTree: "Basculé vers l'arbre : {treeName}",
+  errorUpdateAfterTreeChange:
+    "Échec de mise à jour du graphique après changement d'arbre",
+  errorLoadingFamilyExample: "Erreur lors du chargement de l'exemple familial",
+  errorOpeningTreeManagement:
+    "Erreur lors de l'ouverture de la gestion des arbres",
 };

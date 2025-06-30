@@ -15,6 +15,7 @@ export const en: Translations = {
   addPerson: "Add Person",
   clearAll: "Clear All",
   familyExample: "Family Example",
+  manageTrees: "Manage Trees",
   loading: "Loading...",
 
   // Dialog
@@ -58,6 +59,10 @@ export const en: Translations = {
     "Are you sure you want to remove all {count} {people} from the genealogy? This action cannot be undone.",
   confirmFamilyExample:
     "Are you sure you want to load the family example? This will replace your current data and cannot be undone.",
+  confirmResetFamilyExample:
+    "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data.",
+  confirmLoadFamilyExample:
+    'Are you sure you want to load the family example data into the "{treeName}" tree? This will replace all current data.',
   actionCannotBeUndone: "This action cannot be undone.",
 
   // Placeholders and misc
@@ -66,14 +71,49 @@ export const en: Translations = {
   initializationError: "Initialization Error",
   failedToLoad: "Failed to load the genealogy graph application.",
   errorRenderingGraph: "Error Rendering Graph",
+  person: "person",
+  people: "people",
 
   // Language switcher
   language: "Language",
   selectLanguage: "Select Language",
+
+  // Tree Management Dialog
+  manageFamilyTrees: "Manage Family Trees",
+  availableTrees: "Available Trees:",
+  createNewTree: "Create New Tree:",
+  copyCurrentTreeData: "Copy current tree data",
+  create: "Create",
+  enterTreeName: "Enter tree name...",
+  currentActiveTree: "Current active tree",
+  switchToTree: "Switch to this tree",
+  deleteTree: "Delete this tree",
+  confirmDeleteTree:
+    'Are you sure you want to delete the tree "{name}"? This action cannot be undone.',
+  enterTreeNamePrompt: "Please enter a tree name",
+  failedToSwitchTree: "Failed to switch to tree",
+  failedToDeleteTree: "Failed to delete tree",
+  failedToCreateTree: "Failed to create tree",
+  errorSwitchingTree: "Error switching to tree: {error}",
+  errorDeletingTree: "Error deleting tree: {error}",
+  errorCreatingTree: "Error creating tree: {error}",
+
+  // Tree validation errors
+  treeNameEmpty: "Tree name cannot be empty",
+  treeNameExists: "A tree with this name already exists",
+  treeNotFound: "Tree not found",
+  cannotDeleteFamilyExample: "Cannot delete the Family Example tree",
+  cannotRenameFamilyExample: "Cannot rename the Family Example tree",
 
   // Footer
   projectInfo: "Open Source Genealogy App",
   developedBy: "Developed by",
   sourceCode: "Source Code",
   viewOnGitHub: "View on GitHub",
+
+  // Tree management notifications
+  switchedToTree: "Switched to tree: {treeName}",
+  errorUpdateAfterTreeChange: "Failed to update graph after tree change",
+  errorLoadingFamilyExample: "Error loading family example",
+  errorOpeningTreeManagement: "Error opening tree management",
 };

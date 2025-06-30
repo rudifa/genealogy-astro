@@ -2,21 +2,17 @@
 
 ## Features
 
-- view the defult sample tree
-- add new persons
-- edit existing persons
-- remove persons
-- clear all
-- UX in English, French, and German
-- save data in browser storage
-- reset to the original sample tree
-- responsive design
-- published on Vercel as [genealogy-astro](https://genealogy-astro.vercel.app/)
+- **Interactive Graph:** View and edit your family tree visually.
+- **Multi-Tree Management:** Create and manage multiple family trees, all within your browser.
+- **File Import/Export:** Save your trees to your computer for backup or sharing, and load them back anytime.
+- **Easy Editing:** Add, edit, and remove people with a simple dialog.
+- **Multilingual:** Full user experience in English, French, and German.
+- **Persistent Storage:** Your work is automatically saved in your browser's local storage.
+- **Responsive Design:** Works on desktop, tablet, and mobile.
+- **Live Demo:** Published on Vercel at [genealogy-astro.vercel.app](https://genealogy-astro.vercel.app/)
 
 ## Missing features
 
-- save changes to a file
-- load a tree from a file
 - load multiple files and merge them
 
 ## More features

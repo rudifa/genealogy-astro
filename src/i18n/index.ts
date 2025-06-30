@@ -15,6 +15,7 @@ export interface Translations {
   addPerson: string;
   clearAll: string;
   familyExample: string;
+  manageTrees: string;
   loading: string;
 
   // Dialog
@@ -54,6 +55,8 @@ export interface Translations {
   confirmRemove: string;
   confirmClear: string;
   confirmFamilyExample: string;
+  confirmResetFamilyExample: string;
+  confirmLoadFamilyExample: string;
   actionCannotBeUndone: string;
 
   // Placeholders and misc
@@ -62,16 +65,50 @@ export interface Translations {
   initializationError: string;
   failedToLoad: string;
   errorRenderingGraph: string;
+  person: string;
+  people: string;
 
   // Language switcher
   language: string;
   selectLanguage: string;
+
+  // Tree Management Dialog
+  manageFamilyTrees: string;
+  availableTrees: string;
+  createNewTree: string;
+  copyCurrentTreeData: string;
+  create: string;
+  enterTreeName: string;
+  currentActiveTree: string;
+  switchToTree: string;
+  deleteTree: string;
+  confirmDeleteTree: string;
+  enterTreeNamePrompt: string;
+  failedToSwitchTree: string;
+  failedToDeleteTree: string;
+  failedToCreateTree: string;
+  errorSwitchingTree: string;
+  errorDeletingTree: string;
+  errorCreatingTree: string;
+
+  // Tree validation errors
+  treeNameEmpty: string;
+  treeNameExists: string;
+  treeNotFound: string;
+  cannotDeleteFamilyExample: string;
+  cannotRenameFamilyExample: string;
 
   // Footer
   projectInfo: string;
   developedBy: string;
   sourceCode: string;
   viewOnGitHub: string;
+
+  // Tree management notifications
+  switchedToTree: string;
+  errorUpdateAfterTreeChange: string;
+  errorLoadingFamilyExample: string;
+  errorOpeningTreeManagement: string;
 }
 
 export const translations: Record<Language, Translations> = {
