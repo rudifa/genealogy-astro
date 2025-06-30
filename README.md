@@ -4,7 +4,6 @@
 
 - **Interactive Graph:** View and edit your family tree visually.
 - **Multi-Tree Management:** Create and manage multiple family trees, all within your browser.
-- **File Import/Export:** Save your trees to your computer for backup or sharing, and load them back anytime.
 - **Easy Editing:** Add, edit, and remove people with a simple dialog.
 - **Multilingual:** Full user experience in English, French, and German.
 - **Persistent Storage:** Your work is automatically saved in your browser's local storage.
@@ -13,7 +12,8 @@
 
 ## Missing features
 
-- load multiple files and merge them
+- File Import/Export: Save your trees to your computer for backup or sharing, and load them back anytime.
+- Load multiple files and merge them
 
 ## More features
 
