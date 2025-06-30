@@ -723,7 +723,6 @@ const {language, translations} = Astro.props;
     const newTreeInput = document.getElementById("new-tree-name");
     const copyCheckbox = document.getElementById("copy-current-tree");
     const treeList = document.getElementById("tree-list");
-    const currentTreeDisplay = document.getElementById("dialog-current-tree");
 
     // Store current translations (will be updated by language changes)
     let currentTranslations = translations;
@@ -799,9 +798,13 @@ const {language, translations} = Astro.props;
     }
 
     function updateCurrentTreeDisplay() {
-      if (currentTreeDisplay && window.genealogyTreeManager) {
-        currentTreeDisplay.textContent =
-          window.genealogyTreeManager.getCurrentTreeName();
+      // This function is kept for compatibility, but the main tree display
+      // is updated via the tree-management-update event in GenealogyGraph
+      if (window.genealogyTreeManager) {
+        console.log(
+          "Current tree after update:",
+          window.genealogyTreeManager.getCurrentTreeName()
+        );
       }
     }
 
@@ -889,6 +892,13 @@ const {language, translations} = Astro.props;
             if (success) {
               updateTreeList();
               updateCurrentTreeDisplay();
+
+              // Ensure main toolbar is updated
+              const event = new CustomEvent("tree-management-update", {
+                detail: {action: "switch", treeName: treeName},
+              });
+              document.dispatchEvent(event);
+
               hideDialog();
             } else {
               alert(currentTranslations.failedToSwitchTree);
@@ -916,8 +926,19 @@ const {language, translations} = Astro.props;
               const success =
                 await window.genealogyTreeManager.deleteTree(treeName);
               if (success) {
+                // Update dialog displays first
                 updateTreeList();
                 updateCurrentTreeDisplay();
+
+                // Ensure main toolbar is updated by dispatching a custom event
+                const event = new CustomEvent("tree-management-update", {
+                  detail: {action: "delete", treeName: treeName},
+                });
+                document.dispatchEvent(event);
+
+                // Give a brief moment for all updates to complete
+                await new Promise((resolve) => setTimeout(resolve, 50));
+
                 hideDialog();
               } else {
                 alert(currentTranslations.failedToDeleteTree);

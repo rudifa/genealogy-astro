@@ -1030,4 +1030,18 @@ const {data, language, translations} = Astro.props;
       updateUITranslations(translations);
     }
   });
+
+  // Listen for tree management updates to ensure display is synchronized
+  document.addEventListener("tree-management-update", function (event) {
+    const {action, treeName} = event.detail;
+    console.log(`Tree management update: ${action} for tree ${treeName}`);
+
+    // Force update of tree name display
+    updateTreeNameDisplay();
+
+    // If a tree was deleted or switched, ensure edit dialog has current data
+    if (window.updateEditDialogData) {
+      window.updateEditDialogData(genealogyData);
+    }
+  });
 </script>
