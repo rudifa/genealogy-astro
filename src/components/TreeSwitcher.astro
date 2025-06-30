@@ -1,0 +1,203 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+export interface Props {
+  currentTree: string;
+  language: Language;
+  translations: Translations;
+}
+
+const {currentTree, language, translations} = Astro.props;
+---
+
+<div class='tree-switcher'>
+  <select id='tree-select' class='tree-select'>
+    <option value={currentTree} selected>
+      🌳 {currentTree}
+    </option>
+  </select>
+</div>
+
+<style>
+  .tree-switcher {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .tree-select {
+    padding: 8px 12px;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.1);
+    min-width: 150px;
+    text-align: center;
+    color: #155724;
+  }
+
+  .tree-select:hover {
+    border-color: #20c997;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.15);
+  }
+
+  .tree-select:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow:
+      0 0 0 3px rgba(0, 122, 204, 0.15),
+      0 4px 8px rgba(40, 167, 69, 0.15);
+  }
+
+  .tree-select:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.1);
+  }
+
+  .tree-select option {
+    font-size: 13px;
+    padding: 8px 12px;
+    background: white;
+    color: #495057;
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .tree-select {
+      font-size: 13px;
+      padding: 6px 10px;
+      min-width: 130px;
+    }
+
+    .tree-select option {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tree-select {
+      font-size: 12px;
+      padding: 5px 8px;
+      min-width: 120px;
+    }
+
+    .tree-select option {
+      font-size: 11px;
+      padding: 5px 8px;
+    }
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function () {
+    const treeSelect = document.getElementById("tree-select");
+
+    function updateTreeOptions() {
+      if (!treeSelect || !window.genealogyTreeManager) return;
+
+      try {
+        const availableTrees = window.genealogyTreeManager.getAvailableTrees();
+        const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+
+        // Clear existing options
+        treeSelect.innerHTML = "";
+
+        // Add all available trees
+        availableTrees.forEach((treeName) => {
+          const option = document.createElement("option");
+          option.value = treeName;
+          option.textContent = `🌳 ${treeName}`;
+          option.selected = treeName === currentTree;
+          treeSelect.appendChild(option);
+        });
+
+        console.log(
+          "Updated tree options:",
+          availableTrees,
+          "Current:",
+          currentTree
+        );
+      } catch (error) {
+        console.error("Error updating tree options:", error);
+      }
+    }
+
+    if (treeSelect) {
+      // Initialize tree options when tree manager is available
+      function initializeWhenReady() {
+        if (window.genealogyTreeManager) {
+          updateTreeOptions();
+        } else {
+          // Retry after a short delay
+          setTimeout(initializeWhenReady, 100);
+        }
+      }
+      initializeWhenReady();
+
+      // Handle tree selection changes
+      treeSelect.addEventListener("change", async function (event) {
+        const selectedTree = event.target.value;
+
+        if (!window.genealogyTreeManager) {
+          console.error("Tree manager not available");
+          return;
+        }
+
+        try {
+          const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+
+          if (selectedTree !== currentTree) {
+            console.log(`Switching from "${currentTree}" to "${selectedTree}"`);
+
+            const success =
+              await window.genealogyTreeManager.switchToTree(selectedTree);
+
+            if (success) {
+              console.log(`Successfully switched to tree: ${selectedTree}`);
+
+              // Dispatch tree management update event
+              const updateEvent = new CustomEvent("tree-management-update", {
+                detail: {action: "switch", treeName: selectedTree},
+              });
+              document.dispatchEvent(updateEvent);
+            } else {
+              console.error(`Failed to switch to tree: ${selectedTree}`);
+              // Reset selection to current tree
+              updateTreeOptions();
+            }
+          }
+        } catch (error) {
+          console.error("Error switching tree:", error);
+          // Reset selection to current tree
+          updateTreeOptions();
+        }
+      });
+    }
+
+    // Listen for tree management updates to refresh the dropdown
+    document.addEventListener("tree-management-update", function (event) {
+      console.log(
+        "TreeSwitcher received tree-management-update:",
+        event.detail
+      );
+      updateTreeOptions();
+    });
+
+    // Listen for language changes to update any translatable content
+    window.addEventListener("languageChanged", function (event) {
+      // Currently no translatable content in tree switcher, but ready for future
+      console.log("TreeSwitcher received language change");
+    });
+  });
+</script>

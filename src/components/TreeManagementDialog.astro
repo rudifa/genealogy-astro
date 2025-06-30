@@ -1010,6 +1010,13 @@ const {language, translations} = Astro.props;
           await window.genealogyTreeManager.switchToTree(treeName);
           updateTreeList();
           updateCurrentTreeDisplay();
+
+          // Dispatch event to notify other components (like TreeSwitcher)
+          const event = new CustomEvent("tree-management-update", {
+            detail: {action: "create", treeName: treeName},
+          });
+          document.dispatchEvent(event);
+
           // Close dialog after successful creation and switch
           hideDialog();
         }

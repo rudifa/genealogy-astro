@@ -3,6 +3,7 @@ import type {GenealogyData as GenealogyDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
+import TreeSwitcher from "./TreeSwitcher.astro";
 import TreeManagementDialog from "./TreeManagementDialog.astro";
 
 interface Props {
@@ -17,10 +18,11 @@ const {data, language, translations} = Astro.props;
 <div class='screen'>
   <div class='toolbar'>
     <LanguageSwitcher currentLanguage={language} translations={translations} />
-    <div id='current-tree-display' class='current-tree-display'>
-      <span class='tree-label'>👁</span>
-      <span id='current-tree-name' class='tree-name'>Family Example</span>
-    </div>
+    <TreeSwitcher
+      currentTree='Family Example'
+      language={language}
+      translations={translations}
+    />
     <button id='add-button' type='button'>{translations.addPerson}</button>
     <button id='clear-button' type='button'>{translations.clearAll}</button>
     <button id='reset-button' type='button'>{translations.familyExample}</button
@@ -110,26 +112,6 @@ const {data, language, translations} = Astro.props;
     transform: none;
     box-shadow: none;
     border-color: #dee2e6;
-  }
-
-  .current-tree-display {
-    background-color: #e9ecef;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
-
-  .tree-label {
-    color: #6c757d;
-    font-weight: 500;
-  }
-
-  .tree-name {
-    color: #495057;
-    font-weight: 600;
-    margin-left: 4px;
   }
 
   #add-button {
@@ -686,12 +668,11 @@ const {data, language, translations} = Astro.props;
       graphPlaceholder.textContent = translations.loadingGraph;
   }
 
-  // Tree name display management
+  // Tree name display management - now handled by TreeSwitcher component
   function updateTreeNameDisplay() {
-    const treeNameElement = document.getElementById("current-tree-name");
-    if (treeNameElement) {
-      treeNameElement.textContent = currentTreeName;
-    }
+    // TreeSwitcher component handles its own display updates
+    // This function is kept for backward compatibility
+    console.log(`Current tree: ${currentTreeName}`);
   }
 
   async function genealogySvgString(data) {
