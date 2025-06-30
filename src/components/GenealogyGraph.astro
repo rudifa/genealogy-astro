@@ -1,5 +1,5 @@
 ---
-import type {GenealogyData as GenealogyDataType} from "@/types";
+import type {TreeDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
@@ -7,7 +7,7 @@ import TreeSwitcher from "./TreeSwitcher.astro";
 import TreeManagementDialog from "./TreeManagementDialog.astro";
 
 interface Props {
-  data: GenealogyDataType;
+  data: TreeDataType;
   language: Language;
   translations: Translations;
 }
@@ -292,6 +292,7 @@ const {data, language, translations} = Astro.props;
   define:vars={{genealogyDataJson: JSON.stringify(data)}}
 >
   import {GenealogyData} from "/utility/GenealogyData.js";
+  import {StorageManager} from "/utility/StorageManager.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
   // genealogyDataJson is provided by Astro's define:vars
@@ -302,91 +303,46 @@ const {data, language, translations} = Astro.props;
 
   let genealogyData;
   let currentTreeName = EXAMPLE_TREE_NAME;
+  let storageManager;
 
   function initialGenealogyData() {
     // @ts-ignore - genealogyDataJson is provided by Astro's define:vars
     return JSON.parse(genealogyDataJson);
   }
 
-  function getStorageData() {
-    try {
-      const storedData = localStorage.getItem(STORAGE_KEY);
-      if (storedData) {
-        return JSON.parse(storedData);
-      }
-    } catch (error) {
-      console.warn("Failed to parse stored data:", error);
-    }
-    return null;
-  }
-
-  function initializeStorageStructure() {
-    const initialData = initialGenealogyData();
-    return {
-      activeTreeName: EXAMPLE_TREE_NAME,
-      trees: {
-        [EXAMPLE_TREE_NAME]: {
-          persons: initialData.persons || [],
-        },
-      },
-    };
-  }
+  // Initialize storage manager
+  storageManager = new StorageManager(
+    STORAGE_KEY,
+    EXAMPLE_TREE_NAME,
+    initialGenealogyData()
+  );
 
   function loadDataFromStorage() {
     try {
-      const storedData = getStorageData();
+      currentTreeName = storageManager.getCurrentTreeName();
+      const activeTreeData = storageManager.getActiveTreeData();
 
-      if (storedData && storedData.trees) {
-        // Use stored active tree or default
-        currentTreeName = storedData.activeTreeName || EXAMPLE_TREE_NAME;
-
-        // Ensure the active tree exists
-        if (!storedData.trees[currentTreeName]) {
-          currentTreeName = EXAMPLE_TREE_NAME;
-          if (!storedData.trees[currentTreeName]) {
-            // If no default tree, create it
-            storedData.trees[currentTreeName] = {persons: []};
-          }
-        }
-
-        const activeTreeData = storedData.trees[currentTreeName];
-        console.log(
-          `Loaded data from localStorage for tree: ${currentTreeName}`,
-          activeTreeData
-        );
-        return new GenealogyData(activeTreeData);
-      }
+      console.log(
+        `Loaded data from localStorage for tree: ${currentTreeName}`,
+        activeTreeData
+      );
+      return new GenealogyData(activeTreeData);
     } catch (error) {
       console.warn("Failed to load data from localStorage:", error);
-    }
 
-    // Fallback to initial data
-    console.log("Using initial data from server");
-    currentTreeName = EXAMPLE_TREE_NAME;
-    return new GenealogyData(initialGenealogyData());
+      // Fallback to initial data
+      console.log("Using initial data from server");
+      currentTreeName = EXAMPLE_TREE_NAME;
+      return new GenealogyData(initialGenealogyData());
+    }
   }
 
   function saveDataToStorage() {
     try {
-      let storedData = getStorageData();
-
-      if (!storedData || !storedData.trees) {
-        storedData = initializeStorageStructure();
-      }
-
-      // Update the current tree data
-      storedData.activeTreeName = currentTreeName;
-      storedData.trees[currentTreeName] = {
+      const treeData = {
         persons: genealogyData.persons,
-        // Add any other tree-specific data properties here
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
-      console.log(
-        `Saved data to localStorage for tree: ${currentTreeName}, trees: ${Object.keys(
-          storedData.trees
-        )}`
-      );
+      storageManager.saveTreeData(currentTreeName, treeData, true);
     } catch (error) {
       console.error("Failed to save data to localStorage:", error);
     }
@@ -397,14 +353,12 @@ const {data, language, translations} = Astro.props;
       // Save current tree data first
       saveDataToStorage();
 
-      const storedData = getStorageData();
-      if (storedData && storedData.trees && storedData.trees[treeName]) {
+      // Use StorageManager to switch
+      const success = storageManager.switchToTree(treeName);
+      if (success) {
         currentTreeName = treeName;
-        genealogyData = new GenealogyData(storedData.trees[treeName]);
-
-        // Update storage with new active tree
-        storedData.activeTreeName = treeName;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+        const newTreeData = storageManager.getTreeData(treeName);
+        genealogyData = new GenealogyData(newTreeData);
 
         console.log(`Switched to tree: ${treeName}`);
         console.log("New genealogy data:", genealogyData);
@@ -420,34 +374,14 @@ const {data, language, translations} = Astro.props;
 
   function createNewTree(treeName, copyFromCurrent = false) {
     try {
-      if (!treeName || treeName.trim() === "") {
-        throw new Error(
-          currentTranslations.treeNameEmpty || "Tree name cannot be empty"
-        );
-      }
-
-      treeName = treeName.trim();
-
-      let storedData = getStorageData();
-      if (!storedData || !storedData.trees) {
-        storedData = initializeStorageStructure();
-      }
-
-      if (storedData.trees[treeName]) {
-        throw new Error(
-          currentTranslations.treeNameExists ||
-            "Tree with this name already exists"
-        );
-      }
-
-      // Create new tree
-      storedData.trees[treeName] = {
-        persons: copyFromCurrent ? [...genealogyData.persons] : [],
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
-      console.log(`Created new tree: ${treeName}`);
-      return true;
+      const sourceTreeData = copyFromCurrent
+        ? {persons: genealogyData.persons}
+        : null;
+      return storageManager.createNewTree(
+        treeName,
+        sourceTreeData,
+        currentTranslations
+      );
     } catch (error) {
       console.error("Failed to create new tree:", error);
       throw error;
@@ -456,32 +390,16 @@ const {data, language, translations} = Astro.props;
 
   function deleteTree(treeName) {
     try {
-      if (treeName === EXAMPLE_TREE_NAME) {
-        throw new Error(
-          currentTranslations.cannotDeleteFamilyExample ||
-            "Cannot delete the Family Example tree"
-        );
+      const success = storageManager.deleteTree(treeName, currentTranslations);
+
+      // If we deleted the active tree, update our local variables
+      if (treeName === currentTreeName && success) {
+        currentTreeName = storageManager.getCurrentTreeName();
+        const newTreeData = storageManager.getActiveTreeData();
+        genealogyData = new GenealogyData(newTreeData);
       }
 
-      const storedData = getStorageData();
-      if (!storedData || !storedData.trees || !storedData.trees[treeName]) {
-        throw new Error(currentTranslations.treeNotFound || "Tree not found");
-      }
-
-      delete storedData.trees[treeName];
-
-      // If we're deleting the active tree, switch to default
-      if (currentTreeName === treeName) {
-        currentTreeName = EXAMPLE_TREE_NAME;
-        storedData.activeTreeName = EXAMPLE_TREE_NAME;
-        genealogyData = new GenealogyData(
-          storedData.trees[EXAMPLE_TREE_NAME] || {persons: []}
-        );
-      }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
-      console.log(`Deleted tree: ${treeName}`);
-      return true;
+      return success;
     } catch (error) {
       console.error("Failed to delete tree:", error);
       throw error;
@@ -489,20 +407,12 @@ const {data, language, translations} = Astro.props;
   }
 
   function getAvailableTrees() {
-    try {
-      const storedData = getStorageData();
-      if (storedData && storedData.trees) {
-        return Object.keys(storedData.trees);
-      }
-    } catch (error) {
-      console.error("Failed to get available trees:", error);
-    }
-    return [EXAMPLE_TREE_NAME];
+    return storageManager.getAvailableTrees();
   }
 
   function resetToOriginalData() {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      storageManager.resetToDefault();
       currentTreeName = EXAMPLE_TREE_NAME;
       genealogyData = new GenealogyData(initialGenealogyData());
       console.log("Reset to original data");
@@ -515,14 +425,16 @@ const {data, language, translations} = Astro.props;
   window.genealogyDebug = {
     saveToStorage: saveDataToStorage,
     resetToOriginal: resetToOriginalData,
-    clearStorage: () => localStorage.removeItem(STORAGE_KEY),
+    clearStorage: () => storageManager.clearStorage(),
     getData: () => genealogyData,
     getCurrentTreeName: () => currentTreeName,
-    getStoredData: () => getStorageData(),
+    getStoredData: () => storageManager.getStorageData(),
     getAvailableTrees: getAvailableTrees,
     switchToTree: switchToTree,
     createNewTree: createNewTree,
     deleteTree: deleteTree,
+    storageManager: storageManager, // Expose StorageManager for advanced debugging
+    getStorageStats: () => storageManager.getStorageStats(),
   };
 
   // Make tree management functions available globally for the future families dialog
@@ -564,50 +476,18 @@ const {data, language, translations} = Astro.props;
     },
     renameTree: async (oldName, newName) => {
       try {
-        if (!newName || newName.trim() === "") {
-          throw new Error(
-            currentTranslations.treeNameEmpty || "Tree name cannot be empty"
-          );
-        }
+        const success = storageManager.renameTree(
+          oldName,
+          newName,
+          currentTranslations
+        );
 
-        newName = newName.trim();
-
-        if (oldName === newName) {
-          return true; // No change needed
-        }
-
-        if (oldName === EXAMPLE_TREE_NAME) {
-          throw new Error(
-            currentTranslations.cannotRenameFamilyExample ||
-              "Cannot rename the Family Example tree"
-          );
-        }
-
-        const storedData = getStorageData();
-        if (!storedData || !storedData.trees || !storedData.trees[oldName]) {
-          throw new Error(currentTranslations.treeNotFound || "Tree not found");
-        }
-
-        if (storedData.trees[newName]) {
-          throw new Error(
-            currentTranslations.treeNameExists ||
-              "Tree with this name already exists"
-          );
-        }
-
-        // Copy tree data to new name
-        storedData.trees[newName] = storedData.trees[oldName];
-        delete storedData.trees[oldName];
-
-        // Update active tree name if necessary
-        if (currentTreeName === oldName) {
+        // Update local variables if we renamed the active tree
+        if (oldName === currentTreeName && success) {
           currentTreeName = newName;
-          storedData.activeTreeName = newName;
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
-        console.log(`Renamed tree from ${oldName} to ${newName}`);
-        return true;
+        return success;
       } catch (error) {
         console.error("Failed to rename tree:", error);
         throw error;

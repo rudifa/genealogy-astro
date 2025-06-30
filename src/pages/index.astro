@@ -4,10 +4,10 @@ import Header from "../components/Header.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
 import Footer from "../components/Footer.astro";
 import jsonData from "@/data/sample_tree.json";
-import type {GenealogyData} from "@/types";
+import type {TreeDataType} from "@/types";
 import {getTranslations, translations, type Language} from "../i18n/index";
 
-const genealogyData: GenealogyData = jsonData;
+const genealogyData: TreeDataType = jsonData;
 
 // For now, we'll default to English on the server side
 // The client will handle language detection and updates

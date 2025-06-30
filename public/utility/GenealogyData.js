@@ -1,14 +1,41 @@
+/**
+ * GenealogyData handles genealogy tree operations and DOT graph generation.
+ * Manages person data and relationships for family tree visualization.
+ *
+ * Expected data structures (matching TypeScript interfaces):
+ * - PersonType: { name: string, mother?: string, father?: string }
+ * - TreeDataType: { persons: PersonType[] }
+ */
 export class GenealogyData {
+  /**
+   * @param {Object} initialData - Tree data matching TreeDataType interface
+   * @param {Array} initialData.persons - Array of person objects with name, mother?, father? properties
+   */
   constructor(initialData) {
     this.persons = initialData.persons || [];
     this.updatePersonsFromNames();
   }
 
+  /**
+   * Add a new person to the genealogy data
+   * @param {Object} person - Person object matching PersonType interface
+   * @param {string} person.name - The person's name
+   * @param {string|null} person.mother - The mother's name (optional)
+   * @param {string|null} person.father - The father's name (optional)
+   */
   addPerson(person) {
     this.persons.push(person);
     this.updatePersonsFromNames();
   }
 
+  /**
+   * Update an existing person or add a new one if not found
+   * @param {string} originalName - The original name to search for
+   * @param {Object} updatedPerson - Updated person data matching PersonType interface
+   * @param {string} updatedPerson.name - The person's name
+   * @param {string|null} updatedPerson.mother - The mother's name (optional)
+   * @param {string|null} updatedPerson.father - The father's name (optional)
+   */
   updatePerson(originalName, updatedPerson) {
     const personIndex = this.persons.findIndex(p => p.name === originalName);
     if (personIndex > -1) {
@@ -22,6 +49,10 @@ export class GenealogyData {
     }
   }
 
+  /**
+   * Remove a person from the genealogy data and update all references
+   * @param {string} personName - The name of the person to remove
+   */
   removePerson(personName) {
     const personIndex = this.persons.findIndex(p => p.name === personName);
     if (personIndex > -1) {
@@ -30,6 +61,11 @@ export class GenealogyData {
     this.removeReferences(personName);
   }
 
+  /**
+   * Update all references to a person when their name changes
+   * @param {string} oldName - The old name to replace
+   * @param {string} newName - The new name to use
+   */
   updateReferences(oldName, newName) {
     this.persons.forEach(p => {
       if (p.mother === oldName) p.mother = newName;
@@ -37,6 +73,10 @@ export class GenealogyData {
     });
   }
 
+  /**
+   * Remove all references to a person (set mother/father to null)
+   * @param {string} personName - The name of the person to remove references to
+   */
   removeReferences(personName) {
     this.persons.forEach(p => {
       if (p.mother === personName) p.mother = null;
@@ -44,10 +84,18 @@ export class GenealogyData {
     });
   }
 
+  /**
+   * Clear all person data from the genealogy
+   */
   clear() {
     this.persons = [];
   }
 
+  /**
+   * Get all unique names mentioned in the genealogy data
+   * Includes both direct persons and referenced parents
+   * @returns {Set<string>} Set of all unique names
+   */
   getAllUniqueNames() {
     const allNames = new Set();
     this.persons.forEach(p => {
@@ -58,6 +106,10 @@ export class GenealogyData {
     return allNames;
   }
 
+  /**
+   * Automatically add missing person entries for all referenced names
+   * Creates placeholder persons for mothers/fathers that don't have their own entries
+   */
   updatePersonsFromNames() {
 
     const existingPersonNames = new Set(this.persons.map(p => p.name));
@@ -75,6 +127,11 @@ export class GenealogyData {
     });
   }
 
+   /**
+   * Generate a DOT graph string for Graphviz visualization
+   * Creates a directed graph with family relationships and clickable nodes
+   * @returns {string} DOT format string for graph visualization
+   */
    genealogyDotString() {
     const dotLines = [
       "strict digraph G {",

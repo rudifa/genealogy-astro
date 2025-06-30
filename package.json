@@ -41,7 +41,8 @@
         "check": "astro check",
         "lint": "astro check",
         "clean": "rm -rf dist .astro",
-        "test": "node --test"
+        "test": "node --test",
+        "test:storage": "node test/StorageManager.test.js"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.4",

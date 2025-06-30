@@ -1,21 +1,16 @@
-export interface Person {
+export interface PersonType {
   name: string;
   mother?: string;
   father?: string;
 }
 
-export interface GenealogyData {
-  persons: Person[];
+export interface TreeDataType {
+  persons: PersonType[];
 }
 
-// Tree storage structure
-export interface TreeData {
-  persons: Person[];
-}
-
-export interface StorageData {
+export interface StorageDataType {
   activeTreeName: string;
-  trees: Record<string, TreeData>;
+  trees: Record<string, TreeDataType>;
 }
 
 // Window extensions for tree management
