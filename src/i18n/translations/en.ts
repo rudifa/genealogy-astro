@@ -63,6 +63,9 @@ export const en: Translations = {
     "Are you sure you want to reset the Family Example tree to its original state? This will replace all current data.",
   confirmLoadFamilyExample:
     'Are you sure you want to load the family example data into the "{treeName}" tree? This will replace all current data.',
+  resetFamilyExample: "Reset Family Example",
+  failedToResetFamilyExample: "Failed to reset Family Example tree",
+  errorResetFamilyExample: "Error resetting Family Example tree: {error}",
   actionCannotBeUndone: "This action cannot be undone.",
 
   // Placeholders and misc
@@ -82,10 +85,12 @@ export const en: Translations = {
   manageFamilyTrees: "Manage Family Trees",
   availableTrees: "Available Trees:",
   createNewTree: "Create New Tree:",
+  createNewTreeMerging: "Create New Tree merging {treeA} and {treeB}",
   copyCurrentTreeData: "Copy current tree data",
   create: "Create",
   enterTreeName: "Enter tree name...",
   currentActiveTree: "Current active tree",
+  currentTree: "Current Tree",
   switchToTree: "Switch to this tree",
   deleteTree: "Delete this tree",
   confirmDeleteTree:
@@ -104,6 +109,11 @@ export const en: Translations = {
   treeNotFound: "Tree not found",
   cannotDeleteFamilyExample: "Cannot delete the Family Example tree",
   cannotRenameFamilyExample: "Cannot rename the Family Example tree",
+
+  // Tree merge and action tooltips
+  selectedForMerge: "Selected for merge - click to deselect",
+  selectForMerge: "Select for merge",
+  clickToSwitchTo: "Click to switch to {treeName}",
 
   // Footer
   projectInfo: "Open Source Genealogy App",
