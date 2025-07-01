@@ -1,7 +1,7 @@
 ---
 // Example Astro component showing proper error handling for GenealogyData methods
-import { GenealogyData } from '../public/utility/GenealogyData.js';
-import type { TreeDataType } from '@/types';
+import {GenealogyData} from "../public/utility/GenealogyData.js";
+import type {TreeDataType} from "@/types";
 
 interface Props {
   data: TreeDataType;
@@ -9,82 +9,91 @@ interface Props {
   translations: any;
 }
 
-const { data, language, translations } = Astro.props;
+const {data, language, translations} = Astro.props;
 ---
 
-<div class="merge-component">
-  <h2>{translations.mergeTree || 'Merge Trees'}</h2>
-  
-  <div class="merge-controls">
-    <select id="merge-strategy">
-      <option value="combine-non-null">Combine Non-Null</option>
-      <option value="keep-first">Keep First</option>
-      <option value="keep-second">Keep Second</option>
-      <option value="prefer-complete">Prefer Complete</option>
+<div class='merge-component'>
+  <h2>{translations.mergeTree || "Merge Trees"}</h2>
+
+  <div class='merge-controls'>
+    <select id='merge-strategy'>
+      <option value='combine-non-null'>Combine Non-Null</option>
+      <option value='keep-first'>Keep First</option>
+      <option value='keep-second'>Keep Second</option>
+      <option value='prefer-complete'>Prefer Complete</option>
     </select>
-    
-    <input type="file" id="tree-file" accept=".json" />
-    <button id="merge-button" type="button">{translations.merge || 'Merge'}</button>
+
+    <input type='file' id='tree-file' accept='.json' />
+    <button id='merge-button' type='button'
+      >{translations.merge || "Merge"}</button
+    >
   </div>
-  
-  <div id="merge-results" class="merge-results" style="display: none;"></div>
-  <div id="error-message" class="error-message" style="display: none;"></div>
-  <div id="success-message" class="success-message" style="display: none;"></div>
+
+  <div id='merge-results' class='merge-results' style='display: none;'></div>
+  <div id='error-message' class='error-message' style='display: none;'></div>
+  <div id='success-message' class='success-message' style='display: none;'>
+  </div>
 </div>
 
 <script>
-  import { GenealogyData } from '/public/utility/GenealogyData.js';
-  import { StorageManager } from '/public/utility/StorageManager.js';
+  import {GenealogyData} from "/public/utility/GenealogyData.js";
+  import {StorageManager} from "/public/utility/StorageManager.js";
 
   // Initialize components
-  let genealogyData = new GenealogyData(window.initialTreeData || { persons: [] });
-  const storageManager = new StorageManager('genealogy_data', 'Family Example', () => ({ persons: [] }));
+  let genealogyData = new GenealogyData(
+    window.initialTreeData || {persons: []}
+  );
+  const storageManager = new StorageManager(
+    "genealogy_data",
+    "Family Example",
+    () => ({persons: []})
+  );
 
   // Error handling utilities
   function showError(message, details = null) {
-    const errorDiv = document.getElementById('error-message');
+    const errorDiv = document.getElementById("error-message");
     if (errorDiv) {
       errorDiv.innerHTML = `
         <strong>Error:</strong> ${message}
-        ${details ? `<br><small>Details: ${details}</small>` : ''}
+        ${details ? `<br><small>Details: ${details}</small>` : ""}
       `;
-      errorDiv.style.display = 'block';
-      
+      errorDiv.style.display = "block";
+
       // Hide success message if shown
-      const successDiv = document.getElementById('success-message');
-      if (successDiv) successDiv.style.display = 'none';
-      
+      const successDiv = document.getElementById("success-message");
+      if (successDiv) successDiv.style.display = "none";
+
       // Auto-hide after 5 seconds
       setTimeout(() => {
-        errorDiv.style.display = 'none';
+        errorDiv.style.display = "none";
       }, 5000);
     }
-    console.error('Merge Error:', message, details);
+    console.error("Merge Error:", message, details);
   }
 
   function showSuccess(message, stats = null) {
-    const successDiv = document.getElementById('success-message');
+    const successDiv = document.getElementById("success-message");
     if (successDiv) {
       let content = `<strong>Success:</strong> ${message}`;
       if (stats) {
         content += `<br><small>Merged: ${stats.merged}, Added: ${stats.added}, Conflicts: ${stats.conflicts.length}</small>`;
       }
       successDiv.innerHTML = content;
-      successDiv.style.display = 'block';
-      
+      successDiv.style.display = "block";
+
       // Hide error message if shown
-      const errorDiv = document.getElementById('error-message');
-      if (errorDiv) errorDiv.style.display = 'none';
-      
+      const errorDiv = document.getElementById("error-message");
+      if (errorDiv) errorDiv.style.display = "none";
+
       // Auto-hide after 3 seconds
       setTimeout(() => {
-        successDiv.style.display = 'none';
+        successDiv.style.display = "none";
       }, 3000);
     }
   }
 
   function displayMergeResults(stats) {
-    const resultsDiv = document.getElementById('merge-results');
+    const resultsDiv = document.getElementById("merge-results");
     if (resultsDiv && stats) {
       let html = `
         <h3>Merge Results</h3>
@@ -92,10 +101,10 @@ const { data, language, translations } = Astro.props;
         <p><strong>Added persons:</strong> ${stats.added}</p>
         <p><strong>Conflicts detected:</strong> ${stats.conflicts.length}</p>
       `;
-      
+
       if (stats.conflicts.length > 0) {
-        html += '<h4>Conflicts:</h4><ul>';
-        stats.conflicts.forEach(conflict => {
+        html += "<h4>Conflicts:</h4><ul>";
+        stats.conflicts.forEach((conflict) => {
           html += `<li><strong>${conflict.name}</strong>`;
           if (conflict.error) {
             html += ` - Error: ${conflict.error}`;
@@ -104,13 +113,13 @@ const { data, language, translations } = Astro.props;
             html += `<br>Incoming: mother="${conflict.incoming.mother}", father="${conflict.incoming.father}"`;
             html += `<br>Resolved: mother="${conflict.resolved.mother}", father="${conflict.resolved.father}"`;
           }
-          html += '</li>';
+          html += "</li>";
         });
-        html += '</ul>';
+        html += "</ul>";
       }
-      
+
       resultsDiv.innerHTML = html;
-      resultsDiv.style.display = 'block';
+      resultsDiv.style.display = "block";
     }
   }
 
@@ -119,28 +128,33 @@ const { data, language, translations } = Astro.props;
     try {
       // Validate inputs
       if (!otherTreeData) {
-        throw new Error('No tree data provided for merging');
+        throw new Error("No tree data provided for merging");
       }
 
       if (!otherTreeData.persons || !Array.isArray(otherTreeData.persons)) {
-        throw new Error('Invalid tree data format: persons array is required');
+        throw new Error("Invalid tree data format: persons array is required");
       }
 
       if (otherTreeData.persons.length === 0) {
-        showError('Cannot merge empty tree');
+        showError("Cannot merge empty tree");
         return false;
       }
 
       // Validate strategy
-      const validStrategies = ['keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'];
+      const validStrategies = [
+        "keep-first",
+        "keep-second",
+        "combine-non-null",
+        "prefer-complete",
+      ];
       if (!validStrategies.includes(strategy)) {
         throw new Error(`Invalid merge strategy: ${strategy}`);
       }
 
-      console.log('Starting merge operation...', {
+      console.log("Starting merge operation...", {
         currentTreeSize: genealogyData.persons.length,
         incomingTreeSize: otherTreeData.persons.length,
-        strategy
+        strategy,
       });
 
       // Create other tree instance
@@ -153,42 +167,54 @@ const { data, language, translations } = Astro.props;
 
       // Perform the merge
       const mergeStats = genealogyData.mergeTree(otherTree, strategy, true);
-      
+
       // Handle results
-      console.log('Merge completed successfully:', mergeStats);
-      
+      console.log("Merge completed successfully:", mergeStats);
+
       // Save updated data
       try {
-        const treeData = { persons: genealogyData.persons };
-        storageManager.saveTreeData(storageManager.getCurrentTreeName(), treeData, true);
+        const treeData = {persons: genealogyData.persons};
+        storageManager.saveTreeData(
+          storageManager.getCurrentTreeName(),
+          treeData,
+          true
+        );
       } catch (saveError) {
-        console.warn('Failed to save merged data:', saveError);
-        showError('Merge successful but failed to save', saveError.message);
+        console.warn("Failed to save merged data:", saveError);
+        showError("Merge successful but failed to save", saveError.message);
       }
 
       // Show results
       displayMergeResults(mergeStats);
-      showSuccess('Trees merged successfully!', mergeStats);
+      showSuccess("Trees merged successfully!", mergeStats);
 
       // Trigger UI update (if you have a refresh function)
-      if (typeof window.refreshGraph === 'function') {
+      if (typeof window.refreshGraph === "function") {
         window.refreshGraph();
       }
 
       return true;
-
     } catch (error) {
       // Handle different types of errors appropriately
-      if (error.message.includes('must be an instance of GenealogyData')) {
-        showError('Invalid tree data format', 'The provided data is not in the correct format for merging');
-      } else if (error.message.includes('merge strategy')) {
-        showError('Invalid merge strategy', error.message);
-      } else if (error.message.includes('persons must be provided')) {
-        showError('Invalid person data', 'One or more persons in the tree have invalid data');
-      } else if (error.message.includes('different names')) {
-        showError('Data consistency error', 'Attempting to merge persons with different names');
+      if (error.message.includes("must be an instance of GenealogyData")) {
+        showError(
+          "Invalid tree data format",
+          "The provided data is not in the correct format for merging"
+        );
+      } else if (error.message.includes("merge strategy")) {
+        showError("Invalid merge strategy", error.message);
+      } else if (error.message.includes("persons must be provided")) {
+        showError(
+          "Invalid person data",
+          "One or more persons in the tree have invalid data"
+        );
+      } else if (error.message.includes("different names")) {
+        showError(
+          "Data consistency error",
+          "Attempting to merge persons with different names"
+        );
       } else {
-        showError('Merge failed', error.message);
+        showError("Merge failed", error.message);
       }
 
       return false;
@@ -196,43 +222,51 @@ const { data, language, translations } = Astro.props;
   }
 
   // Event handlers
-  document.getElementById('merge-button')?.addEventListener('click', async () => {
-    const fileInput = document.getElementById('tree-file');
-    const strategySelect = document.getElementById('merge-strategy');
-    
-    if (!fileInput.files || fileInput.files.length === 0) {
-      showError('Please select a file to merge');
-      return;
-    }
+  document
+    .getElementById("merge-button")
+    ?.addEventListener("click", async () => {
+      const fileInput = document.getElementById("tree-file");
+      const strategySelect = document.getElementById("merge-strategy");
 
-    const file = fileInput.files[0];
-    const strategy = strategySelect.value;
-
-    try {
-      const fileContent = await file.text();
-      const otherTreeData = JSON.parse(fileContent);
-      
-      await performMerge(otherTreeData, strategy);
-      
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        showError('Invalid JSON file', 'The selected file is not a valid JSON file');
-      } else {
-        showError('Failed to read file', error.message);
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showError("Please select a file to merge");
+        return;
       }
-    }
-  });
+
+      const file = fileInput.files[0];
+      const strategy = strategySelect.value;
+
+      try {
+        const fileContent = await file.text();
+        const otherTreeData = JSON.parse(fileContent);
+
+        await performMerge(otherTreeData, strategy);
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          showError(
+            "Invalid JSON file",
+            "The selected file is not a valid JSON file"
+          );
+        } else {
+          showError("Failed to read file", error.message);
+        }
+      }
+    });
 
   // Example of how to handle merge in other scenarios
-  window.mergeWithExampleData = function() {
+  window.mergeWithExampleData = function () {
     const exampleData = {
       persons: [
-        { name: 'Example Person', mother: 'Example Mother', father: 'Example Father' },
-        { name: 'Another Person', mother: null, father: 'Example Father' }
-      ]
+        {
+          name: "Example Person",
+          mother: "Example Mother",
+          father: "Example Father",
+        },
+        {name: "Another Person", mother: null, father: "Example Father"},
+      ],
     };
-    
-    performMerge(exampleData, 'combine-non-null');
+
+    performMerge(exampleData, "combine-non-null");
   };
 
   // Expose merge function for external use

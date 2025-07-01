@@ -372,11 +372,23 @@ const {data, language, translations} = Astro.props;
     }
   }
 
-  function createNewTree(treeName, copyFromCurrent = false) {
+  function createNewTree(
+    treeName,
+    copyFromCurrent = false,
+    customPersonsData = null
+  ) {
     try {
-      const sourceTreeData = copyFromCurrent
-        ? {persons: genealogyData.persons}
-        : null;
+      let sourceTreeData = null;
+
+      if (customPersonsData) {
+        // Use custom persons data (for merging)
+        sourceTreeData = {persons: customPersonsData};
+      } else if (copyFromCurrent) {
+        // Copy from current tree
+        sourceTreeData = {persons: genealogyData.persons};
+      }
+      // If neither, sourceTreeData remains null for empty tree
+
       return storageManager.createNewTree(
         treeName,
         sourceTreeData,
@@ -440,6 +452,8 @@ const {data, language, translations} = Astro.props;
   // Make tree management functions available globally for the future families dialog
   window.genealogyTreeManager = {
     getCurrentTreeName: () => currentTreeName,
+    getCurrentTreeData: () => ({persons: genealogyData.persons}),
+    getTreeData: (treeName) => storageManager.getTreeData(treeName),
     getAvailableTrees: getAvailableTrees,
     switchToTree: async (treeName) => {
       const success = switchToTree(treeName);

@@ -26,14 +26,14 @@ function testErrorHandling() {
   // Test 2: Invalid merge strategy (gets caught and put in conflicts)
   console.log('\n2. Testing invalid merge strategy handling:');
   try {
-    const tree1 = new GenealogyData({ 
-      persons: [{ name: 'Test', mother: 'Mom', father: 'Dad' }] 
+    const tree1 = new GenealogyData({
+      persons: [{ name: 'Test', mother: 'Mom', father: 'Dad' }]
     });
-    const tree2 = new GenealogyData({ 
-      persons: [{ name: 'Test', mother: 'Other Mom', father: 'Other Dad' }] 
+    const tree2 = new GenealogyData({
+      persons: [{ name: 'Test', mother: 'Other Mom', father: 'Other Dad' }]
     });
     const stats = tree1.mergeTree(tree2, 'invalid-strategy');
-    
+
     if (stats.conflicts.length > 0 && stats.conflicts[0].error?.includes('Unknown merge strategy')) {
       console.log(`   ✓ Invalid strategy properly handled in conflicts: "${stats.conflicts[0].error}"`);
     } else {
@@ -90,7 +90,7 @@ function testSuccessfulMerges() {
     console.log(`   Tree 2: ${tree2.persons.length} persons`);
 
     const stats = tree1.mergeTree(tree2, 'combine-non-null');
-    
+
     console.log(`   ✓ Merge successful:`);
     console.log(`     - Merged: ${stats.merged} persons`);
     console.log(`     - Added: ${stats.added} persons`);
@@ -126,7 +126,7 @@ function testSuccessfulMerges() {
     console.log(`   ✓ Merge completed despite conflicts:`);
     console.log(`     - Merged: ${stats.merged} persons`);
     console.log(`     - Conflicts detected: ${stats.conflicts.length}`);
-    
+
     if (stats.conflicts.length > 0) {
       console.log(`     - Conflict details:`);
       stats.conflicts.forEach(conflict => {
@@ -150,10 +150,10 @@ function testAllStrategies() {
   console.log('─'.repeat(55));
 
   const strategies = ['keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'];
-  
+
   strategies.forEach(strategy => {
     console.log(`Testing strategy: ${strategy}`);
-    
+
     try {
       const tree1 = new GenealogyData({
         persons: [
@@ -169,9 +169,9 @@ function testAllStrategies() {
 
       const stats = tree1.mergeTree(tree2, strategy);
       const person = tree1.persons.find(p => p.name === 'Test Person');
-      
+
       console.log(`  ✓ ${strategy}: mother="${person.mother}", father="${person.father}" (conflicts: ${stats.conflicts.length})`);
-      
+
     } catch (error) {
       console.log(`  ❌ ${strategy}: Error - ${error.message}`);
     }
@@ -236,10 +236,10 @@ function runAllTests() {
     testSuccessfulMerges();
     testAllStrategies();
     demonstrateErrorHandlingPatterns();
-    
+
     console.log('🎉 ALL TESTS COMPLETED SUCCESSFULLY!');
     console.log('The merge functionality is working correctly with proper error handling.');
-    
+
   } catch (error) {
     console.error('❌ Test suite failed:', error);
     process.exit(1);

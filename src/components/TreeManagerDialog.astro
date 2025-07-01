@@ -27,7 +27,9 @@ const {language, translations} = Astro.props;
       </div>
 
       <div class='new-tree-section'>
-        <label for='new-tree-name'>{translations.createNewTree}</label>
+        <label for='new-tree-name' id='create-tree-label'
+          >{translations.createNewTree}</label
+        >
         <div class='new-tree-inputs'>
           <input
             type='text'
@@ -35,7 +37,7 @@ const {language, translations} = Astro.props;
             placeholder={translations.enterTreeName}
             maxlength='50'
           />
-          <label class='checkbox-label'>
+          <label class='checkbox-label' id='copy-checkbox-container'>
             <input type='checkbox' id='copy-current-tree' />
             {translations.copyCurrentTreeData}
           </label>
@@ -401,6 +403,12 @@ const {language, translations} = Astro.props;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   }
 
+  /* Specific hover styles for merge-selected buttons to override generic hover */
+  .tree-action-button.merge-selected:hover {
+    transform: none; /* Override the generic translateY */
+    box-shadow: none; /* Override the generic box-shadow */
+  }
+
   .tree-action-button:active {
     transform: translateY(0);
   }
@@ -445,6 +453,40 @@ const {language, translations} = Astro.props;
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     border-color: #ef4444;
+  }
+
+  .tree-action-button.merge-select {
+    color: #6c757d;
+    border-color: #ced4da;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  }
+
+  .tree-action-button.merge-select::before {
+    background: linear-gradient(
+      45deg,
+      rgba(108, 117, 125, 0.1),
+      rgba(108, 117, 125, 0.2)
+    );
+  }
+
+  .tree-action-button.merge-select:hover {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    color: #495057;
+    border-color: #adb5bd;
+  }
+
+  .tree-action-button.merge-selected {
+    color: #fff !important;
+    border-color: #17a2b8 !important;
+    background: linear-gradient(135deg, #17a2b8, #138496) !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+
+  .tree-action-button.merge-selected:hover {
+    background: linear-gradient(135deg, #138496, #117a8b) !important;
+    transform: none !important; /* Override the generic translateY */
+    box-shadow: none !important;
   }
 
   .tree-action-button:disabled {
@@ -722,10 +764,15 @@ const {language, translations} = Astro.props;
     const createButton = document.getElementById("create-tree-button");
     const newTreeInput = document.getElementById("new-tree-name");
     const copyCheckbox = document.getElementById("copy-current-tree");
+    const copyCheckboxContainer = document.getElementById(
+      "copy-checkbox-container"
+    );
+    const createTreeLabel = document.getElementById("create-tree-label");
     const treeList = document.getElementById("tree-list");
 
     // Store current translations (will be updated by language changes)
     let currentTranslations = translations;
+    let selectedOther = null;
 
     // Update dialog content with new translations
     function updateDialogTranslations(newTranslations) {
@@ -778,10 +825,34 @@ const {language, translations} = Astro.props;
       updateDialogTranslations(event.detail.translations);
     });
 
+    function updateMergeDisplay() {
+      const currentTree =
+        window.genealogyTreeManager?.getCurrentTreeName() || "Current Tree";
+
+      if (selectedOther) {
+        // Show merge mode
+        if (createTreeLabel) {
+          createTreeLabel.textContent = `Create New Tree merging ${currentTree} and ${selectedOther}`;
+        }
+        if (copyCheckboxContainer) {
+          copyCheckboxContainer.style.display = "none";
+        }
+      } else {
+        // Show normal mode
+        if (createTreeLabel) {
+          createTreeLabel.textContent = currentTranslations.createNewTree;
+        }
+        if (copyCheckboxContainer) {
+          copyCheckboxContainer.style.display = "flex";
+        }
+      }
+    }
+
     function showDialog() {
       if (dialog) {
         updateTreeList();
         updateCurrentTreeDisplay();
+        updateMergeDisplay();
         dialog.style.display = "flex";
         if (newTreeInput) {
           newTreeInput.value = "";
@@ -814,10 +885,21 @@ const {language, translations} = Astro.props;
       treeItem.className = isActive ? "tree-item active" : "tree-item";
       treeItem.setAttribute("data-tree-name", treeName);
 
-      // Use innerHTML to create exact structure as Astro component
-      const activeIndicatorHTML = isActive
-        ? `<span class="tree-action-indicator active" title="${currentTranslations.currentActiveTree}">✅</span>`
-        : `<button class="tree-action-button switch" type="button" data-action="switch" title="${currentTranslations.switchToTree}">🔳</button>`;
+      // Determine merge button state
+      const isMergeSelected = selectedOther === treeName;
+
+      // Use innerHTML to create exact structure for merge selection
+      let mergeButtonHTML;
+      if (isActive) {
+        // Current active tree shows checkmark
+        mergeButtonHTML = `<span class="tree-action-indicator active" title="${currentTranslations.currentActiveTree}">✅</span>`;
+      } else if (isMergeSelected) {
+        // Tree selected for merge shows refresh icon
+        mergeButtonHTML = `<button class="tree-action-button merge-selected" type="button" data-action="merge-select" title="Selected for merge - click to deselect">🔄</button>`;
+      } else {
+        // Other trees show selection button (black square)
+        mergeButtonHTML = `<button class="tree-action-button merge-select" type="button" data-action="merge-select" title="Select for merge">⬛</button>`;
+      }
 
       const deleteButtonHTML = canDelete
         ? `<button class="tree-action-button delete" type="button" data-action="delete" title="${currentTranslations.deleteTree}">❌</button>`
@@ -826,7 +908,7 @@ const {language, translations} = Astro.props;
       treeItem.innerHTML = `
         <span class="tree-item-name">${treeName}</span>
         <div class="tree-actions">
-          ${activeIndicatorHTML}
+          ${mergeButtonHTML}
           ${deleteButtonHTML}
         </div>
       `;
@@ -883,40 +965,13 @@ const {language, translations} = Astro.props;
       });
 
       // Add event listeners after setting innerHTML
-      const switchButton = treeItem.querySelector('[data-action="switch"]');
-      if (switchButton) {
-        switchButton.addEventListener("click", async () => {
-          try {
-            const success =
-              await window.genealogyTreeManager.switchToTree(treeName);
-            if (success) {
-              updateTreeList();
-              updateCurrentTreeDisplay();
-
-              // Ensure main toolbar is updated
-              const event = new CustomEvent("tree-manager-update", {
-                detail: {action: "switch", treeName: treeName},
-              });
-              document.dispatchEvent(event);
-
-              hideDialog();
-            } else {
-              alert(currentTranslations.failedToSwitchTree);
-            }
-          } catch (error) {
-            alert(
-              currentTranslations.errorSwitchingTree.replace(
-                "{error}",
-                error.message
-              )
-            );
-          }
-        });
-      }
-
       const deleteButton = treeItem.querySelector('[data-action="delete"]');
       if (deleteButton) {
-        deleteButton.addEventListener("click", async () => {
+        deleteButton.addEventListener("click", async (event) => {
+          // Prevent the event from bubbling up to any parent elements
+          event.stopPropagation();
+          event.preventDefault();
+
           if (
             confirm(
               currentTranslations.confirmDeleteTree.replace("{name}", treeName)
@@ -926,6 +981,12 @@ const {language, translations} = Astro.props;
               const success =
                 await window.genealogyTreeManager.deleteTree(treeName);
               if (success) {
+                // Clear merge selection if deleting the selected merge tree
+                if (selectedOther === treeName) {
+                  selectedOther = null;
+                  updateMergeDisplay();
+                }
+
                 // Update dialog displays first
                 updateTreeList();
                 updateCurrentTreeDisplay();
@@ -954,6 +1015,96 @@ const {language, translations} = Astro.props;
           }
         });
       }
+
+      // Add merge selection event handler
+      const mergeButton = treeItem.querySelector(
+        '[data-action="merge-select"]'
+      );
+      if (mergeButton) {
+        mergeButton.addEventListener(
+          "click",
+          (event) => {
+            // Prevent the event from bubbling up to any parent elements
+            event.stopPropagation();
+            event.preventDefault();
+            event.stopImmediatePropagation(); // Also stop other listeners on the same element
+
+            // Toggle merge selection
+            if (selectedOther === treeName) {
+              // Deselect current merge target
+              selectedOther = null;
+            } else {
+              // Select this tree for merge
+              selectedOther = treeName;
+            }
+
+            // Update the tree list to reflect the new selection state
+            updateTreeList();
+
+            // Update the create tree display
+            updateMergeDisplay();
+
+            return false; // Additional prevention
+          },
+          true
+        ); // Use capture phase
+      }
+
+      // Add click handler to tree item for switching (only on tree name)
+      const treeNameSpan = treeItem.querySelector(".tree-item-name");
+      if (treeNameSpan && !isActive) {
+        treeNameSpan.addEventListener("click", async (event) => {
+          event.stopPropagation();
+          try {
+            const success =
+              await window.genealogyTreeManager.switchToTree(treeName);
+            if (success) {
+              updateTreeList();
+              updateCurrentTreeDisplay();
+
+              // Ensure main toolbar is updated
+              const switchEvent = new CustomEvent("tree-manager-update", {
+                detail: {action: "switch", treeName: treeName},
+              });
+              document.dispatchEvent(switchEvent);
+
+              hideDialog();
+            } else {
+              alert(currentTranslations.failedToSwitchTree);
+            }
+          } catch (error) {
+            alert(
+              currentTranslations.errorSwitchingTree.replace(
+                "{error}",
+                error.message
+              )
+            );
+          }
+        });
+
+        // Add visual indication that the name is clickable
+        treeNameSpan.style.cursor = "pointer";
+        treeNameSpan.style.textDecoration = "underline";
+        treeNameSpan.title = `Click to switch to ${treeName}`;
+      }
+
+      // Add general click handler to tree item to prevent any other unwanted behavior
+      treeItem.addEventListener(
+        "click",
+        (event) => {
+          // Only allow clicks on buttons or tree name to proceed
+          const target = event.target;
+          const isButton = target.closest(".tree-action-button");
+          const isIndicator = target.closest(".tree-action-indicator");
+          const isTreeName = target.closest(".tree-item-name");
+
+          if (!isButton && !isIndicator && !isTreeName) {
+            event.stopPropagation();
+            event.preventDefault();
+          }
+        },
+        true
+      ); // Use capture phase
 
       return treeItem;
     }
@@ -993,13 +1144,71 @@ const {language, translations} = Astro.props;
         return;
       }
 
-      const copyData = copyCheckbox?.checked || false;
-
       try {
-        const success = await window.genealogyTreeManager.createNewTree(
-          treeName,
-          copyData
-        );
+        let success = false;
+
+        if (selectedOther) {
+          // Merge mode: create tree by merging current with selectedOther
+          console.log(
+            `Creating merged tree "${treeName}" from current tree and "${selectedOther}"`
+          );
+
+          // Get the current tree data
+          const currentTreeData =
+            window.genealogyTreeManager.getCurrentTreeData();
+          const currentTreeName =
+            window.genealogyTreeManager.getCurrentTreeName();
+
+          // Get the other tree data
+          const otherTreeData =
+            window.genealogyTreeManager.getTreeData(selectedOther);
+
+          if (!currentTreeData || !otherTreeData) {
+            throw new Error("Could not retrieve tree data for merging");
+          }
+
+          // Import GenealogyData class
+          const {GenealogyData} = await import(
+            "/public/utility/GenealogyData.js"
+          );
+
+          // Create GenealogyData instances
+          const currentTree = new GenealogyData(currentTreeData);
+          const otherTree = new GenealogyData(otherTreeData);
+
+          // Perform the merge using default strategy
+          const mergeStats = currentTree.mergeTree(
+            otherTree,
+            "combine-non-null"
+          );
+
+          console.log("Merge statistics:", mergeStats);
+
+          // Create the new tree with merged data
+          success = await window.genealogyTreeManager.createNewTree(
+            treeName,
+            false,
+            currentTree.persons
+          );
+
+          if (success) {
+            console.log(`Successfully created merged tree: ${treeName}`);
+            console.log(
+              `Merge stats - Merged: ${mergeStats.merged}, Added: ${mergeStats.added}, Conflicts: ${mergeStats.conflicts.length}`
+            );
+
+            // Clear the merge selection
+            selectedOther = null;
+          }
+        } else {
+          // Normal mode: create tree with optional copy
+          const copyData = copyCheckbox?.checked || false;
+          success = await window.genealogyTreeManager.createNewTree(
+            treeName,
+            copyData
+          );
+        }
+
         if (success) {
           newTreeInput.value = "";
           if (copyCheckbox) copyCheckbox.checked = false;
@@ -1021,6 +1230,7 @@ const {language, translations} = Astro.props;
           hideDialog();
         }
       } catch (error) {
+        console.error("Error creating tree:", error);
         alert(
           currentTranslations.errorCreatingTree.replace(
             "{error}",
