@@ -137,7 +137,7 @@ export const supportedLanguages: {
   nativeName: string;
   flag: string;
 }[] = [
-  {code: "en", name: "English", nativeName: "English", flag: "🇺🇸"},
+  {code: "en", name: "English", nativeName: "English", flag: "🇬🇧"},
   {code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷"},
   {code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪"},
 ];
