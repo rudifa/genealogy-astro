@@ -173,4 +173,129 @@ export class GenealogyData {
     dotLines.push("}");
     return dotLines.join("\n");
   }
+
+  /**
+   * Merge two person objects using the specified strategy
+   * @param {Object} person1 - First person object (target)
+   * @param {Object} person2 - Second person object (source)
+   * @param {string} mergeStrategy - Strategy: 'keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'
+   * @returns {Object} Merged person object
+   */
+  mergePerson(person1, person2, mergeStrategy = 'combine-non-null') {
+    if (!person1 || !person2) {
+      throw new Error('Both persons must be provided for merging');
+    }
+
+    if (person1.name !== person2.name) {
+      throw new Error('Cannot merge persons with different names');
+    }
+
+    const merged = { name: person1.name };
+
+    switch (mergeStrategy) {
+      case 'keep-first':
+        merged.mother = person1.mother;
+        merged.father = person1.father;
+        break;
+
+      case 'keep-second':
+        merged.mother = person2.mother;
+        merged.father = person2.father;
+        break;
+
+      case 'combine-non-null':
+        merged.mother = person1.mother || person2.mother || null;
+        merged.father = person1.father || person2.father || null;
+        break;
+
+      case 'prefer-complete': {
+        // Choose the person with more complete information
+        const person1Complete = (person1.mother ? 1 : 0) + (person1.father ? 1 : 0);
+        const person2Complete = (person2.mother ? 1 : 0) + (person2.father ? 1 : 0);
+
+        if (person1Complete >= person2Complete) {
+          merged.mother = person1.mother;
+          merged.father = person1.father;
+        } else {
+          merged.mother = person2.mother;
+          merged.father = person2.father;
+        }
+        break;
+      }
+
+      default:
+        throw new Error(`Unknown merge strategy: ${mergeStrategy}`);
+    }
+
+    return merged;
+  }
+
+  /**
+   * Merge another genealogy tree into this one
+   * @param {GenealogyData} otherTree - Another GenealogyData instance to merge
+   * @param {string} mergeStrategy - Strategy for merging duplicate persons: 'keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'
+   * @param {boolean} updateReferences - Whether to update references after merging (default: true)
+   * @returns {Object} Merge statistics: { merged: number, added: number, conflicts: Array }
+   */
+  mergeTree(otherTree, mergeStrategy = 'combine-non-null', updateReferences = true) {
+    if (!(otherTree instanceof GenealogyData)) {
+      throw new Error('otherTree must be an instance of GenealogyData');
+    }
+
+    const stats = {
+      merged: 0,
+      added: 0,
+      conflicts: []
+    };
+
+    const existingNames = new Map();
+    this.persons.forEach((person, index) => {
+      existingNames.set(person.name, index);
+    });
+
+    // Process each person from the other tree
+    otherTree.persons.forEach(otherPerson => {
+      if (existingNames.has(otherPerson.name)) {
+        // Person exists - merge them
+        const existingIndex = existingNames.get(otherPerson.name);
+        const existingPerson = this.persons[existingIndex];
+
+        try {
+          const mergedPerson = this.mergePerson(existingPerson, otherPerson, mergeStrategy);
+
+          // Check if there are conflicts (different non-null values)
+          const hasConflict =
+            (existingPerson.mother && otherPerson.mother && existingPerson.mother !== otherPerson.mother) ||
+            (existingPerson.father && otherPerson.father && existingPerson.father !== otherPerson.father);
+
+          if (hasConflict) {
+            stats.conflicts.push({
+              name: otherPerson.name,
+              existing: { mother: existingPerson.mother, father: existingPerson.father },
+              incoming: { mother: otherPerson.mother, father: otherPerson.father },
+              resolved: { mother: mergedPerson.mother, father: mergedPerson.father }
+            });
+          }
+
+          this.persons[existingIndex] = mergedPerson;
+          stats.merged++;
+        } catch (error) {
+          stats.conflicts.push({
+            name: otherPerson.name,
+            error: error.message
+          });
+        }
+      } else {
+        // Person doesn't exist - add them
+        this.persons.push({ ...otherPerson });
+        stats.added++;
+      }
+    });
+
+    if (updateReferences) {
+      this.updatePersonsFromNames();
+    }
+
+    return stats;
+  }
 }
