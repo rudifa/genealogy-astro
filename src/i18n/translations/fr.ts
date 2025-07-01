@@ -64,6 +64,11 @@ export const fr: Translations = {
     "Êtes-vous sûr de vouloir réinitialiser l'arbre Exemple Familial à son état d'origine? Cela remplacera toutes les données actuelles.",
   confirmLoadFamilyExample:
     "Êtes-vous sûr de vouloir charger les données de l'exemple familial dans l'arbre \"{treeName}\"? Cela remplacera toutes les données actuelles.",
+  resetFamilyExample: "Réinitialiser l'Exemple Familial",
+  failedToResetFamilyExample:
+    "Échec de la réinitialisation de l'arbre Exemple Familial",
+  errorResetFamilyExample:
+    "Erreur lors de la réinitialisation de l'arbre Exemple Familial : {error}",
   actionCannotBeUndone: "Cette action ne peut pas être annulée.",
 
   // Placeholders and misc
@@ -83,10 +88,12 @@ export const fr: Translations = {
   manageFamilyTrees: "Gérer les Arbres Généalogiques",
   availableTrees: "Arbres Disponibles:",
   createNewTree: "Créer un Nouvel Arbre:",
+  createNewTreeMerging: "Créer un Nouvel Arbre fusionnant {treeA} et {treeB}",
   copyCurrentTreeData: "Copier les données de l'arbre actuel",
   create: "Créer",
   enterTreeName: "Entrez le nom de l'arbre...",
   currentActiveTree: "Arbre actuel actif",
+  currentTree: "Arbre Actuel",
   switchToTree: "Basculer vers cet arbre",
   deleteTree: "Supprimer cet arbre",
   confirmDeleteTree:
@@ -105,6 +112,11 @@ export const fr: Translations = {
   treeNotFound: "Arbre non trouvé",
   cannotDeleteFamilyExample: "Impossible de supprimer l'arbre Exemple Familial",
   cannotRenameFamilyExample: "Impossible de renommer l'arbre Exemple Familial",
+
+  // Tree merge and action tooltips
+  selectedForMerge: "Sélectionné pour fusion - cliquer pour désélectionner",
+  selectForMerge: "Sélectionner pour fusion",
+  clickToSwitchTo: "Cliquer pour basculer vers {treeName}",
 
   // Footer
   projectInfo: "Application Généalogique Open Source",

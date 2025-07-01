@@ -64,6 +64,11 @@ export const de: Translations = {
     "Sind Sie sicher, dass Sie den Familienbeispiel-Baum auf seinen ursprünglichen Zustand zurücksetzen möchten? Dies ersetzt alle aktuellen Daten.",
   confirmLoadFamilyExample:
     'Sind Sie sicher, dass Sie die Familienbeispiel-Daten in den "{treeName}"-Baum laden möchten? Dies ersetzt alle aktuellen Daten.',
+  resetFamilyExample: "Familienbeispiel Zurücksetzen",
+  failedToResetFamilyExample:
+    "Fehler beim Zurücksetzen des Familienbeispiel-Baums",
+  errorResetFamilyExample:
+    "Fehler beim Zurücksetzen des Familienbeispiel-Baums: {error}",
   actionCannotBeUndone: "Diese Aktion kann nicht rückgängig gemacht werden.",
 
   // Placeholders and misc
@@ -83,10 +88,13 @@ export const de: Translations = {
   manageFamilyTrees: "Familienstammbäume Verwalten",
   availableTrees: "Verfügbare Bäume:",
   createNewTree: "Neuen Baum Erstellen:",
+  createNewTreeMerging:
+    "Neuen Baum Erstellen durch Zusammenführung von {treeA} und {treeB}",
   copyCurrentTreeData: "Aktuelle Baumdaten kopieren",
   create: "Erstellen",
   enterTreeName: "Baumname eingeben...",
   currentActiveTree: "Aktueller aktiver Baum",
+  currentTree: "Aktueller Baum",
   switchToTree: "Zu diesem Baum wechseln",
   deleteTree: "Diesen Baum löschen",
   confirmDeleteTree:
@@ -107,6 +115,11 @@ export const de: Translations = {
     "Der Familienbeispiel-Baum kann nicht gelöscht werden",
   cannotRenameFamilyExample:
     "Der Familienbeispiel-Baum kann nicht umbenannt werden",
+
+  // Tree merge and action tooltips
+  selectedForMerge: "Für Zusammenführung ausgewählt - klicken zum Abwählen",
+  selectForMerge: "Für Zusammenführung auswählen",
+  clickToSwitchTo: "Klicken zum Wechseln zu {treeName}",
 
   // Footer
   projectInfo: "Open Source Genealogie-App",

@@ -57,6 +57,9 @@ export interface Translations {
   confirmFamilyExample: string;
   confirmResetFamilyExample: string;
   confirmLoadFamilyExample: string;
+  resetFamilyExample: string;
+  failedToResetFamilyExample: string;
+  errorResetFamilyExample: string;
   actionCannotBeUndone: string;
 
   // Placeholders and misc
@@ -76,10 +79,12 @@ export interface Translations {
   manageFamilyTrees: string;
   availableTrees: string;
   createNewTree: string;
+  createNewTreeMerging: string;
   copyCurrentTreeData: string;
   create: string;
   enterTreeName: string;
   currentActiveTree: string;
+  currentTree: string;
   switchToTree: string;
   deleteTree: string;
   confirmDeleteTree: string;
@@ -97,6 +102,11 @@ export interface Translations {
   treeNotFound: string;
   cannotDeleteFamilyExample: string;
   cannotRenameFamilyExample: string;
+
+  // Tree merge and action tooltips
+  selectedForMerge: string;
+  selectForMerge: string;
+  clickToSwitchTo: string;
 
   // Footer
   projectInfo: string;
@@ -127,7 +137,7 @@ export const supportedLanguages: {
   nativeName: string;
   flag: string;
 }[] = [
-  {code: "en", name: "English", nativeName: "English", flag: "🇺🇸"},
+  {code: "en", name: "English", nativeName: "English", flag: "🇬🇧"},
   {code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷"},
   {code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪"},
 ];
