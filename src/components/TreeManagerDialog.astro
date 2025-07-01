@@ -9,7 +9,7 @@ interface Props {
 const {language, translations} = Astro.props;
 ---
 
-<div id='tree-management-dialog' class='dialog-overlay' style='display: none;'>
+<div id='tree-manager-dialog' class='dialog-overlay' style='display: none;'>
   <div class='dialog-content'>
     <div class='dialog-header'>
       <h3>{translations.manageFamilyTrees}</h3>
@@ -716,7 +716,7 @@ const {language, translations} = Astro.props;
 <script is:inline define:vars={{translations}}>
   // Tree Management Dialog functionality
   function initializeTreeManagementDialog() {
-    const dialog = document.getElementById("tree-management-dialog");
+    const dialog = document.getElementById("tree-manager-dialog");
     const closeButton = document.getElementById("close-tree-dialog");
     const cancelButton = document.getElementById("dialog-cancel");
     const createButton = document.getElementById("create-tree-button");
@@ -772,7 +772,7 @@ const {language, translations} = Astro.props;
     // Listen for language changes
     window.addEventListener("languageChanged", function (event) {
       console.log(
-        "TreeManagementDialog: Language changed to",
+        "TreeManagerDialog: Language changed to",
         event.detail.language
       );
       updateDialogTranslations(event.detail.translations);
@@ -799,7 +799,7 @@ const {language, translations} = Astro.props;
 
     function updateCurrentTreeDisplay() {
       // This function is kept for compatibility, but the main tree display
-      // is updated via the tree-management-update event in GenealogyGraph
+      // is updated via the tree-manager-update event in GenealogyGraph
       if (window.genealogyTreeManager) {
         console.log(
           "Current tree after update:",
@@ -894,7 +894,7 @@ const {language, translations} = Astro.props;
               updateCurrentTreeDisplay();
 
               // Ensure main toolbar is updated
-              const event = new CustomEvent("tree-management-update", {
+              const event = new CustomEvent("tree-manager-update", {
                 detail: {action: "switch", treeName: treeName},
               });
               document.dispatchEvent(event);
@@ -931,7 +931,7 @@ const {language, translations} = Astro.props;
                 updateCurrentTreeDisplay();
 
                 // Ensure main toolbar is updated by dispatching a custom event
-                const event = new CustomEvent("tree-management-update", {
+                const event = new CustomEvent("tree-manager-update", {
                   detail: {action: "delete", treeName: treeName},
                 });
                 document.dispatchEvent(event);
@@ -1012,7 +1012,7 @@ const {language, translations} = Astro.props;
           updateCurrentTreeDisplay();
 
           // Dispatch event to notify other components (like TreeSwitcher)
-          const event = new CustomEvent("tree-management-update", {
+          const event = new CustomEvent("tree-manager-update", {
             detail: {action: "create", treeName: treeName},
           });
           document.dispatchEvent(event);

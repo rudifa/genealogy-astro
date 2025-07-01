@@ -167,7 +167,7 @@ const {currentTree, language, translations} = Astro.props;
               console.log(`Successfully switched to tree: ${selectedTree}`);
 
               // Dispatch tree management update event
-              const updateEvent = new CustomEvent("tree-management-update", {
+              const updateEvent = new CustomEvent("tree-manager-update", {
                 detail: {action: "switch", treeName: selectedTree},
               });
               document.dispatchEvent(updateEvent);
@@ -186,11 +186,8 @@ const {currentTree, language, translations} = Astro.props;
     }
 
     // Listen for tree management updates to refresh the dropdown
-    document.addEventListener("tree-management-update", function (event) {
-      console.log(
-        "TreeSwitcher received tree-management-update:",
-        event.detail
-      );
+    document.addEventListener("tree-manager-update", function (event) {
+      console.log("TreeSwitcher received tree-manager-update:", event.detail);
       updateTreeOptions();
     });
 

@@ -4,7 +4,7 @@ import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 import TreeSwitcher from "./TreeSwitcher.astro";
-import TreeManagementDialog from "./TreeManagementDialog.astro";
+import TreeManagerDialog from "./TreeManagerDialog.astro";
 
 interface Props {
   data: TreeDataType;
@@ -48,7 +48,7 @@ const {data, language, translations} = Astro.props;
 </div>
 
 <EditPersonDialog language={language} translations={translations} />
-<TreeManagementDialog language={language} translations={translations} />
+<TreeManagerDialog language={language} translations={translations} />
 
 <style>
   .screen {
@@ -961,7 +961,7 @@ const {data, language, translations} = Astro.props;
   });
 
   // Listen for tree management updates to ensure display is synchronized
-  document.addEventListener("tree-management-update", function (event) {
+  document.addEventListener("tree-manager-update", function (event) {
     const {action, treeName} = event.detail;
     console.log(`Tree management update: ${action} for tree ${treeName}`);
 
