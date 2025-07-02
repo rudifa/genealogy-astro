@@ -284,33 +284,52 @@ const {language, translations} = Astro.props;
         const oldTranslateX = currentTranslateX;
         const oldTranslateY = currentTranslateY;
 
-        // Use actual rendered size if available (when SVG has auto-sized after removing width/height)
+        // Use the actual rendered SVG dimensions for both scale and centering calculations
+        // This ensures consistency between what we calculate and what's visually displayed
         let svgWidth, svgHeight;
+        let centeringWidth, centeringHeight;
+
         if (svgElement.clientWidth > 0 && svgElement.clientHeight > 0) {
-          // SVG has been auto-sized, use the rendered dimensions
+          // Use actual rendered dimensions for scale calculation
           svgWidth = svgElement.clientWidth;
           svgHeight = svgElement.clientHeight;
+          // For centering, use the same rendered dimensions
+          // The visual size after scaling matches the rendered size scaled down
+          centeringWidth = svgElement.clientWidth;
+          centeringHeight = svgElement.clientHeight;
         } else {
-          // Fallback to getBBox logical dimensions
+          // Fallback to logical dimensions for both
           svgWidth = svgRect.width;
           svgHeight = svgRect.height;
+          centeringWidth = svgRect.width;
+          centeringHeight = svgRect.height;
         }
 
-        // Add more padding to ensure content doesn't touch edges
-        const padding = 60; // Increased padding for better visual spacing
-        const scaleX = (containerRect.width - padding) / svgWidth;
-        const scaleY = (containerRect.height - padding) / svgHeight;
+        // Add padding to ensure content doesn't touch edges
+        const padding = 60;
+        const availableWidth = containerRect.width - padding;
+        const availableHeight = containerRect.height - padding;
+
+        const scaleX = availableWidth / svgWidth;
+        const scaleY = availableHeight / svgHeight;
 
         // Always fit to container, but don't zoom in beyond 100%
         currentScale = Math.min(scaleX, scaleY, 1);
 
-        // Center the content in the available space
-        currentTranslateX = (containerRect.width - svgWidth * currentScale) / 2;
-        currentTranslateY =
-          (containerRect.height - svgHeight * currentScale) / 2;
+        // Calculate the actual scaled size using adjusted dimensions for centering
+        const scaledWidth = centeringWidth * currentScale;
+        const scaledHeight = centeringHeight * currentScale;
+
+        // Center the scaled SVG in the container with proper padding
+        // Account for any offset in the SVG's bounding box
+        const svgOffsetX = svgRect.x || 0;
+        const svgOffsetY = svgRect.y || 0;
+
+        currentTranslateX = (containerRect.width - scaledWidth) / 2 - (svgOffsetX * currentScale);
+        currentTranslateY = (containerRect.height - scaledHeight) / 2 - (svgOffsetY * currentScale);
 
         console.log(
-          `GraphRenderer: fitToContainer - container: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}, SVG getBBox: ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)}, SVG client: ${svgElement.clientWidth}x${svgElement.clientHeight}, using: ${svgWidth.toFixed(0)}x${svgHeight.toFixed(0)}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}, scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+          `GraphRenderer: fitToContainer - container: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}, SVG getBBox: ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)}), SVG client: ${svgElement.clientWidth}x${svgElement.clientHeight}, using: ${svgWidth.toFixed(0)}x${svgHeight.toFixed(0)}, available: ${availableWidth.toFixed(0)}x${availableHeight.toFixed(0)}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}, scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, calculated size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}, offset: (${svgOffsetX.toFixed(0)}, ${svgOffsetY.toFixed(0)}), translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
         );
         updateTransform(true);
       }
@@ -326,18 +345,14 @@ const {language, translations} = Astro.props;
         // Reset to 1:1 scale
         currentScale = 1;
 
-        // Center the SVG at 1:1 scale
+        // Center the SVG at 1:1 scale using logical dimensions for centering
         const containerRect = graphContainer.getBoundingClientRect();
+        const svgRect = svgElement.getBBox();
         let svgWidth, svgHeight;
 
-        if (svgElement.clientWidth > 0 && svgElement.clientHeight > 0) {
-          svgWidth = svgElement.clientWidth;
-          svgHeight = svgElement.clientHeight;
-        } else {
-          const svgRect = svgElement.getBBox();
-          svgWidth = svgRect.width;
-          svgHeight = svgRect.height;
-        }
+        // Use logical dimensions for centering at 1:1 scale
+        svgWidth = svgRect.width;
+        svgHeight = svgRect.height;
 
         // Center at 1:1 scale
         currentTranslateX = (containerRect.width - svgWidth) / 2;
