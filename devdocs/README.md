@@ -39,6 +39,18 @@ Documentation of the person info field feature that allows users to add biograph
 - Technical implementation details
 - Testing verification
 
+### [ZOOM_PAN_FEATURE_SUMMARY.md](./ZOOM_PAN_FEATURE_SUMMARY.md)
+
+Documentation of the interactive zoom and pan functionality that allows users to explore large family trees with full detail navigation on any screen size.
+
+**Contents:**
+
+- Zoom controls (buttons, mouse wheel, touch pinch)
+- Pan controls (mouse drag, touch drag)
+- Technical implementation details
+- User experience improvements
+- Mobile touch support
+
 ## 🎯 Purpose
 
 These documents serve as:

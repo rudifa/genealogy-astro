@@ -10,9 +10,19 @@ const {language, translations} = Astro.props;
 ---
 
 <div class='genealogy-graph'>
-  <!-- This container will be populated by the client-side script -->
-  <div id='graph-placeholder' class='graph-placeholder'>
-    <p>{translations.loadingGraph}</p>
+  <!-- Zoom controls -->
+  <div class='zoom-controls'>
+    <button id='zoom-in' class='zoom-btn' title='Zoom In'>+</button>
+    <button id='zoom-out' class='zoom-btn' title='Zoom Out'>−</button>
+    <button id='zoom-fit' class='zoom-btn' title='Fit to Screen'>⌶</button>
+    <button id='zoom-reset' class='zoom-btn' title='Reset Zoom'>⌂</button>
+  </div>
+
+  <!-- SVG container with zoom/pan support -->
+  <div id='graph-container' class='graph-container'>
+    <div id='graph-placeholder' class='graph-placeholder'>
+      <p>{translations.loadingGraph}</p>
+    </div>
   </div>
 </div>
 
@@ -20,27 +30,113 @@ const {language, translations} = Astro.props;
   .genealogy-graph {
     flex: 1;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+    flex-direction: column;
     position: relative;
-    overflow: auto;
     background-color: #fafafa;
+    overflow: hidden;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 100;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+  }
+
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: white;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #495057;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .zoom-btn:hover {
+    background-color: #007acc;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .zoom-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  .graph-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+  }
+
+  .graph-container.panning {
+    cursor: grabbing;
+  }
+
+  .graph-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease;
+  }
+
+  .graph-content.smooth-transition {
+    transition: transform 0.3s ease;
   }
 
   .graph-placeholder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    min-height: 300px;
-  }
-
-  .graph-placeholder p {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
     color: #6c757d;
     font-style: italic;
+  }
+
+  .graph-placeholder p {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  /* SVG styling for better interaction */
+  .graph-content svg {
+    display: block;
+    max-width: none;
+    max-height: none;
+  }
+
+  /* Responsive zoom controls */
+  @media (max-width: 768px) {
+    .zoom-controls {
+      top: 10px;
+      right: 10px;
+      padding: 6px;
+    }
+
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
   }
 </style>
 
@@ -60,8 +156,12 @@ const {language, translations} = Astro.props;
     let currentTranslations = translations;
 
     // DOM elements are available immediately since they're in the same component
-    const graphContainer = document.querySelector(".genealogy-graph");
+    const graphContainer = document.getElementById("graph-container");
     const graphPlaceholder = document.getElementById("graph-placeholder");
+    const zoomInBtn = document.getElementById("zoom-in");
+    const zoomOutBtn = document.getElementById("zoom-out");
+    const zoomFitBtn = document.getElementById("zoom-fit");
+    const zoomResetBtn = document.getElementById("zoom-reset");
 
     if (!graphContainer || !graphPlaceholder) {
       console.error("GraphRenderer: DOM elements not found in component");
@@ -89,6 +189,325 @@ const {language, translations} = Astro.props;
     // Initialize graph renderer events and rendering
     function setupGraphFunctionality() {
       console.log("GraphRenderer: Setting up graph functionality");
+
+      // Zoom and pan state
+      let currentScale = 1;
+      let currentTranslateX = 0;
+      let currentTranslateY = 0;
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let dragStartTranslateX = 0;
+      let dragStartTranslateY = 0;
+      let graphContent = null;
+      let svgElement = null;
+
+      // Zoom configuration
+      const MIN_SCALE = 0.1;
+      const MAX_SCALE = 5;
+      const ZOOM_FACTOR = 1.2;
+
+      // Update transform with current scale and translate values
+      function updateTransform(smooth = false) {
+        if (!graphContent) return;
+
+        if (smooth) {
+          graphContent.classList.add("smooth-transition");
+          setTimeout(() => {
+            if (graphContent)
+              graphContent.classList.remove("smooth-transition");
+          }, 300);
+        }
+
+        console.log(
+          `GraphRenderer: updateTransform - scale: ${currentScale.toFixed(3)}, translate: (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)}), smooth: ${smooth}`
+        );
+        graphContent.style.transform = `translate(${currentTranslateX}px, ${currentTranslateY}px) scale(${currentScale})`;
+      }
+
+      // Zoom to a specific scale at a given point
+      function zoomToPoint(newScale, clientX, clientY) {
+        if (!graphContent || !svgElement) return;
+
+        const oldScale = currentScale;
+        const oldTranslateX = currentTranslateX;
+        const oldTranslateY = currentTranslateY;
+
+        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+
+        const rect = graphContainer.getBoundingClientRect();
+        const offsetX = clientX - rect.left;
+        const offsetY = clientY - rect.top;
+
+        // Calculate the point in the current coordinate system
+        const currentPointX = (offsetX - currentTranslateX) / currentScale;
+        const currentPointY = (offsetY - currentTranslateY) / currentScale;
+
+        // Update scale
+        currentScale = newScale;
+
+        // Calculate new translate to keep the same point under the cursor
+        currentTranslateX = offsetX - currentPointX * currentScale;
+        currentTranslateY = offsetY - currentPointY * currentScale;
+
+        console.log(
+          `GraphRenderer: zoomToPoint - from scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)}), cursor: (${clientX}, ${clientY})`
+        );
+        updateTransform();
+      }
+
+      // Fit the SVG to the container
+      function fitToContainer() {
+        if (!graphContent || !svgElement) return;
+
+        const containerRect = graphContainer.getBoundingClientRect();
+
+        // Handle case where container is not visible yet
+        if (containerRect.width === 0 || containerRect.height === 0) {
+          console.log(
+            `GraphRenderer: fitToContainer - container not visible (${containerRect.width}x${containerRect.height}), retrying...`
+          );
+          setTimeout(() => fitToContainer(), 100);
+          return;
+        }
+
+        const svgRect = svgElement.getBBox();
+
+        if (svgRect.width === 0 || svgRect.height === 0) {
+          console.log(
+            `GraphRenderer: fitToContainer - SVG not ready (${svgRect.width}x${svgRect.height}), skipping`
+          );
+          return;
+        }
+
+        const oldScale = currentScale;
+        const oldTranslateX = currentTranslateX;
+        const oldTranslateY = currentTranslateY;
+
+        // Use actual rendered size if available (when SVG has auto-sized after removing width/height)
+        let svgWidth, svgHeight;
+        if (svgElement.clientWidth > 0 && svgElement.clientHeight > 0) {
+          // SVG has been auto-sized, use the rendered dimensions
+          svgWidth = svgElement.clientWidth;
+          svgHeight = svgElement.clientHeight;
+        } else {
+          // Fallback to getBBox logical dimensions
+          svgWidth = svgRect.width;
+          svgHeight = svgRect.height;
+        }
+
+        // Add more padding to ensure content doesn't touch edges
+        const padding = 60; // Increased padding for better visual spacing
+        const scaleX = (containerRect.width - padding) / svgWidth;
+        const scaleY = (containerRect.height - padding) / svgHeight;
+
+        // Always fit to container, but don't zoom in beyond 100%
+        currentScale = Math.min(scaleX, scaleY, 1);
+
+        // Center the content in the available space
+        currentTranslateX = (containerRect.width - svgWidth * currentScale) / 2;
+        currentTranslateY =
+          (containerRect.height - svgHeight * currentScale) / 2;
+
+        console.log(
+          `GraphRenderer: fitToContainer - container: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}, SVG getBBox: ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)}, SVG client: ${svgElement.clientWidth}x${svgElement.clientHeight}, using: ${svgWidth.toFixed(0)}x${svgHeight.toFixed(0)}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}, scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+        );
+        updateTransform(true);
+      }
+
+      // Reset zoom and position
+      function resetZoom() {
+        const oldScale = currentScale;
+        const oldTranslateX = currentTranslateX;
+        const oldTranslateY = currentTranslateY;
+
+        currentScale = 1;
+        currentTranslateX = 0;
+        currentTranslateY = 0;
+
+        console.log(
+          `GraphRenderer: resetZoom - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+        );
+        updateTransform(true);
+      }
+
+      // Set up zoom controls
+      if (zoomInBtn) {
+        zoomInBtn.addEventListener("click", () => {
+          const rect = graphContainer.getBoundingClientRect();
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          zoomToPoint(currentScale * ZOOM_FACTOR, centerX, centerY);
+        });
+      }
+
+      if (zoomOutBtn) {
+        zoomOutBtn.addEventListener("click", () => {
+          const rect = graphContainer.getBoundingClientRect();
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          zoomToPoint(currentScale / ZOOM_FACTOR, centerX, centerY);
+        });
+      }
+
+      if (zoomFitBtn) {
+        zoomFitBtn.addEventListener("click", fitToContainer);
+      }
+
+      if (zoomResetBtn) {
+        zoomResetBtn.addEventListener("click", resetZoom);
+      }
+
+      // Mouse wheel zoom
+      graphContainer.addEventListener("wheel", (event) => {
+        event.preventDefault();
+
+        const zoomIn = event.deltaY < 0;
+        const newScale = zoomIn
+          ? currentScale * ZOOM_FACTOR
+          : currentScale / ZOOM_FACTOR;
+
+        zoomToPoint(
+          newScale,
+          event.clientX - graphContainer.getBoundingClientRect().left,
+          event.clientY - graphContainer.getBoundingClientRect().top
+        );
+      });
+
+      // Mouse drag panning
+      graphContainer.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return; // Only left mouse button
+
+        isDragging = true;
+        dragStartX = event.clientX;
+        dragStartY = event.clientY;
+        dragStartTranslateX = currentTranslateX;
+        dragStartTranslateY = currentTranslateY;
+
+        graphContainer.classList.add("panning");
+        event.preventDefault();
+      });
+
+      document.addEventListener("mousemove", (event) => {
+        if (!isDragging) return;
+
+        const deltaX = event.clientX - dragStartX;
+        const deltaY = event.clientY - dragStartY;
+
+        const oldTranslateX = currentTranslateX;
+        const oldTranslateY = currentTranslateY;
+
+        currentTranslateX = dragStartTranslateX + deltaX;
+        currentTranslateY = dragStartTranslateY + deltaY;
+
+        // Only log every 10px of movement to avoid spam
+        if (Math.abs(deltaX) % 10 < 2 && Math.abs(deltaY) % 10 < 2) {
+          console.log(
+            `GraphRenderer: mouseDrag - delta: (${deltaX.toFixed(0)}, ${deltaY.toFixed(0)}), translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+          );
+        }
+
+        updateTransform();
+      });
+
+      document.addEventListener("mouseup", () => {
+        if (isDragging) {
+          isDragging = false;
+          graphContainer.classList.remove("panning");
+        }
+      });
+
+      // Window resize handler to maintain proper fit
+      let resizeTimeout;
+      function handleResize() {
+        // Debounce resize events to avoid excessive calls
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (graphContent && svgElement) {
+            console.log(
+              `GraphRenderer: handleResize - triggering fitToContainer`
+            );
+            // Re-fit the graph to the new container size
+            fitToContainer();
+          }
+        }, 150);
+      }
+
+      // Listen for window resize events
+      window.addEventListener("resize", handleResize);
+
+      // Store cleanup function for this component instance
+      window.graphRendererCleanup = function () {
+        window.removeEventListener("resize", handleResize);
+        clearTimeout(resizeTimeout);
+      };
+
+      // Touch support for mobile
+      let touchStartDistance = 0;
+      let touchStartScale = 1;
+
+      graphContainer.addEventListener("touchstart", (event) => {
+        if (event.touches.length === 2) {
+          // Two finger pinch
+          const touch1 = event.touches[0];
+          const touch2 = event.touches[1];
+          touchStartDistance = Math.hypot(
+            touch1.clientX - touch2.clientX,
+            touch1.clientY - touch2.clientY
+          );
+          touchStartScale = currentScale;
+          event.preventDefault();
+        } else if (event.touches.length === 1) {
+          // Single finger drag
+          const touch = event.touches[0];
+          isDragging = true;
+          dragStartX = touch.clientX;
+          dragStartY = touch.clientY;
+          dragStartTranslateX = currentTranslateX;
+          dragStartTranslateY = currentTranslateY;
+          event.preventDefault();
+        }
+      });
+
+      graphContainer.addEventListener("touchmove", (event) => {
+        if (event.touches.length === 2) {
+          // Two finger pinch zoom
+          const touch1 = event.touches[0];
+          const touch2 = event.touches[1];
+          const currentDistance = Math.hypot(
+            touch1.clientX - touch2.clientX,
+            touch1.clientY - touch2.clientY
+          );
+
+          if (touchStartDistance > 0) {
+            const scaleFactor = currentDistance / touchStartDistance;
+            const newScale = touchStartScale * scaleFactor;
+
+            const centerX = (touch1.clientX + touch2.clientX) / 2;
+            const centerY = (touch1.clientY + touch2.clientY) / 2;
+            const rect = graphContainer.getBoundingClientRect();
+
+            zoomToPoint(newScale, centerX - rect.left, centerY - rect.top);
+          }
+          event.preventDefault();
+        } else if (event.touches.length === 1 && isDragging) {
+          // Single finger pan
+          const touch = event.touches[0];
+          const deltaX = touch.clientX - dragStartX;
+          const deltaY = touch.clientY - dragStartY;
+
+          currentTranslateX = dragStartTranslateX + deltaX;
+          currentTranslateY = dragStartTranslateY + deltaY;
+
+          updateTransform();
+          event.preventDefault();
+        }
+      });
+
+      graphContainer.addEventListener("touchend", () => {
+        isDragging = false;
+        touchStartDistance = 0;
+      });
 
       // --- Function to render the graph ---
       async function renderGraph() {
@@ -141,7 +560,69 @@ const {language, translations} = Astro.props;
             newSvgString?.length
           );
 
-          graphContainer.innerHTML = newSvgString;
+          // Create or update graph content container
+          if (!graphContent) {
+            graphContent = document.createElement("div");
+            graphContent.className = "graph-content";
+            graphContainer.appendChild(graphContent);
+          }
+
+          graphContent.innerHTML = newSvgString;
+
+          // Get reference to the SVG element
+          svgElement = graphContent.querySelector("svg");
+          if (svgElement) {
+            // Log SVG attributes before modification
+            console.log("GraphRenderer: SVG before modification:", {
+              width: svgElement.getAttribute("width"),
+              height: svgElement.getAttribute("height"),
+              viewBox: svgElement.getAttribute("viewBox"),
+              style: svgElement.getAttribute("style"),
+            });
+
+            // Instead of removing width/height, preserve the original size
+            // and let CSS handle the scaling
+            const originalWidth = svgElement.getAttribute("width");
+            const originalHeight = svgElement.getAttribute("height");
+
+            // Convert pt to px properly (1pt = 4/3 px)
+            if (originalWidth && originalHeight) {
+              const widthValue = parseFloat(originalWidth);
+              const heightValue = parseFloat(originalHeight);
+
+              // Convert pt to px: 1pt = 4/3 px
+              const widthPx = Math.round((widthValue * 4) / 3);
+              const heightPx = Math.round((heightValue * 4) / 3);
+
+              // Set explicit pixel dimensions
+              svgElement.style.width = widthPx + "px";
+              svgElement.style.height = heightPx + "px";
+
+              console.log(
+                `GraphRenderer: Converted SVG size from ${widthValue}pt x ${heightValue}pt to ${widthPx}px x ${heightPx}px`
+              );
+
+              // Remove the pt-based attributes to avoid conflicts
+              svgElement.removeAttribute("width");
+              svgElement.removeAttribute("height");
+            }
+
+            // Log SVG attributes after modification
+            console.log("GraphRenderer: SVG after modification:", {
+              getBBox: svgElement.getBBox(),
+              clientWidth: svgElement.clientWidth,
+              clientHeight: svgElement.clientHeight,
+              offsetWidth: svgElement.offsetWidth,
+              offsetHeight: svgElement.offsetHeight,
+              styleWidth: svgElement.style.width,
+              styleHeight: svgElement.style.height,
+            });
+
+            // Auto-fit to container on first render or when tree changes
+            setTimeout(() => {
+              fitToContainer();
+            }, 100);
+          }
 
           // Show success notification for significant changes
           if (genealogyData.persons.length === 0 && showNotification) {
@@ -304,6 +785,19 @@ const {language, translations} = Astro.props;
             window.genealogyData?.persons
           );
 
+          // Reset zoom and pan state when switching trees for a fresh view
+          const oldScale = currentScale;
+          const oldTranslateX = currentTranslateX;
+          const oldTranslateY = currentTranslateY;
+
+          currentScale = 1;
+          currentTranslateX = 0;
+          currentTranslateY = 0;
+
+          console.log(
+            `GraphRenderer: tree-changed reset - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+          );
+
           await renderGraph();
 
           if (updateTreeNameDisplay) updateTreeNameDisplay();
@@ -391,16 +885,18 @@ const {language, translations} = Astro.props;
             `GraphRenderer: Timeout waiting for genealogy system. Missing: ${missingItems.join(", ")}`
           );
 
-          graphContainer.innerHTML = `
-            <div style="text-align: center; color: #dc3545; padding: 20px;">
-              <h3>${currentTranslations.initializationError || "Initialization Error"}</h3>
-              <p>${currentTranslations.failedToLoad || "Failed to load the genealogy graph application."}</p>
-              <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">Missing: ${missingItems.join(", ")}</p>
-              <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
-                ${currentTranslations.reloadPage || "Reload Page"}
-              </button>
-            </div>
-          `;
+          if (graphPlaceholder) {
+            graphPlaceholder.innerHTML = `
+              <div style="text-align: center; color: #dc3545; padding: 20px;">
+                <h3>${currentTranslations.initializationError || "Initialization Error"}</h3>
+                <p>${currentTranslations.failedToLoad || "Failed to load the genealogy graph application."}</p>
+                <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">Missing: ${missingItems.join(", ")}</p>
+                <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
+                  ${currentTranslations.reloadPage || "Reload Page"}
+                </button>
+              </div>
+            `;
+          }
         }
       }, 200);
     }
