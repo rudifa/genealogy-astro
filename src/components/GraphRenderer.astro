@@ -12,10 +12,18 @@ const {language, translations} = Astro.props;
 <div class='genealogy-graph'>
   <!-- Zoom controls -->
   <div class='zoom-controls'>
-    <button id='zoom-in' class='zoom-btn' title='Zoom In'>+</button>
-    <button id='zoom-out' class='zoom-btn' title='Zoom Out'>−</button>
-    <button id='zoom-fit' class='zoom-btn' title='Fit to Screen'>⌶</button>
-    <button id='zoom-reset' class='zoom-btn' title='Reset to 1:1'>⌂</button>
+    <button id='zoom-in' class='zoom-btn' title='Zoom In (Larger)'>+</button>
+    <button id='zoom-out' class='zoom-btn' title='Zoom Out (Smaller)'>−</button>
+    <button
+      id='zoom-fit'
+      class='zoom-btn'
+      title='Fit Tree to Screen (Best View)'>⌶</button
+    >
+    <button
+      id='zoom-reset'
+      class='zoom-btn'
+      title='Reset to 1:1 Scale (Original Size)'>⌂</button
+    >
   </div>
 
   <!-- SVG container with zoom/pan support -->
@@ -313,8 +321,10 @@ const {language, translations} = Astro.props;
         const scaleX = availableWidth / svgWidth;
         const scaleY = availableHeight / svgHeight;
 
-        // Always fit to container, but don't zoom in beyond 100%
-        currentScale = Math.min(scaleX, scaleY, 1);
+        // Always fit to container, but don't zoom in beyond a reasonable max scale (0.8)
+        // This ensures the graph doesn't fill the entire container
+        const MAX_FIT_SCALE = 0.8;
+        currentScale = Math.min(scaleX, scaleY, MAX_FIT_SCALE);
 
         // Calculate the actual scaled size using adjusted dimensions for centering
         const scaledWidth = centeringWidth * currentScale;
@@ -325,11 +335,25 @@ const {language, translations} = Astro.props;
         const svgOffsetX = svgRect.x || 0;
         const svgOffsetY = svgRect.y || 0;
 
-        currentTranslateX = (containerRect.width - scaledWidth) / 2 - (svgOffsetX * currentScale);
-        currentTranslateY = (containerRect.height - scaledHeight) / 2 - (svgOffsetY * currentScale);
+        // The correct formula for centering an SVG with an offset:
+        // 1. Find the center of the container: containerRect.width / 2
+        // 2. Find the center of the scaled SVG: (scaledWidth / 2) + (svgOffsetX * currentScale)
+        // 3. Move the SVG so its center aligns with the container center:
+        //    translateX = containerCenter - svgCenter
+        //    = containerRect.width / 2 - ((scaledWidth / 2) + (svgOffsetX * currentScale))
+        //    = (containerRect.width - scaledWidth) / 2 - (svgOffsetX * currentScale)
+        currentTranslateX =
+          (containerRect.width - scaledWidth) / 2 - svgOffsetX * currentScale;
+        currentTranslateY =
+          (containerRect.height - scaledHeight) / 2 - svgOffsetY * currentScale;
 
         console.log(
           `GraphRenderer: fitToContainer - container: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}, SVG getBBox: ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)}), SVG client: ${svgElement.clientWidth}x${svgElement.clientHeight}, using: ${svgWidth.toFixed(0)}x${svgHeight.toFixed(0)}, available: ${availableWidth.toFixed(0)}x${availableHeight.toFixed(0)}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}, scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, calculated size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}, offset: (${svgOffsetX.toFixed(0)}, ${svgOffsetY.toFixed(0)}), translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+        );
+
+        // Additional logging to explain the centering calculation
+        console.log(
+          `GraphRenderer: centering calculation - centerX: ${((containerRect.width - scaledWidth) / 2).toFixed(1)}, offsetX adjustment: ${(-svgOffsetX * currentScale).toFixed(1)}, final translateX: ${currentTranslateX.toFixed(1)}`
         );
         updateTransform(true);
       }
@@ -354,12 +378,19 @@ const {language, translations} = Astro.props;
         svgWidth = svgRect.width;
         svgHeight = svgRect.height;
 
-        // Center at 1:1 scale
-        currentTranslateX = (containerRect.width - svgWidth) / 2;
-        currentTranslateY = (containerRect.height - svgHeight) / 2;
+        // Get the SVG's offset from its bounding box
+        const svgOffsetX = svgRect.x || 0;
+        const svgOffsetY = svgRect.y || 0;
+
+        // Center at 1:1 scale using the same formula as fitToContainer
+        // The translate formula is:
+        // (containerRect.width - svgWidth) / 2 - svgOffsetX
+        // This ensures consistent behavior between reset and fit-to-screen
+        currentTranslateX = (containerRect.width - svgWidth) / 2 - svgOffsetX;
+        currentTranslateY = (containerRect.height - svgHeight) / 2 - svgOffsetY;
 
         console.log(
-          `GraphRenderer: resetZoom - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)}), centered at 1:1`
+          `GraphRenderer: resetZoom - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)}), centered at 1:1, SVG offset: (${svgOffsetX.toFixed(0)}, ${svgOffsetY.toFixed(0)})`
         );
         updateTransform(true);
       }
@@ -933,6 +964,68 @@ const {language, translations} = Astro.props;
         }
       }, 200);
     }
+
+    // Expose diagnostic tools for debugging
+    window.checkSvgMargins = function () {
+      if (!svgElement || !graphContent || !graphContainer) {
+        console.error("SVG elements not available");
+        return;
+      }
+
+      const containerRect = graphContainer.getBoundingClientRect();
+      const svgRect = svgElement.getBBox();
+      const scaledWidth = svgRect.width * currentScale;
+      const scaledHeight = svgRect.height * currentScale;
+
+      const leftMargin = currentTranslateX;
+      const rightMargin =
+        containerRect.width - (scaledWidth + currentTranslateX);
+      const topMargin = currentTranslateY;
+      const bottomMargin =
+        containerRect.height - (scaledHeight + currentTranslateY);
+
+      console.log(
+        `SVG Margins and Scale Analysis:
+        - Current Scale: ${currentScale.toFixed(3)}
+        - Container Size: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}
+        - SVG Size (getBBox): ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)})
+        - SVG Size (client): ${svgElement.clientWidth}x${svgElement.clientHeight}
+        - Scaled Size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}
+        - Current Translate: (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})
+        - Margins: Left=${leftMargin.toFixed(1)}, Right=${rightMargin.toFixed(1)}, Top=${topMargin.toFixed(1)}, Bottom=${bottomMargin.toFixed(1)}
+        - Centering Check: Left-Right diff=${(leftMargin - rightMargin).toFixed(1)}, Top-Bottom diff=${(topMargin - bottomMargin).toFixed(1)}
+        - Ideal Translate X for perfect centering: ${((containerRect.width - scaledWidth) / 2 - svgRect.x * currentScale).toFixed(1)}`
+      );
+
+      return {
+        scale: currentScale,
+        container: {width: containerRect.width, height: containerRect.height},
+        svgBBox: {
+          width: svgRect.width,
+          height: svgRect.height,
+          x: svgRect.x,
+          y: svgRect.y,
+        },
+        svgClient: {
+          width: svgElement.clientWidth,
+          height: svgElement.clientHeight,
+        },
+        scaledSize: {width: scaledWidth, height: scaledHeight},
+        translate: {x: currentTranslateX, y: currentTranslateY},
+        margins: {
+          left: leftMargin,
+          right: rightMargin,
+          top: topMargin,
+          bottom: bottomMargin,
+        },
+        centeringCheck: {
+          xDiff: leftMargin - rightMargin,
+          yDiff: topMargin - bottomMargin,
+          idealTranslateX:
+            (containerRect.width - scaledWidth) / 2 - svgRect.x * currentScale,
+        },
+      };
+    };
 
     waitForGenealogySystem();
 
