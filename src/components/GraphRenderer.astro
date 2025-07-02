@@ -92,6 +92,7 @@ const {language, translations} = Astro.props;
     position: relative;
     overflow: hidden;
     cursor: grab;
+    background-color: #ddeeee; // debugging
   }
 
   .graph-container.panning {
@@ -278,13 +279,19 @@ const {language, translations} = Astro.props;
         // Handle case where container is not visible yet
         if (containerRect.width === 0 || containerRect.height === 0) {
           console.log(
-            `GraphRenderer: fitToContainer - container not visible (${containerRect.width}x${containerRect.height}), retrying...`
+            `GraphRenderer: container not visible (${containerRect.width}x${containerRect.height}), retrying...`
           );
           setTimeout(() => fitToContainer(), 100);
           return;
         }
 
         const svgRect = svgElement.getBBox(); // Units: SVG user units (logical coordinates within SVG)
+
+        console.log(
+          "GraphRenderer 1-fitToContainer: containerRect px:",
+          containerRect
+        );
+        console.log("GraphRenderer 2-fitToContainer: svgRect pt:", svgRect);
 
         if (svgRect.width === 0 || svgRect.height === 0) {
           console.log(
@@ -311,28 +318,62 @@ const {language, translations} = Astro.props;
           svgHeight = svgRect.height; // Units: SVG user units (logical coordinates)
         }
 
+        console.log(
+          "GraphRenderer 3-fitToContainer: svgWidth x svgHeight px:",
+          svgWidth,
+          "x",
+          svgHeight
+        );
+
         // Add padding to ensure content doesn't touch edges
-        const padding = 60; // Units: pixels (px) - visual padding around content
+        const padding = 0; // Units: pixels (px) - visual padding around content
         const availableWidth = containerRect.width - padding; // Units: pixels (px)
         const availableHeight = containerRect.height - padding; // Units: pixels (px)
+
+        console.log(
+          "GraphRenderer 4-fitToContainer: availableWidth x availableHeight px:",
+          availableWidth,
+          "x",
+          availableHeight
+        );
 
         // Calculate scale factors to fit SVG within available container space
         const scaleX = availableWidth / svgWidth; // Units: dimensionless ratio (container_px / svg_px or svg_units)
         const scaleY = availableHeight / svgHeight; // Units: dimensionless ratio (container_px / svg_px or svg_units)
+
+        console.log(
+          "GraphRenderer 5-fitToContainer: scaleX x scaleY ratio:",
+          scaleX,
+          "x",
+          scaleY
+        );
 
         // Always fit to container, but don't zoom in beyond a reasonable max scale (0.8)
         // This ensures the graph doesn't fill the entire container
         const MAX_FIT_SCALE = 0.8; // Units: dimensionless ratio (max 80% zoom)
         currentScale = Math.min(scaleX, scaleY, MAX_FIT_SCALE); // Units: dimensionless ratio
 
+        console.log(
+          "GraphRenderer 6-fitToContainer: currentScale:",
+          currentScale.toFixed(3)
+        );
+
         // Calculate the actual scaled size using the SAME dimensions used for scale calculation
         const scaledWidth = svgWidth * currentScale; // Units: pixels (px) - final visual size
         const scaledHeight = svgHeight * currentScale; // Units: pixels (px) - final visual size
+
+        console.log(
+          `GraphRenderer 7-fitToContainer: scaledWidth x scaledHeight px: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}`
+        );
 
         // Center the scaled SVG in the container
         // Account for any offset in the SVG's bounding box
         const svgOffsetX = svgRect.x || 0; // Units: SVG user units - offset of content within SVG coordinate space
         const svgOffsetY = svgRect.y || 0; // Units: SVG user units - offset of content within SVG coordinate space
+
+        console.log(
+          `GraphRenderer 8-fitToContainer: svgOffsetX x svgOffsetY px: ${svgOffsetX.toFixed(0)}x${svgOffsetY.toFixed(0)}`
+        );
 
         // Center the actual visual content within the full container
         // Use the same dimensions that were used for scaling to ensure consistency
@@ -343,6 +384,13 @@ const {language, translations} = Astro.props;
           (containerRect.height - scaledHeight) / 2 - svgOffsetY * currentScale;
         // Units breakdown: (pixels - pixels) / 2 - (svg_units * ratio) = pixels
 
+        // debugging
+        currentTranslateX = 0;
+        currentTranslateY = 0;
+
+        console.log(
+          `GraphRenderer 9-fitToContainer: currentTranslateX x currentTranslateY px: ${currentTranslateX.toFixed(1)}x${currentTranslateY.toFixed(1)}`
+        );
         console.log(
           `GraphRenderer: fitToContainer - container: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}, SVG getBBox: ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)}), SVG client: ${svgElement.clientWidth}x${svgElement.clientHeight}, using: ${svgWidth.toFixed(0)}x${svgHeight.toFixed(0)}, available: ${availableWidth.toFixed(0)}x${availableHeight.toFixed(0)}, scaleX: ${scaleX.toFixed(3)}, scaleY: ${scaleY.toFixed(3)}, scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, scaled size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}, offset: (${svgOffsetX.toFixed(0)}, ${svgOffsetY.toFixed(0)}), translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
         );
@@ -630,8 +678,10 @@ const {language, translations} = Astro.props;
           );
           const newSvgString = await genealogySvgString(genealogyData);
           console.log(
-            "GraphRenderer: Received SVG string length:",
-            newSvgString?.length
+            "GraphRenderer 1-renderGraph: Received SVG string length:",
+            newSvgString?.length,
+            "First 500 characters:",
+            newSvgString?.slice(0, 500)
           );
 
           // Create or update graph content container
@@ -647,19 +697,21 @@ const {language, translations} = Astro.props;
           svgElement = graphContent.querySelector("svg");
           if (svgElement) {
             // Log SVG attributes before modification
-            console.log("GraphRenderer: SVG before modification:", {
-              width: svgElement.getAttribute("width"),
-              height: svgElement.getAttribute("height"),
-              viewBox: svgElement.getAttribute("viewBox"),
-              style: svgElement.getAttribute("style"),
-            });
+            console.log(
+              "GraphRenderer 2-renderGraph: SVG before modification:",
+              {
+                width: svgElement.getAttribute("width"),
+                height: svgElement.getAttribute("height"),
+                viewBox: svgElement.getAttribute("viewBox"),
+                style: svgElement.getAttribute("style"),
+              }
+            );
 
             // Instead of removing width/height, preserve the original size
             // and let CSS handle the scaling
             const originalWidth = svgElement.getAttribute("width"); // Units: typically "pt" (points)
             const originalHeight = svgElement.getAttribute("height"); // Units: typically "pt" (points)
 
-            // Convert pt to px properly (1pt = 4/3 px)
             if (originalWidth && originalHeight) {
               const widthValue = parseFloat(originalWidth); // Units: points (pt)
               const heightValue = parseFloat(originalHeight); // Units: points (pt)
@@ -674,7 +726,7 @@ const {language, translations} = Astro.props;
               svgElement.style.height = heightPx + "px"; // Units: pixels (px) - DOM rendering size
 
               console.log(
-                `GraphRenderer: Converted SVG size from ${widthValue}pt x ${heightValue}pt to ${widthPx}px x ${heightPx}px`
+                `GraphRenderer 3-renderGraph: Converted SVG size from ${widthValue}pt x ${heightValue}pt to ${widthPx}px x ${heightPx}px`
               );
 
               // Remove the pt-based attributes to avoid conflicts
@@ -683,15 +735,18 @@ const {language, translations} = Astro.props;
             }
 
             // Log SVG attributes after modification
-            console.log("GraphRenderer: SVG after modification:", {
-              getBBox: svgElement.getBBox(), // Units: SVG user units (logical coordinates)
-              clientWidth: svgElement.clientWidth, // Units: pixels (px) - rendered DOM size
-              clientHeight: svgElement.clientHeight, // Units: pixels (px) - rendered DOM size
-              offsetWidth: svgElement.offsetWidth, // Units: pixels (px) - rendered DOM size including borders
-              offsetHeight: svgElement.offsetHeight, // Units: pixels (px) - rendered DOM size including borders
-              styleWidth: svgElement.style.width, // Units: string with units (e.g., "400px")
-              styleHeight: svgElement.style.height, // Units: string with units (e.g., "300px")
-            });
+            console.log(
+              "GraphRenderer 3-renderGraph: svgElement after modification:",
+              {
+                getBBox: svgElement.getBBox(), // Units: SVG user units (logical coordinates)
+                clientWidth: svgElement.clientWidth, // Units: pixels (px) - rendered DOM size
+                clientHeight: svgElement.clientHeight, // Units: pixels (px) - rendered DOM size
+                offsetWidth: svgElement.offsetWidth, // Units: pixels (px) - rendered DOM size including borders
+                offsetHeight: svgElement.offsetHeight, // Units: pixels (px) - rendered DOM size including borders
+                styleWidth: svgElement.style.width, // Units: string with units (e.g., "400px")
+                styleHeight: svgElement.style.height, // Units: string with units (e.g., "300px")
+              }
+            );
 
             // Auto-fit to container on first render or when tree changes
             setTimeout(() => {
