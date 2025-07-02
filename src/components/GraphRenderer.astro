@@ -15,7 +15,7 @@ const {language, translations} = Astro.props;
     <button id='zoom-in' class='zoom-btn' title='Zoom In'>+</button>
     <button id='zoom-out' class='zoom-btn' title='Zoom Out'>−</button>
     <button id='zoom-fit' class='zoom-btn' title='Fit to Screen'>⌶</button>
-    <button id='zoom-reset' class='zoom-btn' title='Reset Zoom'>⌂</button>
+    <button id='zoom-reset' class='zoom-btn' title='Reset to 1:1'>⌂</button>
   </div>
 
   <!-- SVG container with zoom/pan support -->
@@ -315,18 +315,36 @@ const {language, translations} = Astro.props;
         updateTransform(true);
       }
 
-      // Reset zoom and position
+      // Reset zoom and position to 1:1 scale, centered
       function resetZoom() {
+        if (!graphContent || !svgElement) return;
+
         const oldScale = currentScale;
         const oldTranslateX = currentTranslateX;
         const oldTranslateY = currentTranslateY;
 
+        // Reset to 1:1 scale
         currentScale = 1;
-        currentTranslateX = 0;
-        currentTranslateY = 0;
+
+        // Center the SVG at 1:1 scale
+        const containerRect = graphContainer.getBoundingClientRect();
+        let svgWidth, svgHeight;
+
+        if (svgElement.clientWidth > 0 && svgElement.clientHeight > 0) {
+          svgWidth = svgElement.clientWidth;
+          svgHeight = svgElement.clientHeight;
+        } else {
+          const svgRect = svgElement.getBBox();
+          svgWidth = svgRect.width;
+          svgHeight = svgRect.height;
+        }
+
+        // Center at 1:1 scale
+        currentTranslateX = (containerRect.width - svgWidth) / 2;
+        currentTranslateY = (containerRect.height - svgHeight) / 2;
 
         console.log(
-          `GraphRenderer: resetZoom - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})`
+          `GraphRenderer: resetZoom - scale: ${oldScale.toFixed(3)} to ${currentScale.toFixed(3)}, translate: (${oldTranslateX.toFixed(1)}, ${oldTranslateY.toFixed(1)}) to (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)}), centered at 1:1`
         );
         updateTransform(true);
       }
