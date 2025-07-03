@@ -92,22 +92,21 @@ const {language, translations} = Astro.props;
     position: relative;
     overflow: hidden;
     cursor: grab;
-    background-color: #ddeeee; // debugging
   }
 
   .graph-container.panning {
     cursor: grabbing;
   }
 
-  .graph-content {
-    position: absolute;
+  .graph-container .graph-content {
+    position: absolute !important;
     top: 0;
     left: 0;
-    transform-origin: 0 0;
+    transform-origin: 0 0 !important;
     transition: transform 0.2s ease;
   }
 
-  .graph-content.smooth-transition {
+  .graph-container .graph-content.smooth-transition {
     transition: transform 0.3s ease;
   }
 
@@ -326,7 +325,7 @@ const {language, translations} = Astro.props;
         );
 
         // Add padding to ensure content doesn't touch edges
-        const padding = 0; // Units: pixels (px) - visual padding around content
+        const padding = 60; // Units: pixels (px) - visual padding around content
         const availableWidth = containerRect.width - padding; // Units: pixels (px)
         const availableHeight = containerRect.height - padding; // Units: pixels (px)
 
@@ -383,10 +382,6 @@ const {language, translations} = Astro.props;
         currentTranslateY =
           (containerRect.height - scaledHeight) / 2 - svgOffsetY * currentScale;
         // Units breakdown: (pixels - pixels) / 2 - (svg_units * ratio) = pixels
-
-        // debugging
-        currentTranslateX = 0;
-        currentTranslateY = 0;
 
         console.log(
           `GraphRenderer 9-fitToContainer: currentTranslateX x currentTranslateY px: ${currentTranslateX.toFixed(1)}x${currentTranslateY.toFixed(1)}`
@@ -689,6 +684,12 @@ const {language, translations} = Astro.props;
             graphContent = document.createElement("div");
             graphContent.className = "graph-content";
             graphContainer.appendChild(graphContent);
+
+            // Force the positioning styles programmatically to ensure they take effect
+            graphContent.style.position = "absolute";
+            graphContent.style.top = "0";
+            graphContent.style.left = "0";
+            graphContent.style.transformOrigin = "0 0";
           }
 
           graphContent.innerHTML = newSvgString;
@@ -750,6 +751,8 @@ const {language, translations} = Astro.props;
 
             // Auto-fit to container on first render or when tree changes
             setTimeout(() => {
+              console.log("GraphRenderer: Graph will be rendered");
+
               fitToContainer();
             }, 100);
           }
@@ -761,8 +764,6 @@ const {language, translations} = Astro.props;
               "info"
             );
           }
-
-          console.log("GraphRenderer: Graph rendered successfully");
         } catch (error) {
           console.error("GraphRenderer: Error rendering graph:", error);
           if (graphPlaceholder) {
@@ -963,6 +964,258 @@ const {language, translations} = Astro.props;
         }
       });
 
+      // Expose diagnostic tools for debugging (moved inside scope to access variables)
+      window.checkSvgMargins = function () {
+        if (!svgElement || !graphContent || !graphContainer) {
+          console.error("SVG elements not available");
+          return;
+        }
+
+        const containerRect = graphContainer.getBoundingClientRect();
+        const svgRect = svgElement.getBBox();
+        const scaledWidth = svgRect.width * currentScale;
+        const scaledHeight = svgRect.height * currentScale;
+
+        const leftMargin = currentTranslateX;
+        const rightMargin =
+          containerRect.width - (scaledWidth + currentTranslateX);
+        const topMargin = currentTranslateY;
+        const bottomMargin =
+          containerRect.height - (scaledHeight + currentTranslateY);
+
+        console.log(
+          `SVG Margins and Scale Analysis:
+          - Current Scale: ${currentScale.toFixed(3)}
+          - Container Size: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}
+          - SVG Size (getBBox): ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)})
+          - SVG Size (client): ${svgElement.clientWidth}x${svgElement.clientHeight}
+          - Scaled Size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}
+          - Current Translate: (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})
+          - Margins: Left=${leftMargin.toFixed(1)}, Right=${rightMargin.toFixed(1)}, Top=${topMargin.toFixed(1)}, Bottom=${bottomMargin.toFixed(1)}
+          - Centering Check: Left-Right diff=${(leftMargin - rightMargin).toFixed(1)}, Top-Bottom diff=${(topMargin - bottomMargin).toFixed(1)}
+          - Ideal Translate X for perfect centering: ${((containerRect.width - scaledWidth) / 2 - svgRect.x * currentScale).toFixed(1)}`
+        );
+
+        return {
+          scale: currentScale,
+          container: {width: containerRect.width, height: containerRect.height},
+          svgBBox: {
+            width: svgRect.width,
+            height: svgRect.height,
+            x: svgRect.x,
+            y: svgRect.y,
+          },
+          svgClient: {
+            width: svgElement.clientWidth,
+            height: svgElement.clientHeight,
+          },
+          scaledSize: {width: scaledWidth, height: scaledHeight},
+          translate: {x: currentTranslateX, y: currentTranslateY},
+          margins: {
+            left: leftMargin,
+            right: rightMargin,
+            top: topMargin,
+            bottom: bottomMargin,
+          },
+          centeringCheck: {
+            xDiff: leftMargin - rightMargin,
+            yDiff: topMargin - bottomMargin,
+            idealTranslateX:
+              (containerRect.width - scaledWidth) / 2 -
+              svgRect.x * currentScale,
+          },
+        };
+      };
+
+      // Advanced debugging function to trace the 68x58 pixel offset
+      window.debugVisualOffset = function () {
+        if (!svgElement || !graphContent || !graphContainer) {
+          console.error("SVG elements not available for offset debugging");
+          return;
+        }
+
+        console.log("=== VISUAL OFFSET DEBUGGING ===");
+
+        // 1. Container measurements (pixels in viewport)
+        const containerRect = graphContainer.getBoundingClientRect();
+        console.log("1. Container getBoundingClientRect (viewport px):", {
+          x: containerRect.x,
+          y: containerRect.y,
+          width: containerRect.width,
+          height: containerRect.height,
+          top: containerRect.top,
+          left: containerRect.left,
+          right: containerRect.right,
+          bottom: containerRect.bottom,
+        });
+
+        // 2. Graph content div measurements (positioned element)
+        const contentRect = graphContent.getBoundingClientRect();
+        console.log("2. GraphContent getBoundingClientRect (viewport px):", {
+          x: contentRect.x,
+          y: contentRect.y,
+          width: contentRect.width,
+          height: contentRect.height,
+          top: contentRect.top,
+          left: contentRect.left,
+          right: contentRect.right,
+          bottom: contentRect.bottom,
+        });
+
+        // 3. SVG element measurements (DOM element)
+        const svgRect = svgElement.getBoundingClientRect();
+        console.log("3. SVG getBoundingClientRect (viewport px):", {
+          x: svgRect.x,
+          y: svgRect.y,
+          width: svgRect.width,
+          height: svgRect.height,
+          top: svgRect.top,
+          left: svgRect.left,
+          right: svgRect.right,
+          bottom: svgRect.bottom,
+        });
+
+        // 4. SVG logical bounding box (SVG user units)
+        const svgBBox = svgElement.getBBox();
+        console.log("4. SVG getBBox (SVG user units):", {
+          x: svgBBox.x,
+          y: svgBBox.y,
+          width: svgBBox.width,
+          height: svgBBox.height,
+        });
+
+        // 5. Current transform state
+        console.log("5. Current Transform State:", {
+          scale: currentScale,
+          translateX: currentTranslateX,
+          translateY: currentTranslateY,
+          appliedTransform: graphContent.style.transform,
+        });
+
+        // 6. Calculate the visual offset between container and SVG
+        const offsetX = svgRect.left - containerRect.left;
+        const offsetY = svgRect.top - containerRect.top;
+        console.log("6. Visual Offset (SVG - Container, px):", {
+          offsetX: offsetX.toFixed(1),
+          offsetY: offsetY.toFixed(1),
+          description: `SVG appears ${offsetX.toFixed(1)}px right and ${offsetY.toFixed(1)}px down from container top-left`,
+        });
+
+        // 7. CSS computed styles for all elements
+        const containerStyles = window.getComputedStyle(graphContainer);
+        const contentStyles = window.getComputedStyle(graphContent);
+        const svgStyles = window.getComputedStyle(svgElement);
+
+        console.log("7a. Container computed styles (relevant):", {
+          position: containerStyles.position,
+          padding: `${containerStyles.paddingTop} ${containerStyles.paddingRight} ${containerStyles.paddingBottom} ${containerStyles.paddingLeft}`,
+          margin: `${containerStyles.marginTop} ${containerStyles.marginRight} ${containerStyles.marginBottom} ${containerStyles.marginLeft}`,
+          border: `${containerStyles.borderTopWidth} ${containerStyles.borderRightWidth} ${containerStyles.borderBottomWidth} ${containerStyles.borderLeftWidth}`,
+          overflow: containerStyles.overflow,
+        });
+
+        console.log("7b. GraphContent computed styles (relevant):", {
+          position: contentStyles.position,
+          top: contentStyles.top,
+          left: contentStyles.left,
+          transform: contentStyles.transform,
+          transformOrigin: contentStyles.transformOrigin,
+          padding: `${contentStyles.paddingTop} ${contentStyles.paddingRight} ${contentStyles.paddingBottom} ${contentStyles.paddingLeft}`,
+          margin: `${contentStyles.marginTop} ${contentStyles.marginRight} ${contentStyles.marginBottom} ${contentStyles.marginLeft}`,
+          className: graphContent.className,
+          classList: Array.from(graphContent.classList),
+          elementId: graphContent.id,
+        });
+
+        console.log("7c. SVG computed styles (relevant):", {
+          display: svgStyles.display,
+          width: svgStyles.width,
+          height: svgStyles.height,
+          maxWidth: svgStyles.maxWidth,
+          maxHeight: svgStyles.maxHeight,
+          padding: `${svgStyles.paddingTop} ${svgStyles.paddingRight} ${svgStyles.paddingBottom} ${svgStyles.paddingLeft}`,
+          margin: `${svgStyles.marginTop} ${svgStyles.marginRight} ${svgStyles.marginBottom} ${svgStyles.marginLeft}`,
+          transform: svgStyles.transform,
+        });
+
+        // 8. SVG viewBox analysis (if present)
+        const viewBox = svgElement.getAttribute("viewBox");
+        if (viewBox) {
+          const [vbX, vbY, vbWidth, vbHeight] = viewBox.split(" ").map(Number);
+          console.log("8. SVG viewBox analysis:", {
+            viewBox: viewBox,
+            parsed: {x: vbX, y: vbY, width: vbWidth, height: vbHeight},
+            bboxVsViewbox: {
+              xDiff: svgBBox.x - vbX,
+              yDiff: svgBBox.y - vbY,
+              widthDiff: svgBBox.width - vbWidth,
+              heightDiff: svgBBox.height - vbHeight,
+            },
+          });
+        } else {
+          console.log("8. SVG viewBox: none set");
+        }
+
+        // 9. Check for any transforms on parent elements
+        let element = graphContainer.parentElement;
+        let level = 0;
+        console.log("9. Parent element transforms:");
+        while (element && level < 5) {
+          const styles = window.getComputedStyle(element);
+          if (
+            styles.transform !== "none" ||
+            styles.position === "relative" ||
+            styles.position === "absolute"
+          ) {
+            console.log(
+              `  Level ${level} (${element.tagName}.${element.className}):`,
+              {
+                transform: styles.transform,
+                position: styles.position,
+                top: styles.top,
+                left: styles.left,
+              }
+            );
+          }
+          element = element.parentElement;
+          level++;
+        }
+
+        // 10. Calculate expected vs actual positions
+        const expectedSvgLeft = containerRect.left + currentTranslateX;
+        const expectedSvgTop = containerRect.top + currentTranslateY;
+        const actualSvgLeft = svgRect.left;
+        const actualSvgTop = svgRect.top;
+
+        console.log("10. Expected vs Actual SVG Position:", {
+          expected: {left: expectedSvgLeft, top: expectedSvgTop},
+          actual: {left: actualSvgLeft, top: actualSvgTop},
+          unexplainedOffset: {
+            x: actualSvgLeft - expectedSvgLeft,
+            y: actualSvgTop - expectedSvgTop,
+          },
+        });
+
+        // 11. Return comprehensive data for further analysis
+        return {
+          container: containerRect,
+          graphContent: contentRect,
+          svg: svgRect,
+          svgBBox: svgBBox,
+          visualOffset: {x: offsetX, y: offsetY},
+          transform: {
+            scale: currentScale,
+            translateX: currentTranslateX,
+            translateY: currentTranslateY,
+          },
+          unexplainedOffset: {
+            x: actualSvgLeft - expectedSvgLeft,
+            y: actualSvgTop - expectedSvgTop,
+          },
+          viewBox: viewBox,
+        };
+      };
+
       // Initial render when system is ready
       console.log("GraphRenderer: About to call renderGraph() initially");
       renderGraph();
@@ -1035,68 +1288,6 @@ const {language, translations} = Astro.props;
         }
       }, 200);
     }
-
-    // Expose diagnostic tools for debugging
-    window.checkSvgMargins = function () {
-      if (!svgElement || !graphContent || !graphContainer) {
-        console.error("SVG elements not available");
-        return;
-      }
-
-      const containerRect = graphContainer.getBoundingClientRect();
-      const svgRect = svgElement.getBBox();
-      const scaledWidth = svgRect.width * currentScale;
-      const scaledHeight = svgRect.height * currentScale;
-
-      const leftMargin = currentTranslateX;
-      const rightMargin =
-        containerRect.width - (scaledWidth + currentTranslateX);
-      const topMargin = currentTranslateY;
-      const bottomMargin =
-        containerRect.height - (scaledHeight + currentTranslateY);
-
-      console.log(
-        `SVG Margins and Scale Analysis:
-        - Current Scale: ${currentScale.toFixed(3)}
-        - Container Size: ${containerRect.width.toFixed(0)}x${containerRect.height.toFixed(0)}
-        - SVG Size (getBBox): ${svgRect.width.toFixed(0)}x${svgRect.height.toFixed(0)} at (${svgRect.x.toFixed(0)}, ${svgRect.y.toFixed(0)})
-        - SVG Size (client): ${svgElement.clientWidth}x${svgElement.clientHeight}
-        - Scaled Size: ${scaledWidth.toFixed(0)}x${scaledHeight.toFixed(0)}
-        - Current Translate: (${currentTranslateX.toFixed(1)}, ${currentTranslateY.toFixed(1)})
-        - Margins: Left=${leftMargin.toFixed(1)}, Right=${rightMargin.toFixed(1)}, Top=${topMargin.toFixed(1)}, Bottom=${bottomMargin.toFixed(1)}
-        - Centering Check: Left-Right diff=${(leftMargin - rightMargin).toFixed(1)}, Top-Bottom diff=${(topMargin - bottomMargin).toFixed(1)}
-        - Ideal Translate X for perfect centering: ${((containerRect.width - scaledWidth) / 2 - svgRect.x * currentScale).toFixed(1)}`
-      );
-
-      return {
-        scale: currentScale,
-        container: {width: containerRect.width, height: containerRect.height},
-        svgBBox: {
-          width: svgRect.width,
-          height: svgRect.height,
-          x: svgRect.x,
-          y: svgRect.y,
-        },
-        svgClient: {
-          width: svgElement.clientWidth,
-          height: svgElement.clientHeight,
-        },
-        scaledSize: {width: scaledWidth, height: scaledHeight},
-        translate: {x: currentTranslateX, y: currentTranslateY},
-        margins: {
-          left: leftMargin,
-          right: rightMargin,
-          top: topMargin,
-          bottom: bottomMargin,
-        },
-        centeringCheck: {
-          xDiff: leftMargin - rightMargin,
-          yDiff: topMargin - bottomMargin,
-          idealTranslateX:
-            (containerRect.width - scaledWidth) / 2 - svgRect.x * currentScale,
-        },
-      };
-    };
 
     waitForGenealogySystem();
 
