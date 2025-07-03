@@ -2,6 +2,7 @@ export interface PersonType {
   name: string;
   mother?: string;
   father?: string;
+  info?: string;
 }
 
 export interface TreeDataType {

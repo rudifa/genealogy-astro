@@ -24,6 +24,7 @@ export const fr: Translations = {
   name: "Nom",
   mother: "Mère",
   father: "Père",
+  info: "Info",
   required: "*",
   save: "Sauvegarder",
   remove: "Supprimer",

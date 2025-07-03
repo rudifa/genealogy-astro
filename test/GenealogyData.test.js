@@ -370,3 +370,219 @@ describe('Tree Merging', () => {
     assert.strictEqual(childSmith.father, "Jack Doe");
   });
 });
+
+describe('Person Info Field', () => {
+  let data;
+  const initialPersonsWithInfo = {
+    persons: [
+      { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: '1990-Present, Software Engineer' },
+      { name: 'Jane Doe', mother: null, father: null, info: '1965-2020, Teacher' },
+      { name: 'Bob Smith', mother: null, father: null, info: null },
+    ],
+  };
+
+  beforeEach(() => {
+    data = new GenealogyData(JSON.parse(JSON.stringify(initialPersonsWithInfo)));
+  });
+
+  it('should initialize correctly with info fields', () => {
+    assert.strictEqual(data.persons.length, 4, 'Should have 4 persons after initialization (John, Jane, Jack, Bob)');
+
+    const john = data.persons.find(p => p.name === 'John Doe');
+    assert.strictEqual(john.info, '1990-Present, Software Engineer');
+
+    const jane = data.persons.find(p => p.name === 'Jane Doe');
+    assert.strictEqual(jane.info, '1965-2020, Teacher');
+
+    const bob = data.persons.find(p => p.name === 'Bob Smith');
+    assert.strictEqual(bob.info, null);
+
+    // Auto-generated person should have null info
+    const jack = data.persons.find(p => p.name === 'Jack Doe');
+    assert.strictEqual(jack.info, null);
+  });
+
+  it('should add a new person with info field', () => {
+    const newPerson = { name: 'Mary Jane', mother: 'Jane Doe', father: 'John Doe', info: 'Born 2015, Student' };
+    data.addPerson(newPerson);
+
+    const mary = data.persons.find(p => p.name === 'Mary Jane');
+    assert.ok(mary);
+    assert.strictEqual(mary.info, 'Born 2015, Student');
+  });
+
+  it('should add a new person without info field', () => {
+    const newPerson = { name: 'Sam Wilson', mother: 'Unknown', father: null };
+    data.addPerson(newPerson);
+
+    const sam = data.persons.find(p => p.name === 'Sam Wilson');
+    assert.ok(sam);
+    assert.strictEqual(sam.info, undefined);
+  });
+
+  it('should update person info field', () => {
+    const updatedJohn = { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: '1990-Present, Senior Developer' };
+    data.updatePerson('John Doe', updatedJohn);
+
+    const john = data.persons.find(p => p.name === 'John Doe');
+    assert.strictEqual(john.info, '1990-Present, Senior Developer');
+  });
+
+  it('should clear info field when updating person', () => {
+    const updatedJane = { name: 'Jane Doe', mother: null, father: null, info: null };
+    data.updatePerson('Jane Doe', updatedJane);
+
+    const jane = data.persons.find(p => p.name === 'Jane Doe');
+    assert.strictEqual(jane.info, null);
+  });
+
+  it('should generate DOT string with info as second line', () => {
+    const dotString = data.genealogyDotString();
+
+    // Person with info should have two-line label
+    assert.ok(dotString.includes('"John Doe" [label="John Doe\\n1990-Present, Software Engineer"'));
+    assert.ok(dotString.includes('"Jane Doe" [label="Jane Doe\\n1965-2020, Teacher"'));
+
+    // Person without info should have single-line label
+    assert.ok(dotString.includes('"Bob Smith" [label="Bob Smith"'));
+    assert.ok(dotString.includes('"Jack Doe" [label="Jack Doe"'));
+  });
+
+  it('should escape quotes in info field for DOT generation', () => {
+    const personWithQuotes = { name: 'Test Person', mother: null, father: null, info: 'Known as "The Expert"' };
+    data.addPerson(personWithQuotes);
+
+    const dotString = data.genealogyDotString();
+    assert.ok(dotString.includes('"Test Person" [label="Test Person\\nKnown as \\"The Expert\\""'));
+  });
+
+  it('should handle empty info field correctly', () => {
+    const personWithEmptyInfo = { name: 'Empty Info', mother: null, father: null, info: '' };
+    data.addPerson(personWithEmptyInfo);
+
+    const dotString = data.genealogyDotString();
+    // Empty info should result in single-line label
+    assert.ok(dotString.includes('"Empty Info" [label="Empty Info"'));
+  });
+
+  it('should handle whitespace-only info field correctly', () => {
+    const personWithWhitespaceInfo = { name: 'Whitespace Info', mother: null, father: null, info: '   ' };
+    data.addPerson(personWithWhitespaceInfo);
+
+    const dotString = data.genealogyDotString();
+    // Whitespace-only info should result in single-line label
+    assert.ok(dotString.includes('"Whitespace Info" [label="Whitespace Info"'));
+  });
+
+  it('should preserve info during person removal and reference updates', () => {
+    // Add a child of John who has info
+    const child = { name: 'Child Doe', mother: 'Jane Doe', father: 'John Doe', info: 'Born 2010' };
+    data.addPerson(child);
+
+    // Remove Jane Doe
+    data.removePerson('Jane Doe');
+
+    // Child should still have info but mother reference should be null
+    const childAfter = data.persons.find(p => p.name === 'Child Doe');
+    assert.strictEqual(childAfter.info, 'Born 2010');
+    assert.strictEqual(childAfter.mother, null);
+  });
+});
+
+describe('Person Merging with Info Field', () => {
+  let data;
+
+  beforeEach(() => {
+    data = new GenealogyData({
+      persons: [
+        { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: 'Original info' },
+        { name: 'Jane Doe', mother: null, father: null, info: null },
+      ]
+    });
+  });
+
+  it('should merge persons with info using combine-non-null strategy', () => {
+    const person1 = { name: 'Alice', mother: 'Mom1', father: null, info: 'Info from person1' };
+    const person2 = { name: 'Alice', mother: null, father: 'Dad1', info: null };
+
+    const merged = data.mergePerson(person1, person2, 'combine-non-null');
+    assert.strictEqual(merged.name, 'Alice');
+    assert.strictEqual(merged.mother, 'Mom1');
+    assert.strictEqual(merged.father, 'Dad1');
+    assert.strictEqual(merged.info, 'Info from person1');
+  });
+
+  it('should merge persons with info using keep-first strategy', () => {
+    const person1 = { name: 'Bob', mother: 'Mom1', father: 'Dad1', info: 'First info' };
+    const person2 = { name: 'Bob', mother: 'Mom2', father: 'Dad2', info: 'Second info' };
+
+    const merged = data.mergePerson(person1, person2, 'keep-first');
+    assert.strictEqual(merged.info, 'First info');
+  });
+
+  it('should merge persons with info using keep-second strategy', () => {
+    const person1 = { name: 'Charlie', mother: 'Mom1', father: 'Dad1', info: 'First info' };
+    const person2 = { name: 'Charlie', mother: 'Mom2', father: 'Dad2', info: 'Second info' };
+
+    const merged = data.mergePerson(person1, person2, 'keep-second');
+    assert.strictEqual(merged.info, 'Second info');
+  });
+
+  it('should merge persons with info using prefer-complete strategy', () => {
+    const person1 = { name: 'David', mother: 'Mom1', father: null, info: null };
+    const person2 = { name: 'David', mother: null, father: 'Dad2', info: 'Complete info' };
+
+    const merged = data.mergePerson(person1, person2, 'prefer-complete');
+    // person2 has more complete information (father + info vs just mother)
+    assert.strictEqual(merged.mother, null);
+    assert.strictEqual(merged.father, 'Dad2');
+    assert.strictEqual(merged.info, 'Complete info');
+  });
+
+  it('should detect info conflicts during tree merge', () => {
+    const otherTree = new GenealogyData({
+      persons: [
+        { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: 'Different info' }
+      ]
+    });
+
+    const stats = data.mergeTree(otherTree, 'combine-non-null');
+
+    // The merge will merge John Doe, Jane Doe, and Jack Doe (all exist in both trees)
+    assert.strictEqual(stats.merged, 3);
+
+    // Find the conflict for John Doe specifically (the only one with conflicting info)
+    const johnConflict = stats.conflicts.find(c => c.name === 'John Doe');
+    assert.ok(johnConflict, 'Should have a conflict for John Doe');
+    assert.strictEqual(johnConflict.existing.info, 'Original info');
+    assert.strictEqual(johnConflict.incoming.info, 'Different info');
+    assert.strictEqual(johnConflict.resolved.info, 'Original info'); // combine-non-null keeps first
+  });
+
+  it('should merge trees without info conflicts when no conflicts exist', () => {
+    const otherTree = new GenealogyData({
+      persons: [
+        { name: 'New Person', mother: null, father: null, info: 'Some info' },
+        { name: 'Jane Doe', mother: 'Grandma', father: 'Grandpa', info: 'Added info' }
+      ]
+    });
+
+    data.mergeTree(otherTree, 'combine-non-null');
+
+    // Jane Doe should be merged (she had no info originally)
+    const jane = data.persons.find(p => p.name === 'Jane Doe');
+    assert.strictEqual(jane.info, 'Added info');
+
+    // New Person should be added
+    const newPerson = data.persons.find(p => p.name === 'New Person');
+    assert.strictEqual(newPerson.info, 'Some info');
+  });
+
+  it('should handle null and undefined info fields correctly in merging', () => {
+    const person1 = { name: 'Test', mother: null, father: null, info: undefined };
+    const person2 = { name: 'Test', mother: null, father: null, info: 'Real info' };
+
+    const merged = data.mergePerson(person1, person2, 'combine-non-null');
+    assert.strictEqual(merged.info, 'Real info');
+  });
+});

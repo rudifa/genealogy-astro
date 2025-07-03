@@ -60,6 +60,19 @@ const {language, translations} = Astro.props;
         />
         <div class='field-error' id='father-error'></div>
       </div>
+      <div class='form-field'>
+        <label for='person-info'>{translations.info}:</label>
+        <input
+          type='text'
+          id='person-info'
+          name='info'
+          maxlength='200'
+          autocomplete='off'
+          data-1p-ignore
+          placeholder='e.g., Birth year, profession, location...'
+        />
+        <div class='field-error' id='info-error'></div>
+      </div>
       <div class='dialog-buttons'>
         <button type='submit' id='save-button'>{translations.save}</button>
         <button type='button' id='remove-button'>{translations.remove}</button>
@@ -238,6 +251,7 @@ const {language, translations} = Astro.props;
     const nameInput = document.getElementById("person-name");
     const motherInput = document.getElementById("person-mother");
     const fatherInput = document.getElementById("person-father");
+    const infoInput = document.getElementById("person-info");
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
     const removeButton = document.getElementById("remove-button");
@@ -247,6 +261,7 @@ const {language, translations} = Astro.props;
     const nameError = document.getElementById("name-error");
     const motherError = document.getElementById("mother-error");
     const fatherError = document.getElementById("father-error");
+    const infoError = document.getElementById("info-error");
 
     let isNewPerson = false;
 
@@ -259,12 +274,14 @@ const {language, translations} = Astro.props;
       const nameLabel = document.querySelector('label[for="person-name"]');
       const motherLabel = document.querySelector('label[for="person-mother"]');
       const fatherLabel = document.querySelector('label[for="person-father"]');
+      const infoLabel = document.querySelector('label[for="person-info"]');
 
       // Update labels
       if (nameLabel)
         nameLabel.innerHTML = `${t.name}: <span class='required'>${t.required}</span>`;
       if (motherLabel) motherLabel.textContent = `${t.mother}:`;
       if (fatherLabel) fatherLabel.textContent = `${t.father}:`;
+      if (infoLabel) infoLabel.textContent = `${t.info}:`;
 
       // Update buttons
       if (saveButton) saveButton.textContent = t.save;
@@ -322,11 +339,22 @@ const {language, translations} = Astro.props;
       return null;
     }
 
+    function validateInfo(info) {
+      if (!info.trim()) return null;
+
+      if (info.trim().length > 200) {
+        return "Info must be 200 characters or less";
+      }
+
+      return null;
+    }
+
     function clearErrors() {
       errorMessage.style.display = "none";
       nameError.textContent = "";
       motherError.textContent = "";
       fatherError.textContent = "";
+      infoError.textContent = "";
     }
 
     function showError(message) {
@@ -359,6 +387,13 @@ const {language, translations} = Astro.props;
         isValid = false;
       }
 
+      // Validate info
+      const infoValidation = validateInfo(infoInput.value);
+      if (infoValidation) {
+        infoError.textContent = infoValidation;
+        isValid = false;
+      }
+
       saveButton.disabled = !isValid;
       return isValid;
     }
@@ -370,6 +405,7 @@ const {language, translations} = Astro.props;
       nameInput.value = person.name || "";
       motherInput.value = person.mother || "";
       fatherInput.value = person.father || "";
+      infoInput.value = person.info || "";
 
       // Update dialog title
       const title = dialog.querySelector("h2");
@@ -404,6 +440,7 @@ const {language, translations} = Astro.props;
     nameInput.addEventListener("input", validateForm);
     motherInput.addEventListener("input", validateForm);
     fatherInput.addEventListener("input", validateForm);
+    infoInput.addEventListener("input", validateForm);
 
     // Cancel button closes the dialog
     cancelButton.addEventListener("click", closeEditDialog);
@@ -436,6 +473,7 @@ const {language, translations} = Astro.props;
           name: nameInput.value.trim(),
           mother: motherInput.value.trim() || null,
           father: fatherInput.value.trim() || null,
+          info: infoInput.value.trim() || null,
         };
 
         genealogyData.updatePerson(originalNameInput.value, updatedPerson);

@@ -1,34 +1,49 @@
 {
     "persons": [
         {
-            "name": "Mary May Jones"
+            "name": "Chloé Rochat Favre",
+            "info": "Née 1947"
         },
         {
-            "name": "Bill Baker"
+            "name": "Jonas Schmid",
+            "info": "1939-2007"
         },
         {
-            "father": "John Jones",
-            "mother": "Mary May Jones",
-            "name": "Jane Jones Baker"
+            "name": "Lina Keller Schmid",
+            "info": "Née 1945"
         },
         {
-            "father": "Bill Baker",
-            "mother": "Cathy Cook Baker",
-            "name": "Mark Baker"
+            "name": "Lian Favre",
+            "info": "Né 1942"
         },
         {
-            "father": "Mark Baker",
-            "mother": "Jane Jones Baker",
-            "name": "Sarah Baker"
+            "father": "Jonas Schmid",
+            "mother": "Lina Keller Schmid",
+            "name": "Mia Schmid Favre",
+            "info": "Née 1983"
         },
         {
-            "father": "Mark Baker",
-            "mother": "Jane Jones Baker",
-            "name": "Emily Baker"
+            "father": "Lian Favre",
+            "mother": "Chloé Rochat Favre",
+            "name": "Noah Favre",
+            "info": "Né 1987"
         },
         {
-            "mother": "Cathy Cook Baker",
-            "name": "Danny Cook"
+            "father": "Noah Favre",
+            "mother": "Mia Schmid Favre",
+            "name": "Elena Favre",
+            "info": "Née 2020"
+        },
+        {
+            "father": "Noah Favre",
+            "mother": "Mia Schmid Favre",
+            "name": "Sofia Favre",
+            "info": "Née 2017"
+        },
+        {
+            "mother": "Chloé Rochat Favre",
+            "name": "Matteo Rochat",
+            "info": "Né 1969"
         }
     ]
 }

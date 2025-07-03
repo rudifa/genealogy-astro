@@ -1,0 +1,89 @@
+{
+    "persons": [
+        {
+            "name": "Walter Schmid",
+            "info": "1917-1986"
+        },
+        {
+            "name": "Giulia Ferrari",
+            "info": "1920-2021"
+        },
+        {
+            "name": "Hans Keller",
+            "info": "1890-1960"
+        },
+        {
+            "name": "Elsbeth Meier",
+            "info": "1913-1982"
+        },
+        {
+            "name": "Louis Favre",
+            "info": "1901-1960"
+        },
+        {
+            "name": "Juliette Renaud",
+            "info": "1907-1965"
+        },
+        {
+            "name": "Pierre Rochat",
+            "info": "1911-1982"
+        },
+        {
+            "name": "Sophie Girard",
+            "info": "1915-1995"
+        },
+        {
+            "name": "Jonas Schmid",
+            "info": "1939-2007",
+            "father": "Walter Schmid",
+            "mother": "Giulia Ferrari"
+        },
+        {
+            "name": "Lina Keller Schmid",
+            "info": "Née 1945",
+            "father": "Hans Keller",
+            "mother": "Elsbeth Meier"
+        },
+        {
+            "name": "Lian Favre",
+            "info": "Né 1942",
+            "father": "Louis Favre",
+            "mother": "Juliette Renaud"
+        },
+        {
+            "name": "Chloé Rochat Favre",
+            "info": "Née 1947",
+            "father": "Pierre Rochat",
+            "mother": "Sophie Girard"
+        },
+        {
+            "father": "Jonas Schmid",
+            "mother": "Lina Keller Schmid",
+            "name": "Mia Schmid Favre",
+            "info": "Née 1983"
+        },
+        {
+            "father": "Lian Favre",
+            "mother": "Chloé Rochat Favre",
+            "name": "Noah Favre",
+            "info": "Né 1987"
+        },
+        {
+            "father": "Noah Favre",
+            "mother": "Mia Schmid Favre",
+            "name": "Elena Favre",
+            "info": "Née 2020"
+        },
+        {
+            "father": "Noah Favre",
+            "mother": "Mia Schmid Favre",
+            "name": "Sofia Favre",
+            "info": "Née 2017"
+        },
+        {
+            "mother": "Chloé Rochat Favre",
+            "name": "Matteo Rochat",
+            "info": "Né 1969"
+        }
+    ]
+}
