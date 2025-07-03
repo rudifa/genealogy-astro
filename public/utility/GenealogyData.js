@@ -22,6 +22,7 @@ export class GenealogyData {
    * @param {string} person.name - The person's name
    * @param {string|null} person.mother - The mother's name (optional)
    * @param {string|null} person.father - The father's name (optional)
+   * @param {string|null} person.info - Additional info about the person (optional)
    */
   addPerson(person) {
     this.persons.push(person);
@@ -35,6 +36,7 @@ export class GenealogyData {
    * @param {string} updatedPerson.name - The person's name
    * @param {string|null} updatedPerson.mother - The mother's name (optional)
    * @param {string|null} updatedPerson.father - The father's name (optional)
+   * @param {string|null} updatedPerson.info - Additional info about the person (optional)
    */
   updatePerson(originalName, updatedPerson) {
     const personIndex = this.persons.findIndex(p => p.name === originalName);
@@ -123,7 +125,7 @@ export class GenealogyData {
     });
 
     missingPersonNames.forEach(name => {
-      this.persons.push({ name, mother: null, father: null });
+      this.persons.push({ name, mother: null, father: null, info: null });
     });
   }
 
@@ -144,8 +146,19 @@ export class GenealogyData {
 
     // 2. Define all person nodes.
     allNames.forEach((name) => {
+      const person = this.persons.find(p => p.name === name);
       const url = `URL="person:${encodeURIComponent(name)}"`;
-      dotLines.push(`  "${name}" [label="${name}"${url ? ", " + url : ""}];`);
+
+      // Create label with name on first line and info on second line (if available)
+      let label = name;
+      if (person && person.info && person.info.trim()) {
+        // Escape quotes and newlines for DOT format
+        const escapedName = name.replace(/"/g, '\\"');
+        const escapedInfo = person.info.trim().replace(/"/g, '\\"');
+        label = `${escapedName}\\n${escapedInfo}`;
+      }
+
+      dotLines.push(`  "${name}" [label="${label}"${url ? ", " + url : ""}];`);
     });
 
     // 3. Define all relationships.
@@ -196,29 +209,34 @@ export class GenealogyData {
       case 'keep-first':
         merged.mother = person1.mother;
         merged.father = person1.father;
+        merged.info = person1.info;
         break;
 
       case 'keep-second':
         merged.mother = person2.mother;
         merged.father = person2.father;
+        merged.info = person2.info;
         break;
 
       case 'combine-non-null':
         merged.mother = person1.mother || person2.mother || null;
         merged.father = person1.father || person2.father || null;
+        merged.info = person1.info || person2.info || null;
         break;
 
       case 'prefer-complete': {
         // Choose the person with more complete information
-        const person1Complete = (person1.mother ? 1 : 0) + (person1.father ? 1 : 0);
-        const person2Complete = (person2.mother ? 1 : 0) + (person2.father ? 1 : 0);
+        const person1Complete = (person1.mother ? 1 : 0) + (person1.father ? 1 : 0) + (person1.info ? 1 : 0);
+        const person2Complete = (person2.mother ? 1 : 0) + (person2.father ? 1 : 0) + (person2.info ? 1 : 0);
 
         if (person1Complete >= person2Complete) {
           merged.mother = person1.mother;
           merged.father = person1.father;
+          merged.info = person1.info;
         } else {
           merged.mother = person2.mother;
           merged.father = person2.father;
+          merged.info = person2.info;
         }
         break;
       }
@@ -266,14 +284,15 @@ export class GenealogyData {
           // Check if there are conflicts (different non-null values)
           const hasConflict =
             (existingPerson.mother && otherPerson.mother && existingPerson.mother !== otherPerson.mother) ||
-            (existingPerson.father && otherPerson.father && existingPerson.father !== otherPerson.father);
+            (existingPerson.father && otherPerson.father && existingPerson.father !== otherPerson.father) ||
+            (existingPerson.info && otherPerson.info && existingPerson.info !== otherPerson.info);
 
           if (hasConflict) {
             stats.conflicts.push({
               name: otherPerson.name,
-              existing: { mother: existingPerson.mother, father: existingPerson.father },
-              incoming: { mother: otherPerson.mother, father: otherPerson.father },
-              resolved: { mother: mergedPerson.mother, father: mergedPerson.father }
+              existing: { mother: existingPerson.mother, father: existingPerson.father, info: existingPerson.info },
+              incoming: { mother: otherPerson.mother, father: otherPerson.father, info: otherPerson.info },
+              resolved: { mother: mergedPerson.mother, father: mergedPerson.father, info: mergedPerson.info }
             });
           }
 

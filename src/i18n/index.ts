@@ -24,6 +24,7 @@ export interface Translations {
   name: string;
   mother: string;
   father: string;
+  info: string;
   required: string;
   save: string;
   remove: string;

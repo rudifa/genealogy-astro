@@ -1,34 +1,41 @@
 {
     "persons": [
         {
-            "name": "Mary May Jones"
+            "name": "Mary May Jones",
+            "info": "1920-1995"
         },
         {
-            "name": "Bill Baker"
+            "name": "Bill Baker",
+            "info": "1918-1988"
         },
         {
             "father": "John Jones",
             "mother": "Mary May Jones",
-            "name": "Jane Jones Baker"
+            "name": "Jane Jones Baker",
+            "info": "1945-2020"
         },
         {
             "father": "Bill Baker",
             "mother": "Cathy Cook Baker",
-            "name": "Mark Baker"
+            "name": "Mark Baker",
+            "info": "1940-2010"
         },
         {
             "father": "Mark Baker",
             "mother": "Jane Jones Baker",
-            "name": "Sarah Baker"
+            "name": "Sarah Baker",
+            "info": "Born 1970"
         },
         {
             "father": "Mark Baker",
             "mother": "Jane Jones Baker",
-            "name": "Emily Baker"
+            "name": "Emily Baker",
+            "info": "Born 1972"
         },
         {
             "mother": "Cathy Cook Baker",
-            "name": "Danny Cook"
+            "name": "Danny Cook",
+            "info": "Born 1968"
         }
     ]
 }
