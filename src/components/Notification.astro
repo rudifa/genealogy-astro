@@ -1,0 +1,125 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<div id='notification' class='notification' style='display: none;'></div>
+
+<style>
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    z-index: 1000;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .notification.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+  }
+</style>
+
+<script is:inline define:vars={{translations}}>
+  // Notification system functionality
+  function initializeNotification() {
+    console.log("Notification: Starting initialization");
+
+    // Prevent multiple initializations
+    if (window.notificationInitialized) {
+      console.log("Notification: Already initialized, skipping");
+      return;
+    }
+    window.notificationInitialized = true;
+
+    // Store current translations (will be updated by language changes)
+    let currentTranslations = translations;
+
+    // Get notification element
+    const notificationElement = document.getElementById("notification");
+
+    if (!notificationElement) {
+      console.error("Notification: Notification element not found");
+      return;
+    }
+
+    console.log("Notification: Element found, setting up functionality");
+
+    // Update notification translations (for any future localized messages)
+    function updateNotificationTranslations(newTranslations) {
+      currentTranslations = newTranslations;
+    }
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      console.log("Notification: Language changed to", event.detail.language);
+      updateNotificationTranslations(event.detail.translations);
+    });
+
+    // Notification system
+    function showNotification(message, type = "info", duration = 3000) {
+      console.log(`Notification: Showing ${type} notification:`, message);
+
+      notificationElement.textContent = message;
+      notificationElement.className = `notification ${type}`;
+      notificationElement.style.display = "block";
+
+      // Auto-hide after duration
+      setTimeout(() => {
+        notificationElement.style.display = "none";
+      }, duration);
+    }
+
+    // Hide notification manually
+    function hideNotification() {
+      notificationElement.style.display = "none";
+    }
+
+    // Make notification functions available globally
+    window.showNotification = showNotification;
+    window.hideNotification = hideNotification;
+
+    console.log("Notification: System initialized successfully");
+
+    return {
+      updateTranslations: updateNotificationTranslations,
+      show: showNotification,
+      hide: hideNotification,
+    };
+  }
+
+  // Initialize notification system when DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeNotification);
+
+  // Also initialize immediately if DOM is already ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeNotification);
+  } else {
+    // DOM is already ready
+    initializeNotification();
+  }
+</script>
