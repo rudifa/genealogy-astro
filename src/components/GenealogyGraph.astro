@@ -2,8 +2,9 @@
 import type {TreeDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
-import LanguageSwitcher from "./LanguageSwitcher.astro";
-import TreeSwitcher from "./TreeSwitcher.astro";
+import GraphRenderer from "./GraphRenderer.astro";
+import Notification from "./Notification.astro";
+import Toolbar from "./Toolbar.astro";
 import TreeManagerDialog from "./TreeManagerDialog.astro";
 
 interface Props {
@@ -16,33 +17,9 @@ const {data, language, translations} = Astro.props;
 ---
 
 <div class='screen'>
-  <div class='toolbar'>
-    <LanguageSwitcher currentLanguage={language} translations={translations} />
-    <TreeSwitcher
-      currentTree='Family Example'
-      language={language}
-      translations={translations}
-    />
-    <button id='add-button' type='button'>{translations.addPerson}</button>
-    <button id='clear-button' type='button'>{translations.clearAll}</button>
-    <button id='manage-trees-button' type='button'
-      >{translations.manageTrees}</button
-    >
-    <div
-      id='loading-indicator'
-      class='loading-indicator'
-      style='display: none;'>
-      <div class='spinner'></div>
-      <span>{translations.loading}</span>
-    </div>
-  </div>
-  <div class='genealogy-graph'>
-    <!-- This container will be populated by the client-side script -->
-    <div id='graph-placeholder' class='graph-placeholder'>
-      <p>{translations.loadingGraph}</p>
-    </div>
-  </div>
-  <div id='notification' class='notification' style='display: none;'></div>
+  <Toolbar language={language} translations={translations} />
+  <GraphRenderer language={language} translations={translations} />
+  <Notification language={language} translations={translations} />
 </div>
 
 <EditPersonDialog language={language} translations={translations} />
@@ -55,221 +32,6 @@ const {data, language, translations} = Astro.props;
     flex: 1;
     position: relative;
     overflow: hidden;
-  }
-
-  .toolbar {
-    width: 180px;
-    background-color: #f8f9fa;
-    border-right: 1px solid #dee2e6;
-    padding: 20px 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .toolbar button {
-    padding: 12px 16px;
-    border: 2px solid #dee2e6;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    color: #495057;
-    min-width: 150px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  .toolbar button:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-color: #adb5bd;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .toolbar button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .toolbar button:focus {
-    outline: none;
-    border-color: #007acc;
-    box-shadow:
-      0 0 0 3px rgba(0, 122, 204, 0.15),
-      0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .toolbar button:disabled {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    color: #6c757d;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-    border-color: #dee2e6;
-  }
-
-  #add-button {
-    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
-    color: white;
-    border-color: #007acc;
-  }
-
-  #add-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #005c99 0%, #004080 100%);
-    border-color: #005c99;
-  }
-
-  #clear-button {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    border-color: #dc3545;
-  }
-
-  #clear-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-    border-color: #bd2130;
-  }
-
-  #manage-trees-button {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    color: white;
-    border-color: #28a745;
-    font-weight: 600;
-    position: relative;
-  }
-
-  #manage-trees-button:hover:not(:disabled) {
-    background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
-    border-color: #1e7e34;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
-  }
-
-  #manage-trees-button:before {
-    content: "";
-    margin-right: 0px;
-    font-size: 16px;
-  }
-
-  .loading-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    font-size: 12px;
-    color: #6c757d;
-  }
-
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #007acc;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .genealogy-graph {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    position: relative;
-    overflow: auto;
-    background-color: #fafafa;
-  }
-
-  .genealogy-graph svg {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    background-color: white;
-  }
-
-  .graph-placeholder {
-    text-align: center;
-    color: #6c757d;
-    font-style: italic;
-  }
-
-  .notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 6px;
-    font-weight: 500;
-    z-index: 1000;
-    max-width: 300px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
-  }
-
-  .notification.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-
-  .notification.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-  }
-
-  .notification.info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-  }
-
-  /* Responsive styles */
-  @media (max-width: 768px) {
-    .toolbar {
-      width: 160px;
-      padding: 15px 12px;
-      gap: 10px;
-    }
-
-    .toolbar button {
-      min-width: 130px;
-      font-size: 13px;
-      padding: 10px 14px;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .toolbar {
-      width: 140px;
-      padding: 12px 8px;
-      gap: 8px;
-    }
-
-    .toolbar button {
-      min-width: 120px;
-      font-size: 12px;
-      padding: 8px 12px;
-    }
-
-    .loading-indicator {
-      font-size: 11px;
-    }
   }
 </style>
 
@@ -347,9 +109,13 @@ const {data, language, translations} = Astro.props;
         const newTreeData = storageManager.getTreeData(treeName);
         genealogyData = new GenealogyData(newTreeData);
 
+        // Update the global reference so other components can access the new data
+        window.genealogyData = genealogyData;
+
         console.log(`Switched to tree: ${treeName}`);
         console.log("New genealogy data:", genealogyData);
         console.log("Persons in new tree:", genealogyData.persons);
+        console.log("Updated window.genealogyData:", window.genealogyData);
         return true;
       }
       return false;
@@ -509,6 +275,12 @@ const {data, language, translations} = Astro.props;
         // If we're currently on the Family Example tree, update the current data
         if (currentTreeName === EXAMPLE_TREE_NAME) {
           genealogyData = new GenealogyData(originalData);
+          // Update the global reference so other components can access the new data
+          window.genealogyData = genealogyData;
+          console.log(
+            "Reset Family Example: Updated window.genealogyData:",
+            window.genealogyData
+          );
         }
 
         // Save the reset data to storage for the Family Example tree
@@ -576,21 +348,7 @@ const {data, language, translations} = Astro.props;
   // Translation management
   function updateUITranslations(translations) {
     currentTranslations = translations;
-
-    // Update button text
-    const addButton = document.getElementById("add-button");
-    const clearButton = document.getElementById("clear-button");
-    const manageTreesButton = document.getElementById("manage-trees-button");
-    const loadingIndicator = document.querySelector("#loading-indicator span");
-    const graphPlaceholder = document.querySelector("#graph-placeholder p");
-
-    if (addButton) addButton.textContent = translations.addPerson;
-    if (clearButton) clearButton.textContent = translations.clearAll;
-    if (manageTreesButton)
-      manageTreesButton.textContent = translations.manageTrees;
-    if (loadingIndicator) loadingIndicator.textContent = translations.loading;
-    if (graphPlaceholder)
-      graphPlaceholder.textContent = translations.loadingGraph;
+    // Individual components will handle their own translation updates
   }
 
   // Tree name display management - now handled by TreeSwitcher component
@@ -612,339 +370,57 @@ const {data, language, translations} = Astro.props;
     }
   }
 
-  // Notification system
-  function showNotification(message, type = "info", duration = 3000) {
-    const notification = document.getElementById("notification");
-    notification.textContent = message;
-    notification.className = `notification ${type}`;
-    notification.style.display = "block";
-
-    setTimeout(() => {
-      notification.style.display = "none";
-    }, duration);
-  }
+  // Make genealogySvgString available globally for GraphRenderer
+  window.genealogySvgString = genealogySvgString;
 
   // Loading state management
   function setLoadingState(loading) {
-    const loadingIndicator = document.getElementById("loading-indicator");
-    const addButton = document.getElementById("add-button");
-    const clearButton = document.getElementById("clear-button");
+    isRendering = loading;
 
-    if (loading) {
-      loadingIndicator.style.display = "flex";
-      addButton.disabled = true;
-      clearButton.disabled = true;
-      isRendering = true;
-    } else {
-      loadingIndicator.style.display = "none";
-      addButton.disabled = false;
-      clearButton.disabled = false;
-      isRendering = false;
+    // Also notify toolbar if available
+    if (window.toolbarSetLoadingState) {
+      window.toolbarSetLoadingState(loading);
     }
   }
 
-  async function initializeGraph() {
-    // --- Get references to UI elements ---
-    const addButton = document.getElementById("add-button");
-    const clearButton = document.getElementById("clear-button");
-    const graphContainer = document.querySelector(".genealogy-graph");
-    const graphPlaceholder = document.getElementById("graph-placeholder");
-
+  async function initializeGenealogySystem() {
     try {
       // --- Initialize the edit dialog ---
       const {openEditDialog, updateGenealogyData} =
         window.initializeEditDialog(genealogyData);
 
-      // Make the openEditDialog function available globally for tree switches
+      // Make functions available globally for components
       window.currentOpenEditDialog = openEditDialog;
-
-      // Make the update function available globally for tree switches
       window.updateEditDialogData = updateGenealogyData;
+      window.genealogyData = genealogyData;
+      window.genealogyIsRendering = false;
+      window.saveDataToStorage = saveDataToStorage;
+      window.setLoadingState = setLoadingState;
+      window.updateTreeNameDisplay = updateTreeNameDisplay;
 
-      // --- Function to render the graph ---
-      async function renderGraph() {
-        if (!graphContainer || isRendering) return;
+      // Note: window.showNotification is now set by the Notification component
 
-        try {
-          setLoadingState(true);
+      console.log("Genealogy system initialized successfully");
 
-          // Hide placeholder if it exists
-          if (graphPlaceholder) {
-            graphPlaceholder.style.display = "none";
-          }
-
-          const newSvgString = await genealogySvgString(genealogyData);
-          graphContainer.innerHTML = newSvgString;
-
-          // Show success notification for significant changes
-          if (genealogyData.persons.length === 0) {
-            showNotification(
-              currentTranslations.graphCleared || "Graph cleared",
-              "info"
-            );
-          }
-        } catch (error) {
-          console.error("Error rendering graph:", error);
-          graphContainer.innerHTML = `
-            <div style="text-align: center; color: #dc3545; padding: 20px;">
-              <h3>${currentTranslations.errorRenderingGraph || "Error Rendering Graph"}</h3>
-              <p>${error.message}</p>
-              <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
-                ${currentTranslations.reloadPage || "Reload Page"}
-              </button>
-            </div>
-          `;
-          showNotification(
-            currentTranslations.errorRendering || "Failed to render graph",
-            "error"
-          );
-        } finally {
-          setLoadingState(false);
-        }
-      }
-
-      // --- Listen for data changes from the dialog ---
-      document.addEventListener("genealogy-data-changed", async (event) => {
-        try {
-          // Save to localStorage whenever data changes
-          saveDataToStorage();
-          await renderGraph();
-          showNotification(
-            currentTranslations.graphUpdated || "Graph updated",
-            "success"
-          );
-          console.log(
-            "genealogy-data-changed event, updated persons:",
-            genealogyData.persons
-          );
-        } catch (error) {
-          console.error("Error updating graph:", error);
-          showNotification(
-            currentTranslations.errorUpdating || "Failed to update graph",
-            "error"
-          );
-        }
+      // Dispatch event to notify components that the system is ready
+      const readyEvent = new CustomEvent("genealogy-system-ready", {
+        detail: {initialized: true},
       });
-
-      // --- Listen for tree changes ---
-      document.addEventListener("genealogy-tree-changed", async (event) => {
-        try {
-          await renderGraph();
-          updateTreeNameDisplay();
-          const treeName = event.detail?.treeName || currentTreeName;
-          showNotification(
-            currentTranslations.switchedToTree?.replace(
-              "{treeName}",
-              treeName
-            ) || `Switched to tree: ${treeName}`,
-            "success"
-          );
-          console.log(
-            "genealogy-tree-changed event, switched to tree:",
-            treeName
-          );
-        } catch (error) {
-          console.error("Error rendering graph after tree change:", error);
-          showNotification(
-            currentTranslations.errorUpdateAfterTreeChange ||
-              "Failed to update graph after tree change",
-            "error"
-          );
-        }
-      });
-
-      // --- Render the graph on page load ---
-      await renderGraph();
-
-      // --- Update the tree name display ---
-      updateTreeNameDisplay();
-
-      if (graphContainer) {
-        // --- Add click event listener to the graph container ---
-        graphContainer.addEventListener("click", (event) => {
-          try {
-            const targetLink = event.target.closest("a");
-
-            if (!targetLink) {
-              return;
-            }
-
-            const url =
-              targetLink.getAttribute("xlink:href") ||
-              targetLink.getAttribute("href");
-
-            if (url && url.startsWith("person:")) {
-              event.preventDefault();
-
-              const personName = decodeURIComponent(
-                url.substring("person:".length)
-              );
-
-              const personData = genealogyData.persons.find(
-                (p) => p.name === personName
-              );
-
-              if (personData) {
-                // Use the current openEditDialog function
-                const openFn = window.currentOpenEditDialog || openEditDialog;
-                openFn(personData);
-              } else {
-                showNotification(
-                  `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
-                  "error"
-                );
-              }
-            }
-          } catch (error) {
-            console.error("Error handling graph click:", error);
-            showNotification(
-              currentTranslations.errorOpening ||
-                "Error opening person details",
-              "error"
-            );
-          }
-        });
-      }
-
-      // --- Toolbar button event listeners ---
-      addButton.addEventListener("click", () => {
-        try {
-          if (isRendering) return;
-
-          const newPerson = {
-            name: "",
-            mother: null,
-            father: null,
-          };
-          // Use the current openEditDialog function
-          const openFn = window.currentOpenEditDialog || openEditDialog;
-          openFn(newPerson);
-        } catch (error) {
-          console.error("Error opening add dialog:", error);
-          showNotification(
-            currentTranslations.errorOpening ||
-              "Error opening add person dialog",
-            "error"
-          );
-        }
-      });
-
-      clearButton.addEventListener("click", async () => {
-        try {
-          if (isRendering) return;
-
-          const personCount = genealogyData.persons.length;
-          if (personCount === 0) {
-            showNotification(
-              currentTranslations.noDataToClear || "No data to clear",
-              "info"
-            );
-            return;
-          }
-
-          // Get the most current translations to avoid stale state
-          const latestLang = window.currentLanguage || "en";
-          const latestTranslations =
-            window.genealogyTranslations?.[latestLang] ||
-            window.genealogyTranslations?.en ||
-            currentTranslations;
-
-          const confirmMessage = latestTranslations.confirmClear
-            ? latestTranslations.confirmClear
-                .replace("{count}", personCount)
-                .replace(
-                  "{people}",
-                  personCount === 1
-                    ? latestTranslations.person
-                    : latestTranslations.people
-                )
-            : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
-
-          if (confirm(confirmMessage)) {
-            genealogyData.clear();
-            // Save to localStorage after clearing
-            saveDataToStorage();
-            await renderGraph();
-          }
-        } catch (error) {
-          console.error("Error clearing data:", error);
-          showNotification(
-            currentTranslations.errorClearingData ||
-              "Error clearing genealogy data",
-            "error"
-          );
-        }
-      });
-
-      // Add manage trees button functionality
-      const manageTreesButton = document.getElementById("manage-trees-button");
-      if (manageTreesButton) {
-        manageTreesButton.addEventListener("click", () => {
-          try {
-            if (isRendering) return;
-
-            // Open tree management dialog
-            if (window.treeManagementDialog) {
-              window.treeManagementDialog.show();
-            } else {
-              // Fallback for debugging
-              const trees = getAvailableTrees();
-              const message = `Current tree: "${currentTreeName}"\n\nAvailable trees:\n${trees
-                .map((name) =>
-                  name === currentTreeName ? `• ${name} (active)` : `• ${name}`
-                )
-                .join("\n")}\n\nTree management dialog is loading...`;
-
-              alert(message);
-            }
-          } catch (error) {
-            console.error("Error opening tree management:", error);
-            showNotification(
-              currentTranslations.errorOpeningTreeManagement ||
-                "Error opening tree management",
-              "error"
-            );
-          }
-        });
-      }
-
-      // Add keyboard shortcuts
-      document.addEventListener("keydown", (event) => {
-        // Ctrl/Cmd + N for new person
-        if (
-          (event.ctrlKey || event.metaKey) &&
-          event.key === "n" &&
-          !isRendering
-        ) {
-          event.preventDefault();
-          addButton.click();
-        }
-      });
+      document.dispatchEvent(readyEvent);
     } catch (error) {
-      console.error("Error initializing graph:", error);
-      showNotification(
-        currentTranslations.errorInitializing ||
-          "Failed to initialize genealogy graph",
-        "error"
-      );
-
-      // Show error in graph container
-      if (graphContainer) {
-        graphContainer.innerHTML = `
-          <div style="text-align: center; color: #dc3545; padding: 20px;">
-            <h3>${currentTranslations.initializationError || "Initialization Error"}</h3>
-            <p>${currentTranslations.failedToLoad || "Failed to load the genealogy graph application."}</p>
-            <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
-              ${currentTranslations.reloadPage || "Reload Page"}
-            </button>
-          </div>
-        `;
+      console.error("Error initializing genealogy system:", error);
+      if (window.showNotification) {
+        window.showNotification(
+          currentTranslations.errorInitializing ||
+            "Failed to initialize genealogy system",
+          "error"
+        );
       }
     }
   }
 
-  // Initialize the graph when the DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeGraph);
+  // Initialize the genealogy system when the DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeGenealogySystem);
 
   // Listen for language changes
   window.addEventListener("languageChanged", function (event) {

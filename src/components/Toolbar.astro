@@ -1,0 +1,473 @@
+---
+import type {Language, Translations} from "../i18n/index";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
+import TreeSwitcher from "./TreeSwitcher.astro";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<div class='toolbar'>
+  <LanguageSwitcher currentLanguage={language} translations={translations} />
+  <TreeSwitcher
+    currentTree='Family Example'
+    language={language}
+    translations={translations}
+  />
+  <button id='add-button' type='button'>{translations.addPerson}</button>
+  <button id='clear-button' type='button'>{translations.clearAll}</button>
+  <button id='manage-trees-button' type='button'
+    >{translations.manageTrees}</button
+  >
+  <div id='loading-indicator' class='loading-indicator' style='display: none;'>
+    <div class='spinner'></div>
+    <span>{translations.loading}</span>
+  </div>
+</div>
+
+<style>
+  .toolbar {
+    width: 180px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button {
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: #495057;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .toolbar button:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow:
+      0 0 0 3px rgba(0, 122, 204, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .toolbar button:disabled {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    border-color: #dee2e6;
+  }
+
+  #add-button {
+    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
+    color: white;
+    border-color: #007acc;
+  }
+
+  #add-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #005c99 0%, #004080 100%);
+    border-color: #005c99;
+  }
+
+  #clear-button {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-color: #dc3545;
+  }
+
+  #clear-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    border-color: #bd2130;
+  }
+
+  #manage-trees-button {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-color: #28a745;
+    font-weight: 600;
+    position: relative;
+  }
+
+  #manage-trees-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+    border-color: #1e7e34;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  #manage-trees-button:before {
+    content: "";
+    margin-right: 0px;
+    font-size: 16px;
+  }
+
+  .loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 12px;
+    color: #6c757d;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007acc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .toolbar {
+      width: 160px;
+      padding: 15px 12px;
+      gap: 10px;
+    }
+
+    .toolbar button {
+      min-width: 130px;
+      font-size: 13px;
+      padding: 10px 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .toolbar {
+      width: 140px;
+      padding: 12px 8px;
+      gap: 8px;
+    }
+
+    .toolbar button {
+      min-width: 120px;
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+
+    .loading-indicator {
+      font-size: 11px;
+    }
+  }
+</style>
+
+<script is:inline define:vars={{translations}}>
+  // Toolbar functionality
+  function initializeToolbar() {
+    console.log("Toolbar: Starting initialization");
+
+    // Prevent multiple initializations with a single flag
+    if (window.toolbarInitialized) {
+      console.log("Toolbar: Already initialized, skipping");
+      return;
+    }
+    window.toolbarInitialized = true;
+    // Store current translations (will be updated by language changes)
+    let currentTranslations = translations;
+
+    // Update toolbar translations
+    function updateToolbarTranslations(newTranslations) {
+      currentTranslations = newTranslations;
+
+      // Update button text
+      const addButton = document.getElementById("add-button");
+      const clearButton = document.getElementById("clear-button");
+      const manageTreesButton = document.getElementById("manage-trees-button");
+      const loadingIndicator = document.querySelector(
+        "#loading-indicator span"
+      );
+
+      if (addButton) addButton.textContent = currentTranslations.addPerson;
+      if (clearButton) clearButton.textContent = currentTranslations.clearAll;
+      if (manageTreesButton)
+        manageTreesButton.textContent = currentTranslations.manageTrees;
+      if (loadingIndicator)
+        loadingIndicator.textContent = currentTranslations.loading;
+    }
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      console.log("Toolbar: Language changed to", event.detail.language);
+      updateToolbarTranslations(event.detail.translations);
+    });
+
+    // Loading state management
+    function setLoadingState(loading) {
+      const loadingIndicator = document.getElementById("loading-indicator");
+      const addButton = document.getElementById("add-button");
+      const clearButton = document.getElementById("clear-button");
+
+      if (loading) {
+        loadingIndicator.style.display = "flex";
+        addButton.disabled = true;
+        clearButton.disabled = true;
+      } else {
+        loadingIndicator.style.display = "none";
+        addButton.disabled = false;
+        clearButton.disabled = false;
+      }
+    }
+
+    // Make loading state function available globally
+    window.toolbarSetLoadingState = setLoadingState;
+
+    // Initialize toolbar button event listeners
+    function initializeToolbarEvents() {
+      const addButton = document.getElementById("add-button");
+      const clearButton = document.getElementById("clear-button");
+      const manageTreesButton = document.getElementById("manage-trees-button");
+
+      // Add button event listener
+      if (addButton) {
+        addButton.addEventListener("click", () => {
+          try {
+            // Check if rendering is in progress
+            if (window.genealogyIsRendering) return;
+
+            const newPerson = {
+              name: "",
+              mother: null,
+              father: null,
+            };
+
+            // Use the current openEditDialog function
+            const openFn = window.currentOpenEditDialog;
+            if (openFn) {
+              openFn(newPerson);
+            } else {
+              console.warn("No edit dialog function available");
+            }
+          } catch (error) {
+            console.error("Error opening add dialog:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorOpening ||
+                  "Error opening add person dialog",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Clear button event listener
+      if (clearButton) {
+        clearButton.addEventListener("click", async () => {
+          try {
+            // Check if rendering is in progress
+            if (window.genealogyIsRendering) return;
+
+            const genealogyData = window.genealogyData;
+            if (!genealogyData) {
+              console.warn("No genealogy data available");
+              return;
+            }
+
+            const personCount = genealogyData.persons.length;
+            if (personCount === 0) {
+              if (window.showNotification) {
+                window.showNotification(
+                  currentTranslations.noDataToClear || "No data to clear",
+                  "info"
+                );
+              }
+              return;
+            }
+
+            // Get the most current translations to avoid stale state
+            const latestLang = window.currentLanguage || "en";
+            const latestTranslations =
+              window.genealogyTranslations?.[latestLang] ||
+              window.genealogyTranslations?.en ||
+              currentTranslations;
+
+            const confirmMessage = latestTranslations.confirmClear
+              ? latestTranslations.confirmClear
+                  .replace("{count}", personCount)
+                  .replace(
+                    "{people}",
+                    personCount === 1
+                      ? latestTranslations.person
+                      : latestTranslations.people
+                  )
+              : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
+
+            if (confirm(confirmMessage)) {
+              genealogyData.clear();
+
+              // Save to localStorage after clearing
+              if (window.saveDataToStorage) {
+                window.saveDataToStorage();
+              }
+
+              // Trigger graph re-render
+              if (window.renderGraph) {
+                await window.renderGraph();
+              }
+            }
+          } catch (error) {
+            console.error("Error clearing data:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorClearingData ||
+                  "Error clearing genealogy data",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Manage trees button event listener
+      if (manageTreesButton) {
+        manageTreesButton.addEventListener("click", () => {
+          try {
+            // Check if rendering is in progress
+            if (window.genealogyIsRendering) return;
+
+            // Open tree management dialog
+            if (window.treeManagementDialog) {
+              window.treeManagementDialog.show();
+            } else {
+              // Fallback for debugging
+              const trees =
+                window.genealogyTreeManager?.getAvailableTrees?.() || [];
+              const currentTree =
+                window.genealogyTreeManager?.getCurrentTreeName?.() ||
+                "Unknown";
+
+              const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
+                .map((name) =>
+                  name === currentTree ? `• ${name} (active)` : `• ${name}`
+                )
+                .join("\n")}\n\nTree management dialog is loading...`;
+
+              alert(message);
+            }
+          } catch (error) {
+            console.error("Error opening tree management:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorOpeningTreeManagement ||
+                  "Error opening tree management",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Add keyboard shortcuts
+      document.addEventListener("keydown", (event) => {
+        // Ctrl/Cmd + N for new person
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          event.key === "n" &&
+          !window.genealogyIsRendering
+        ) {
+          event.preventDefault();
+          if (addButton) {
+            addButton.click();
+          }
+        }
+      });
+    }
+
+    // Initialize events when genealogy system is ready
+    function waitForGenealogySystem() {
+      console.log("Toolbar: Waiting for genealogy system to be ready");
+
+      // Listen for the genealogy-system-ready event (with once: true to prevent multiple calls)
+      document.addEventListener(
+        "genealogy-system-ready",
+        function () {
+          console.log("Toolbar: Received genealogy-system-ready event");
+          initializeToolbarEvents();
+        },
+        {once: true}
+      );
+
+      // Also check if it's already ready (in case event was missed)
+      if (window.genealogyData) {
+        console.log("Toolbar: Genealogy system already ready");
+        initializeToolbarEvents();
+        return;
+      }
+
+      // Fallback polling with timeout (but only if event hasn't fired)
+      let pollCount = 0;
+      const maxPolls = 150; // 30 seconds at 200ms intervals
+      let hasInitialized = false;
+
+      const checkInterval = setInterval(() => {
+        pollCount++;
+
+        if (hasInitialized) {
+          clearInterval(checkInterval);
+          return;
+        }
+
+        if (window.genealogyData) {
+          clearInterval(checkInterval);
+          hasInitialized = true;
+          console.log("Toolbar: Genealogy system ready via polling");
+          initializeToolbarEvents();
+        } else if (pollCount >= maxPolls) {
+          clearInterval(checkInterval);
+          console.warn(
+            "Toolbar: Timeout waiting for genealogy system initialization"
+          );
+        }
+      }, 200);
+    }
+
+    waitForGenealogySystem();
+
+    return {
+      updateTranslations: updateToolbarTranslations,
+      setLoadingState: setLoadingState,
+    };
+  }
+
+  // Initialize toolbar when DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeToolbar);
+</script>

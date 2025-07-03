@@ -1,0 +1,417 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<div class='genealogy-graph'>
+  <!-- This container will be populated by the client-side script -->
+  <div id='graph-placeholder' class='graph-placeholder'>
+    <p>{translations.loadingGraph}</p>
+  </div>
+</div>
+
+<style>
+  .genealogy-graph {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow: auto;
+    background-color: #fafafa;
+  }
+
+  .graph-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    min-height: 300px;
+  }
+
+  .graph-placeholder p {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }
+</style>
+
+<script is:inline define:vars={{translations}}>
+  // Graph Renderer functionality
+  function initializeGraphRenderer() {
+    console.log("GraphRenderer: Starting initialization");
+
+    // Prevent multiple initializations with a single flag
+    if (window.graphRendererInitialized) {
+      console.log("GraphRenderer: Already initialized, skipping");
+      return;
+    }
+    window.graphRendererInitialized = true;
+
+    // Store current translations (will be updated by language changes)
+    let currentTranslations = translations;
+
+    // DOM elements are available immediately since they're in the same component
+    const graphContainer = document.querySelector(".genealogy-graph");
+    const graphPlaceholder = document.getElementById("graph-placeholder");
+
+    if (!graphContainer || !graphPlaceholder) {
+      console.error("GraphRenderer: DOM elements not found in component");
+      return;
+    }
+
+    console.log("GraphRenderer: DOM elements found, setting up functionality");
+
+    // Update graph renderer translations
+    function updateGraphRendererTranslations(newTranslations) {
+      currentTranslations = newTranslations;
+
+      // Update graph placeholder text
+      const graphPlaceholder = document.querySelector("#graph-placeholder p");
+      if (graphPlaceholder)
+        graphPlaceholder.textContent = currentTranslations.loadingGraph;
+    }
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      console.log("GraphRenderer: Language changed to", event.detail.language);
+      updateGraphRendererTranslations(event.detail.translations);
+    });
+
+    // Initialize graph renderer events and rendering
+    function setupGraphFunctionality() {
+      console.log("GraphRenderer: Setting up graph functionality");
+
+      // --- Function to render the graph ---
+      async function renderGraph() {
+        const genealogyData = window.genealogyData;
+        const genealogySvgString = window.genealogySvgString;
+        const showNotification = window.showNotification;
+        const setLoadingState = window.setLoadingState;
+        const isRendering = window.genealogyIsRendering;
+
+        console.log("GraphRenderer: renderGraph called");
+        console.log("GraphRenderer: genealogyData:", genealogyData);
+        console.log(
+          "GraphRenderer: persons count:",
+          genealogyData?.persons?.length
+        );
+
+        if (
+          !graphContainer ||
+          isRendering ||
+          !genealogyData ||
+          !genealogySvgString
+        ) {
+          console.warn("GraphRenderer: Missing dependencies for rendering");
+          console.warn("GraphRenderer: graphContainer:", !!graphContainer);
+          console.warn("GraphRenderer: isRendering:", isRendering);
+          console.warn("GraphRenderer: genealogyData:", !!genealogyData);
+          console.warn(
+            "GraphRenderer: genealogySvgString:",
+            !!genealogySvgString
+          );
+          return;
+        }
+
+        try {
+          if (setLoadingState) setLoadingState(true);
+          window.genealogyIsRendering = true;
+
+          // Hide placeholder if it exists
+          if (graphPlaceholder) {
+            graphPlaceholder.style.display = "none";
+          }
+
+          console.log(
+            "GraphRenderer: Calling genealogySvgString with data:",
+            genealogyData
+          );
+          const newSvgString = await genealogySvgString(genealogyData);
+          console.log(
+            "GraphRenderer: Received SVG string length:",
+            newSvgString?.length
+          );
+
+          graphContainer.innerHTML = newSvgString;
+
+          // Show success notification for significant changes
+          if (genealogyData.persons.length === 0 && showNotification) {
+            showNotification(
+              currentTranslations.graphCleared || "Graph cleared",
+              "info"
+            );
+          }
+
+          console.log("GraphRenderer: Graph rendered successfully");
+        } catch (error) {
+          console.error("GraphRenderer: Error rendering graph:", error);
+          if (graphPlaceholder) {
+            graphPlaceholder.style.display = "block";
+            const p = graphPlaceholder.querySelector("p");
+            if (p) {
+              p.textContent =
+                currentTranslations.renderError ||
+                "Error rendering graph. Please try again.";
+              p.style.color = "#dc3545";
+            }
+          }
+        } finally {
+          window.genealogyIsRendering = false;
+          if (setLoadingState) setLoadingState(false);
+        }
+      }
+
+      // --- Graph interaction handler ---
+      function handleGraphClick(event) {
+        try {
+          const targetLink = event.target.closest("a");
+
+          if (!targetLink) {
+            return;
+          }
+
+          const url =
+            targetLink.getAttribute("xlink:href") ||
+            targetLink.getAttribute("href");
+
+          if (url && url.startsWith("person:")) {
+            event.preventDefault();
+
+            const personName = decodeURIComponent(
+              url.substring("person:".length)
+            );
+
+            console.log("GraphRenderer: Person clicked:", personName);
+
+            const genealogyData = window.genealogyData;
+            if (!genealogyData) {
+              console.warn("GraphRenderer: No genealogy data available");
+              return;
+            }
+
+            const personData = genealogyData.persons.find(
+              (p) => p.name === personName
+            );
+
+            if (personData) {
+              // Use the current openEditDialog function
+              const openFn = window.currentOpenEditDialog;
+              if (openFn) {
+                console.log(
+                  "GraphRenderer: Opening edit dialog for:",
+                  personName
+                );
+                openFn(personData);
+              } else {
+                console.warn(
+                  "GraphRenderer: No edit dialog function available"
+                );
+              }
+            } else {
+              if (window.showNotification) {
+                window.showNotification(
+                  `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
+                  "error"
+                );
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error handling graph click:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorOpening ||
+                "Error opening person details",
+              "error"
+            );
+          }
+        }
+      }
+
+      // Set up event listeners
+      graphContainer.addEventListener("click", handleGraphClick);
+
+      // Set up global update handler
+      window.updateGraph = function () {
+        console.log("GraphRenderer: Update graph requested");
+        renderGraph();
+      };
+
+      // Listen for data updates
+      window.addEventListener("genealogy-data-updated", function () {
+        console.log("GraphRenderer: Data updated, re-rendering graph");
+        renderGraph();
+      });
+
+      // --- Listen for data changes from the dialog ---
+      document.addEventListener("genealogy-data-changed", async (event) => {
+        try {
+          const saveDataToStorage = window.saveDataToStorage;
+          const showNotification = window.showNotification;
+
+          console.log("GraphRenderer: genealogy-data-changed event received");
+
+          // Save to localStorage whenever data changes
+          if (saveDataToStorage) saveDataToStorage();
+
+          await renderGraph();
+
+          if (showNotification) {
+            showNotification(
+              currentTranslations.graphUpdated || "Graph updated",
+              "success"
+            );
+          }
+
+          console.log(
+            "genealogy-data-changed event, updated persons:",
+            window.genealogyData?.persons
+          );
+        } catch (error) {
+          console.error("Error updating graph:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorUpdating || "Failed to update graph",
+              "error"
+            );
+          }
+        }
+      });
+
+      // --- Listen for tree changes ---
+      document.addEventListener("genealogy-tree-changed", async (event) => {
+        try {
+          const updateTreeNameDisplay = window.updateTreeNameDisplay;
+          const showNotification = window.showNotification;
+
+          console.log("GraphRenderer: genealogy-tree-changed event received");
+          console.log("GraphRenderer: Event detail:", event.detail);
+          console.log(
+            "GraphRenderer: Current genealogyData:",
+            window.genealogyData
+          );
+          console.log(
+            "GraphRenderer: Persons in current data:",
+            window.genealogyData?.persons
+          );
+
+          await renderGraph();
+
+          if (updateTreeNameDisplay) updateTreeNameDisplay();
+
+          const treeName = event.detail?.treeName || "Unknown";
+          if (showNotification) {
+            showNotification(
+              currentTranslations.switchedToTree?.replace(
+                "{treeName}",
+                treeName
+              ) || `Switched to tree: ${treeName}`,
+              "success"
+            );
+          }
+
+          console.log(
+            "genealogy-tree-changed event, switched to tree:",
+            treeName
+          );
+        } catch (error) {
+          console.error("Error rendering graph after tree change:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorUpdateAfterTreeChange ||
+                "Failed to update graph after tree change",
+              "error"
+            );
+          }
+        }
+      });
+
+      // Initial render when system is ready
+      renderGraph();
+    }
+
+    // Wait for genealogy system to be ready
+    function waitForGenealogySystem() {
+      console.log("GraphRenderer: Waiting for genealogy system to be ready");
+
+      // Listen for the genealogy-system-ready event (with once: true to prevent multiple calls)
+      window.addEventListener(
+        "genealogy-system-ready",
+        function () {
+          console.log("GraphRenderer: Received genealogy-system-ready event");
+          setupGraphFunctionality();
+        },
+        {once: true}
+      );
+
+      // Also check if it's already ready (in case event was missed)
+      if (window.genealogyData && window.genealogySvgString) {
+        console.log("GraphRenderer: Genealogy system already ready");
+        setupGraphFunctionality();
+        return;
+      }
+
+      // Fallback polling with timeout (but only if event hasn't fired)
+      let pollCount = 0;
+      const maxPolls = 150; // 30 seconds at 200ms intervals
+      let hasSetup = false;
+
+      const checkInterval = setInterval(() => {
+        pollCount++;
+
+        if (hasSetup) {
+          clearInterval(checkInterval);
+          return;
+        }
+
+        if (window.genealogyData && window.genealogySvgString) {
+          clearInterval(checkInterval);
+          hasSetup = true;
+          console.log("GraphRenderer: Genealogy system ready via polling");
+          setupGraphFunctionality();
+        } else if (pollCount >= maxPolls) {
+          clearInterval(checkInterval);
+
+          // Check what's missing and show error
+          const missingItems = [];
+          if (!window.genealogyData) missingItems.push("genealogyData");
+          if (!window.genealogySvgString)
+            missingItems.push("genealogySvgString");
+
+          console.error(
+            `GraphRenderer: Timeout waiting for genealogy system. Missing: ${missingItems.join(", ")}`
+          );
+
+          graphContainer.innerHTML = `
+            <div style="text-align: center; color: #dc3545; padding: 20px;">
+              <h3>${currentTranslations.initializationError || "Initialization Error"}</h3>
+              <p>${currentTranslations.failedToLoad || "Failed to load the genealogy graph application."}</p>
+              <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">Missing: ${missingItems.join(", ")}</p>
+              <button onclick="location.reload()" style="padding: 8px 16px; margin-top: 10px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer;">
+                ${currentTranslations.reloadPage || "Reload Page"}
+              </button>
+            </div>
+          `;
+        }
+      }, 200);
+    }
+
+    waitForGenealogySystem();
+
+    return {
+      updateTranslations: updateGraphRendererTranslations,
+    };
+  }
+
+  // Initialize graph renderer when DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeGraphRenderer);
+</script>
