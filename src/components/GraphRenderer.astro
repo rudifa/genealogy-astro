@@ -1289,6 +1289,140 @@ const {language, translations} = Astro.props;
       }, 200);
     }
 
+    // Log the sizes and positions of the graph container and the svgElement
+    // This function can be called from the console to log the SVG element's state
+    // Yet another debugging function to log SVG element state
+    window.debugLogSvgElementState = function () {
+      const graphContainer = document.querySelector(".genealogy-graph");
+      if (!graphContainer) {
+        console.warn("Graph container not found");
+        return;
+      }
+
+      const svgElement = document.querySelector(".genealogy-graph svg");
+      if (!svgElement) {
+        console.warn("SVG element not found");
+        return;
+      }
+
+      // Get raw data
+      const containerRect = graphContainer.getBoundingClientRect();
+      const svgElementRect = svgElement.getBoundingClientRect();
+      const svgElementBBox = svgElement.getBBox();
+      const svgElementViewBox = svgElement.getAttribute("viewBox");
+
+      // Log raw data
+      // console.log("containerRect:", containerRect);
+      // console.log("svgElementRect:", svgElementRect);
+      // console.log("svgElementBBox (pt):", svgElementBBox);
+      // console.log("svgElementViewBox (pt):", svgElementViewBox);
+
+      // Log details and derived values
+
+      const renderedContentWidth = svgElementRect.width;
+      const contentAspectRatio = svgElementBBox.width / svgElementBBox.height;
+      const renderedContentHeight = renderedContentWidth / contentAspectRatio;
+      const renderedContentTopOffset = svgElementRect.top - containerRect.top;
+      const renderedContentLeftOffset =
+        svgElementRect.left - containerRect.left;
+
+      console.log("Rendered svg content:", {
+        width: renderedContentWidth.toFixed(0),
+        height: renderedContentHeight.toFixed(0),
+        topOffset: renderedContentTopOffset.toFixed(0),
+        leftOffset: renderedContentLeftOffset.toFixed(0),
+        aspectRatio: contentAspectRatio.toFixed(2),
+      });
+
+      // console.log("Graph containerRect size and position:", {
+      //   width: containerRect.width.toFixed(0),
+      //   height: containerRect.height.toFixed(0),
+      //   top: containerRect.top.toFixed(0),
+      //   left: containerRect.left.toFixed(0),
+      // });
+
+      // const topOffset = (svgElementRect.top - containerRect.top).toFixed(0);
+      // const leftOffset = (svgElementRect.left - containerRect.left).toFixed(0);
+      // console.log("SVG element size and position:", {
+      //   width: svgElementRect.width.toFixed(0),
+      //   height: svgElementRect.height.toFixed(0),
+      //   topOffset: topOffset,
+      //   leftOffset: leftOffset,
+      // });
+
+      // const svgContentBBox = svgElement.getBBox();
+      // const bbWidth = svgElementBBox.width;
+      // const bbHeight = svgElementBBox.height;
+      // console.log("SVG content BBox dimensions:", {
+      //   width: svgElementBBox.width.toFixed(2),
+      //   height: svgElementBBox.height.toFixed(2),
+      //   top: svgElementBBox.y.toFixed(2),
+      //   left: svgElementBBox.x.toFixed(2),
+      //   ratio: (svgElementBBox.width / svgElementBBox.height).toFixed(2),
+      // });
+
+      // // Log additional SVG-specific properties
+      // const preserveAspectRatio = svgElement.getAttribute("preserveAspectRatio");
+      // console.log(
+      //   "SVG preserveAspectRatio:",
+      //   preserveAspectRatio || "not set (using default xMidYMid meet)"
+      // );
+
+      // // Calculate scale factor
+      // if (svgElementViewBox) {
+      //   const [vbX, vbY, vbWidth, vbHeight] = svgElementViewBox
+      //     .split(" ")
+      //     .map(Number);
+      //   const vbScaleX = svgElementRect.width / bbWidth;
+      //   const vbScaleY = svgElementRect.height / bbHeight;
+      //   const vbRatio = vbWidth / vbHeight;
+      //   const svgRenderedRatio = svgElementRect.width / svgElementRect.height;
+      //   console.log("SVG viewBox dimensions (pt):", {
+      //     x: vbX,
+      //     y: vbY,
+      //     width: vbWidth,
+      //     height: vbHeight,
+      //     ratio: vbRatio.toFixed(2),
+      //   });
+      //   console.log("svgRect rendered dimensions:", {
+      //     width: svgElementRect.width,
+      //     height: svgElementRect.height,
+      //     ratio: svgRenderedRatio.toFixed(2),
+      //   });
+      //   console.log("svgRect scale factor:", {
+      //     x: vbScaleX.toFixed(2),
+      //     y: vbScaleY.toFixed(2),
+      //   });
+      //   console.log(
+      //     "Aspect ratio preserved:",
+      //     Math.abs(vbScaleX - vbScaleY) < 0.01 ? "Yes" : "No"
+      //   );
+      // } else {
+      //   console.log("Unable to calculate scale factor: viewBox not set");
+      // }
+
+      // Log CSS properties that might affect scaling
+      // const svgComputedStyle = window.getComputedStyle(svgElement);
+      // console.log("SVG CSS properties:", {
+      //   width: svgComputedStyle.width,
+      //   height: svgComputedStyle.height,
+      //   maxWidth: svgComputedStyle.maxWidth,
+      //   maxHeight: svgComputedStyle.maxHeight,
+      //   // 5 more properties
+      //   aspectRatio: svgComputedStyle.aspectRatio,
+      //   transform: svgComputedStyle.transform,
+      //   flexGrow: svgComputedStyle.flexGrow,
+      //   vectorEffect: svgComputedStyle.vectorEffect,
+      //   shapeRendering: svgComputedStyle.shapeRendering,
+      // });
+
+      // Log the scroll position of the container
+      console.log("Graph container scroll position:", {
+        scrollLeft: graphContainer.scrollLeft.toFixed(0),
+        scrollTop: graphContainer.scrollTop.toFixed(0),
+      });
+    };
+
     waitForGenealogySystem();
 
     return {
