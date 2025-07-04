@@ -470,20 +470,20 @@ const {language, translations} = Astro.props;
       }
 
       // Mouse wheel zoom
-      graphContainer.addEventListener("wheel", (event) => {
-        event.preventDefault();
+      //   graphContainer.addEventListener("wheel", (event) => {
+      //     event.preventDefault();
 
-        const zoomIn = event.deltaY < 0;
-        const newScale = zoomIn
-          ? currentScale * ZOOM_FACTOR
-          : currentScale / ZOOM_FACTOR;
+      //     const zoomIn = event.deltaY < 0;
+      //     const newScale = zoomIn
+      //       ? currentScale * ZOOM_FACTOR
+      //       : currentScale / ZOOM_FACTOR;
 
-        zoomToPoint(
-          newScale,
-          event.clientX - graphContainer.getBoundingClientRect().left,
-          event.clientY - graphContainer.getBoundingClientRect().top
-        );
-      });
+      //     zoomToPoint(
+      //       newScale,
+      //       event.clientX - graphContainer.getBoundingClientRect().left,
+      //       event.clientY - graphContainer.getBoundingClientRect().top
+      //     );
+      //   });
 
       // Mouse drag panning
       graphContainer.addEventListener("mousedown", (event) => {
