@@ -23,6 +23,9 @@ const {language, translations} = Astro.props;
   <button id='manage-trees-button' type='button'
     >{translations.manageTrees}</button
   >
+  <button id='manage-files-button' type='button'
+    >{translations.manageFiles}</button
+  >
   <div id='loading-indicator' class='loading-indicator' style='display: none;'>
     <div class='spinner'></div>
     <span>{translations.loading}</span>
@@ -128,6 +131,27 @@ const {language, translations} = Astro.props;
     font-size: 16px;
   }
 
+  #manage-files-button {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a2d9f 100%);
+    color: white;
+    border-color: #6f42c1;
+    font-weight: 600;
+    position: relative;
+  }
+
+  #manage-files-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a2d9f 0%, #4a247a 100%);
+    border-color: #5a2d9f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(111, 66, 193, 0.3);
+  }
+
+  #manage-files-button:before {
+    content: "";
+    margin-right: 0px;
+    font-size: 16px;
+  }
+
   .loading-indicator {
     display: flex;
     flex-direction: column;
@@ -212,6 +236,7 @@ const {language, translations} = Astro.props;
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
+      const manageFilesButton = document.getElementById("manage-files-button");
       const loadingIndicator = document.querySelector(
         "#loading-indicator span"
       );
@@ -220,6 +245,8 @@ const {language, translations} = Astro.props;
       if (clearButton) clearButton.textContent = currentTranslations.clearAll;
       if (manageTreesButton)
         manageTreesButton.textContent = currentTranslations.manageTrees;
+      if (manageFilesButton)
+        manageFilesButton.textContent = currentTranslations.manageFiles;
       if (loadingIndicator)
         loadingIndicator.textContent = currentTranslations.loading;
     }
@@ -255,6 +282,7 @@ const {language, translations} = Astro.props;
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
+      const manageFilesButton = document.getElementById("manage-files-button");
 
       // Add button event listener
       if (addButton) {
@@ -389,6 +417,39 @@ const {language, translations} = Astro.props;
               window.showNotification(
                 currentTranslations.errorOpeningTreeManagement ||
                   "Error opening tree management",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Manage files button event listener
+      if (manageFilesButton) {
+        manageFilesButton.addEventListener("click", () => {
+          try {
+            // Check if rendering is in progress
+            if (window.genealogyIsRendering) return;
+
+            // Open file management dialog
+            if (window.fileManagerDialog) {
+              window.fileManagerDialog.show();
+            } else {
+              console.warn("File manager dialog not available");
+              if (window.showNotification) {
+                window.showNotification(
+                  currentTranslations.errorOpeningFileManager ||
+                    "File manager is loading...",
+                  "info"
+                );
+              }
+            }
+          } catch (error) {
+            console.error("Error opening file management:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorOpeningFileManager ||
+                  "Error opening file management",
                 "error"
               );
             }

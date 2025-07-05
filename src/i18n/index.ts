@@ -120,6 +120,49 @@ export interface Translations {
   errorUpdateAfterTreeChange: string;
   errorLoadingFamilyExample: string;
   errorOpeningTreeManagement: string;
+  errorOpeningFileManager: string;
+
+  // File Manager
+  manageFiles: string;
+  downloadSection: string;
+  uploadSection: string;
+  downloadCurrentTree: string;
+  downloadAllTrees: string;
+  dragDropOrClick: string;
+  selectFile: string;
+  uploadOptions: string;
+  mergeWithExisting: string;
+  replaceExisting: string;
+  createNewTreeFile: string;
+  confirmUpload: string;
+  fileInformation: string;
+  fileName: string;
+  fileSize: string;
+  fileType: string;
+  singleTree: string;
+  allTrees: string;
+  treeCount: string;
+  totalPersons: string;
+  activeTree: string;
+  exportDate: string;
+  personCount: string;
+
+  // File Manager notifications
+  noTreeDataToDownload: string;
+  treeDownloaded: string;
+  noTreesToDownload: string;
+  allTreesDownloaded: string;
+  errorDownloadingTree: string;
+  errorDownloadingTrees: string;
+  invalidFileType: string;
+  invalidJsonFile: string;
+  noFileSelected: string;
+  errorProcessingFile: string;
+  errorDuringUpload: string;
+  newTreeCreated: string;
+  treeReplaced: string;
+  treeMerged: string;
+  allTreesImported: string;
 }
 
 export const translations: Record<Language, Translations> = {

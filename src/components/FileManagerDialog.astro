@@ -1,0 +1,1342 @@
+---
+import type {Language, Translations} from "../i18n/index";
+
+interface Props {
+  language: Language;
+  translations: Translations;
+}
+
+const {language, translations} = Astro.props;
+---
+
+<!-- File Manager Dialog (initially hidden) -->
+<div id='file-manager-dialog' class='dialog-overlay' style='display: none;'>
+  <div class='dialog-content file-manager-dialog'>
+    <div class='dialog-header'>
+      <h2>{translations.manageFiles}</h2>
+      <button id='file-manager-close' class='close-button' aria-label='Close'>
+        ×
+      </button>
+    </div>
+
+    <div class='dialog-body'>
+      <!-- Download Section -->
+      <div class='file-section'>
+        <h3>{translations.downloadSection}</h3>
+        <div class='file-operations'>
+          <button
+            id='download-current-tree'
+            class='operation-button download-button'>
+            {translations.downloadCurrentTree}
+          </button>
+          <button
+            id='download-all-trees'
+            class='operation-button download-button'>
+            {translations.downloadAllTrees}
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class='file-section'>
+        <h3>{translations.uploadSection}</h3>
+        <div class='file-operations'>
+          <div class='upload-area'>
+            <input
+              type='file'
+              id='file-upload-input'
+              accept='.json'
+              style='display: none;'
+            />
+            <div id='upload-drop-zone' class='upload-drop-zone'>
+              <div class='upload-content'>
+                <div class='upload-icon'>📁</div>
+                <p>{translations.dragDropOrClick}</p>
+                <button
+                  id='select-file-button'
+                  class='operation-button upload-button'>
+                  {translations.selectFile}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class='upload-options'>
+            <h4>{translations.uploadOptions}</h4>
+            <div class='radio-group'>
+              <label>
+                <input type='radio' name='upload-mode' value='merge' />
+                {translations.mergeWithExisting}
+              </label>
+              <label>
+                <input type='radio' name='upload-mode' value='replace' />
+                {translations.replaceExisting}
+              </label>
+              <label>
+                <input
+                  type='radio'
+                  name='upload-mode'
+                  value='new-tree'
+                  checked
+                />
+                {translations.createNewTreeFile}
+              </label>
+            </div>
+            <div id='new-tree-name-input'>
+              <input
+                type='text'
+                id='new-tree-name'
+                placeholder={translations.enterTreeName}
+                maxlength='100'
+              />
+            </div>
+            <div class='upload-actions'>
+              <button
+                id='confirm-upload'
+                class='operation-button confirm-button'
+                disabled>
+                {translations.confirmUpload}
+              </button>
+              <button id='cancel-upload' class='operation-button cancel-button'>
+                {translations.cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Information Section -->
+      <div id='file-info-section' class='file-section' style='display: none;'>
+        <h3>{translations.fileInformation}</h3>
+        <div id='file-info-content'></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .dialog-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .dialog-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .close-button:hover {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+
+  .dialog-body {
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .file-manager-dialog {
+    max-width: 700px;
+    width: 95vw;
+    max-height: none;
+    height: auto;
+  }
+
+  .file-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    min-height: 100px;
+    display: block;
+    position: relative;
+  }
+
+  .file-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #495057;
+    font-size: 18px;
+    font-weight: 600;
+    display: block;
+  }
+
+  .file-operations {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .operation-button {
+    padding: 12px 20px;
+    border: 2px solid;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: white;
+    min-width: 200px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .download-button {
+    border-color: #007acc;
+    color: #007acc;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    display: block;
+    width: 100%;
+  }
+
+  .download-button:hover {
+    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 122, 204, 0.3);
+  }
+
+  .upload-button {
+    border-color: #28a745;
+    color: #28a745;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+    display: block;
+  }
+
+  .upload-button:hover {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+  }
+
+  .confirm-button {
+    border-color: #007acc;
+    color: white;
+    background: linear-gradient(135deg, #007acc 0%, #005c99 100%);
+  }
+
+  .confirm-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #005c99 0%, #004080 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 122, 204, 0.4);
+  }
+
+  .confirm-button:disabled {
+    background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+    border-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .cancel-button {
+    border-color: #6c757d;
+    color: #6c757d;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  }
+
+  .cancel-button:hover {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .upload-area {
+    width: 100%;
+  }
+
+  .upload-drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 20px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .upload-drop-zone:hover,
+  .upload-drop-zone.drag-over {
+    border-color: #28a745;
+    background-color: #f0fff4;
+    transform: scale(1.02);
+  }
+
+  .upload-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .upload-icon {
+    font-size: 48px;
+    opacity: 0.6;
+  }
+
+  .upload-drop-zone p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+  }
+
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .radio-group label:hover {
+    background-color: rgba(0, 122, 204, 0.1);
+  }
+
+  .radio-group input[type="radio"] {
+    margin: 0;
+  }
+
+  #new-tree-name-input {
+    margin-top: 10px;
+  }
+
+  #new-tree-name {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .upload-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+
+  .upload-actions .operation-button {
+    min-width: 120px;
+  }
+
+  #file-info-content {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+  }
+
+  .file-info-item {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .file-info-label {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .file-info-value {
+    color: #6c757d;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .file-manager-dialog {
+      width: 95vw;
+      max-height: 95vh;
+    }
+
+    .file-section {
+      padding: 15px;
+    }
+
+    .operation-button {
+      min-width: 150px;
+      font-size: 13px;
+    }
+
+    .upload-drop-zone {
+      padding: 30px 15px;
+      min-height: 100px;
+    }
+
+    .upload-icon {
+      font-size: 36px;
+    }
+
+    .upload-actions {
+      flex-direction: column;
+    }
+
+    .upload-actions .operation-button {
+      min-width: auto;
+      width: 100%;
+    }
+  }
+</style>
+
+<script is:inline type='module' define:vars={{translations}}>
+  import {GenealogyData} from "/utility/GenealogyData.js";
+
+  // File Manager functionality
+  function initializeFileManager() {
+    console.log("FileManager: Starting initialization");
+
+    // Prevent multiple initializations
+    if (window.fileManagerInitialized) {
+      console.log("FileManager: Already initialized, skipping");
+      return;
+    }
+    window.fileManagerInitialized = true;
+
+    // Store current translations
+    let currentTranslations = translations;
+
+    // DOM elements
+    const fileManagerDialog = document.getElementById("file-manager-dialog");
+    const fileManagerClose = document.getElementById("file-manager-close");
+    const downloadCurrentTreeBtn = document.getElementById(
+      "download-current-tree"
+    );
+    const downloadAllTreesBtn = document.getElementById("download-all-trees");
+    const fileUploadInput = document.getElementById("file-upload-input");
+    const uploadDropZone = document.getElementById("upload-drop-zone");
+    const selectFileButton = document.getElementById("select-file-button");
+    const uploadOptions = document.querySelector(".upload-options");
+    const newTreeNameInput = document.getElementById("new-tree-name-input");
+    const newTreeName = document.getElementById("new-tree-name");
+    const confirmUploadBtn = document.getElementById("confirm-upload");
+    const cancelUploadBtn = document.getElementById("cancel-upload");
+    const fileInfoSection = document.getElementById("file-info-section");
+    const fileInfoContent = document.getElementById("file-info-content");
+
+    if (!fileManagerDialog || !fileManagerClose) {
+      console.error("FileManager: Required DOM elements not found");
+      return;
+    }
+
+    let selectedFile = null;
+
+    // Update translations
+    function updateFileManagerTranslations(newTranslations) {
+      currentTranslations = newTranslations;
+      // Update any dynamic text content if needed
+    }
+
+    // Listen for language changes
+    window.addEventListener("languageChanged", function (event) {
+      console.log("FileManager: Language changed to", event.detail.language);
+      updateFileManagerTranslations(event.detail.translations);
+    });
+
+    // Dialog management
+    function showFileManager() {
+      console.log("FileManager: Showing dialog");
+      fileManagerDialog.style.display = "flex";
+
+      // Load saved upload mode from localStorage
+      loadUploadModeFromStorage();
+
+      resetUploadState();
+    }
+
+    function hideFileManager() {
+      fileManagerDialog.style.display = "none";
+      resetUploadState();
+    }
+
+    function resetUploadState() {
+      selectedFile = null;
+      if (fileInfoSection) fileInfoSection.style.display = "none";
+      if (fileUploadInput) fileUploadInput.value = "";
+      if (newTreeName) newTreeName.value = "";
+
+      // Disable the confirm upload button when no file is selected
+      if (confirmUploadBtn) confirmUploadBtn.disabled = true;
+
+      // Don't reset radio buttons here - let them keep the saved/default state
+      // The loadUploadModeFromStorage() will handle setting the correct mode
+    }
+
+    // Storage functions for upload mode preference
+    function saveUploadModeToStorage() {
+      const selectedMode = document.querySelector(
+        'input[name="upload-mode"]:checked'
+      )?.value;
+      if (selectedMode) {
+        localStorage.setItem("fileManager-uploadMode", selectedMode);
+        console.log("FileManager: Saved upload mode to storage:", selectedMode);
+      }
+    }
+
+    function loadUploadModeFromStorage() {
+      const savedMode =
+        localStorage.getItem("fileManager-uploadMode") || "new-tree";
+      console.log("FileManager: Loading upload mode from storage:", savedMode);
+
+      // Set the radio button
+      const radioButton = document.querySelector(
+        `input[name="upload-mode"][value="${savedMode}"]`
+      );
+      if (radioButton) {
+        radioButton.checked = true;
+
+        // Update the new tree name input visibility
+        if (savedMode === "new-tree") {
+          if (newTreeNameInput) newTreeNameInput.style.display = "block";
+        } else {
+          if (newTreeNameInput) newTreeNameInput.style.display = "none";
+        }
+      } else {
+        // Fallback to new-tree if saved mode is invalid
+        const newTreeRadio = document.querySelector(
+          'input[name="upload-mode"][value="new-tree"]'
+        );
+        if (newTreeRadio) {
+          newTreeRadio.checked = true;
+          if (newTreeNameInput) newTreeNameInput.style.display = "block";
+        }
+      }
+    }
+
+    // Download functions
+    function downloadCurrentTree() {
+      try {
+        const treeManager = window.genealogyTreeManager;
+        const currentTreeName =
+          treeManager?.getCurrentTreeName() || "current-tree";
+        const currentTreeData = treeManager?.getCurrentTreeData();
+
+        if (!currentTreeData) {
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.noTreeDataToDownload ||
+                "No tree data to download",
+              "error"
+            );
+          }
+          return;
+        }
+
+        const dataToDownload = {
+          type: "single-tree",
+          treeName: currentTreeName,
+          data: currentTreeData,
+          exportDate: new Date().toISOString(),
+          version: "1.0",
+        };
+
+        const blob = new Blob([JSON.stringify(dataToDownload, null, 2)], {
+          type: "application/json",
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${currentTreeName}_${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.treeDownloaded?.replace(
+              "{treeName}",
+              currentTreeName
+            ) || `Tree "${currentTreeName}" downloaded successfully`,
+            "success"
+          );
+        }
+
+        console.log("FileManager: Downloaded current tree:", currentTreeName);
+      } catch (error) {
+        console.error("FileManager: Error downloading current tree:", error);
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.errorDownloadingTree ||
+              "Error downloading tree",
+            "error"
+          );
+        }
+      }
+    }
+
+    function downloadAllTrees() {
+      try {
+        const treeManager = window.genealogyTreeManager;
+        const allTrees = {};
+        const availableTrees = treeManager?.getAvailableTrees() || [];
+        const currentTreeName = treeManager?.getCurrentTreeName() || "";
+
+        if (availableTrees.length === 0) {
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.noTreesToDownload || "No trees to download",
+              "error"
+            );
+          }
+          return;
+        }
+
+        // Get data for all trees
+        for (const treeName of availableTrees) {
+          const treeData = treeManager?.getTreeData(treeName);
+          if (treeData) {
+            allTrees[treeName] = treeData;
+          }
+        }
+
+        const dataToDownload = {
+          type: "all-trees",
+          activeTreeName: currentTreeName,
+          trees: allTrees,
+          exportDate: new Date().toISOString(),
+          version: "1.0",
+        };
+
+        const blob = new Blob([JSON.stringify(dataToDownload, null, 2)], {
+          type: "application/json",
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `all_trees_${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.allTreesDownloaded?.replace(
+              "{count}",
+              availableTrees.length
+            ) || `All ${availableTrees.length} trees downloaded successfully`,
+            "success"
+          );
+        }
+
+        console.log("FileManager: Downloaded all trees:", availableTrees);
+      } catch (error) {
+        console.error("FileManager: Error downloading all trees:", error);
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.errorDownloadingTrees ||
+              "Error downloading trees",
+            "error"
+          );
+        }
+      }
+    }
+
+    // Upload functions
+    function handleFileSelect(file) {
+      selectedFile = file;
+
+      // Validate file
+      if (!file.name.endsWith(".json")) {
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.invalidFileType || "Please select a JSON file",
+            "error"
+          );
+        }
+        return;
+      }
+
+      // Auto-populate tree name from filename (without extension)
+      if (newTreeName) {
+        const suggestedName = file.name.replace(/\.json$/i, "");
+        newTreeName.value = suggestedName;
+        console.log("FileManager: Auto-populated tree name:", suggestedName);
+      }
+
+      // Read and display file info
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          console.log("FileManager: Parsed file data:", data);
+          console.log("FileManager: Data type:", data.type);
+          console.log("FileManager: Data structure:", Object.keys(data));
+
+          if (data.type === "single-tree") {
+            console.log("FileManager: Single tree data:", data.data);
+            console.log(
+              "FileManager: Persons in single tree:",
+              data.data?.persons?.length || 0
+            );
+          } else if (data.type === "all-trees") {
+            console.log("FileManager: All trees data:", data.trees);
+            Object.entries(data.trees || {}).forEach(([treeName, treeData]) => {
+              console.log(
+                `FileManager: Tree "${treeName}" persons:`,
+                treeData?.persons?.length || 0
+              );
+            });
+          } else {
+            console.log(
+              "FileManager: Unknown data type - treating as raw tree data"
+            );
+            console.log(
+              "FileManager: Raw data persons:",
+              data?.persons?.length || 0
+            );
+          }
+
+          displayFileInfo(data, file);
+
+          // Enable the confirm upload button when a valid file is selected
+          if (confirmUploadBtn) confirmUploadBtn.disabled = false;
+        } catch (error) {
+          console.error("FileManager: Error parsing file:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.invalidJsonFile || "Invalid JSON file",
+              "error"
+            );
+          }
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function displayFileInfo(data, file) {
+      let infoHtml = `
+        <div class="file-info-item">
+          <span class="file-info-label">${currentTranslations.fileName || "File Name"}:</span>
+          <span class="file-info-value">${file.name}</span>
+        </div>
+        <div class="file-info-item">
+          <span class="file-info-label">${currentTranslations.fileSize || "File Size"}:</span>
+          <span class="file-info-value">${(file.size / 1024).toFixed(1)} KB</span>
+        </div>
+      `;
+
+      if (data.type === "single-tree") {
+        infoHtml += `
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.fileType || "Type"}:</span>
+            <span class="file-info-value">${currentTranslations.singleTree || "Single Tree"}</span>
+          </div>
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.treeName || "Tree Name"}:</span>
+            <span class="file-info-value">${data.treeName || "Unknown"}</span>
+          </div>
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.personCount || "Persons"}:</span>
+            <span class="file-info-value">${data.data?.persons?.length || 0}</span>
+          </div>
+        `;
+      } else if (data.type === "all-trees") {
+        const treeCount = Object.keys(data.trees || {}).length;
+        let totalPersons = 0;
+        Object.values(data.trees || {}).forEach((tree) => {
+          totalPersons += tree.persons?.length || 0;
+        });
+
+        infoHtml += `
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.fileType || "Type"}:</span>
+            <span class="file-info-value">${currentTranslations.allTrees || "All Trees"}</span>
+          </div>
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.treeCount || "Trees"}:</span>
+            <span class="file-info-value">${treeCount}</span>
+          </div>
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.totalPersons || "Total Persons"}:</span>
+            <span class="file-info-value">${totalPersons}</span>
+          </div>
+        `;
+
+        if (data.activeTreeName) {
+          infoHtml += `
+            <div class="file-info-item">
+              <span class="file-info-label">${currentTranslations.activeTree || "Active Tree"}:</span>
+              <span class="file-info-value">${data.activeTreeName}</span>
+            </div>
+          `;
+        }
+      } else {
+        // Raw tree data
+        infoHtml += `
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.fileType || "Type"}:</span>
+            <span class="file-info-value">Raw Tree Data</span>
+          </div>
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.personCount || "Persons"}:</span>
+            <span class="file-info-value">${data?.persons?.length || 0}</span>
+          </div>
+        `;
+      }
+
+      if (data.exportDate) {
+        infoHtml += `
+          <div class="file-info-item">
+            <span class="file-info-label">${currentTranslations.exportDate || "Export Date"}:</span>
+            <span class="file-info-value">${new Date(data.exportDate).toLocaleDateString()}</span>
+          </div>
+        `;
+      }
+
+      fileInfoContent.innerHTML = infoHtml;
+      fileInfoSection.style.display = "block";
+    }
+
+    async function confirmUpload() {
+      if (!selectedFile) {
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.noFileSelected || "No file selected",
+            "error"
+          );
+        }
+        return;
+      }
+
+      const uploadMode = document.querySelector(
+        'input[name="upload-mode"]:checked'
+      )?.value;
+
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          await processUpload(data, uploadMode);
+        } catch (error) {
+          console.error("FileManager: Error processing upload:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorProcessingFile ||
+                "Error processing file",
+              "error"
+            );
+          }
+        }
+      };
+      reader.readAsText(selectedFile);
+    }
+
+    async function processUpload(data, uploadMode) {
+      try {
+        const treeManager = window.genealogyTreeManager;
+        const genealogyData = window.genealogyData;
+
+        if (!treeManager || !genealogyData) {
+          throw new Error("Required components not available");
+        }
+
+        if (data.type === "single-tree") {
+          await processSingleTreeUpload(
+            data,
+            uploadMode,
+            treeManager,
+            genealogyData
+          );
+        } else if (data.type === "all-trees") {
+          await processAllTreesUpload(
+            data,
+            uploadMode,
+            treeManager,
+            genealogyData
+          );
+        } else {
+          // Treat as raw tree data (persons array directly)
+          console.log("FileManager: Treating as raw tree data");
+          const wrappedData = {
+            type: "single-tree",
+            treeName: selectedFile.name.replace(".json", "") || "Imported Tree",
+            data: data,
+          };
+          await processSingleTreeUpload(
+            wrappedData,
+            uploadMode,
+            treeManager,
+            genealogyData
+          );
+        }
+
+        hideFileManager();
+      } catch (error) {
+        console.error("FileManager: Error during upload:", error);
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.errorDuringUpload || "Error during upload",
+            "error"
+          );
+        }
+      }
+    }
+
+    async function processSingleTreeUpload(
+      data,
+      uploadMode,
+      treeManager,
+      genealogyData
+    ) {
+      const importedTreeName = data.treeName || "Imported Tree";
+      const treeData = data.data;
+
+      console.log("FileManager: Processing single tree upload");
+      console.log("FileManager: Upload mode:", uploadMode);
+      console.log("FileManager: Imported tree name:", importedTreeName);
+      console.log("FileManager: Tree data:", treeData);
+      console.log(
+        "FileManager: Persons in imported data:",
+        treeData?.persons?.length || 0
+      );
+
+      if (uploadMode === "new-tree") {
+        const customTreeName = newTreeName.value.trim();
+        if (!customTreeName) {
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.enterTreeName || "Please enter a tree name",
+              "error"
+            );
+          }
+          return;
+        }
+
+        const availableTrees = treeManager.getAvailableTrees();
+        if (availableTrees.includes(customTreeName)) {
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.treeNameExists ||
+                "Tree with this name already exists",
+              "error"
+            );
+          }
+          return;
+        }
+
+        console.log("FileManager: Creating new tree:", customTreeName);
+        await treeManager.createNewTree(customTreeName, false);
+
+        // Switch to the new tree first
+        console.log("FileManager: Switching to new tree:", customTreeName);
+        await treeManager.switchToTree(customTreeName);
+
+        // Add a small delay to ensure the switch is complete
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Now load the imported data into the new tree
+        console.log("FileManager: Setting genealogyData with imported data");
+        window.genealogyData = new GenealogyData(treeData);
+        console.log(
+          "FileManager: New genealogyData persons count:",
+          window.genealogyData.persons?.length || 0
+        );
+
+        // Verify the data is correctly set before saving
+        console.log("FileManager: Verifying data before save:");
+        console.log("FileManager: window.genealogyData:", window.genealogyData);
+        console.log(
+          "FileManager: Persons array:",
+          window.genealogyData.persons
+        );
+
+        // Save the data to storage (now it will save to the correct tree)
+        if (window.saveDataToStorage) {
+          console.log("FileManager: Saving data to storage for new tree");
+          // Force save with explicit data to ensure we're saving the right thing
+          const dataToSave = {
+            persons: window.genealogyData.persons || [],
+          };
+          console.log("FileManager: Explicit data to save:", dataToSave);
+          console.log(
+            "FileManager: Persons count in explicit data:",
+            dataToSave.persons.length
+          );
+
+          // Update the storage manager directly to ensure we save the right data
+          if (window.genealogyStorageManager) {
+            window.genealogyStorageManager.saveTreeData(
+              customTreeName,
+              dataToSave
+            );
+            console.log("FileManager: Data saved directly via storage manager");
+          } else {
+            window.saveDataToStorage(customTreeName);
+          }
+        }
+
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.newTreeCreated?.replace(
+              "{treeName}",
+              customTreeName
+            ) || `New tree "${customTreeName}" created successfully`,
+            "success"
+          );
+        }
+      } else if (uploadMode === "replace") {
+        const currentTreeName = treeManager.getCurrentTreeName();
+        console.log("FileManager: Replacing current tree:", currentTreeName);
+        window.genealogyData = new GenealogyData(treeData);
+        console.log(
+          "FileManager: New genealogyData persons count:",
+          window.genealogyData.persons?.length || 0
+        );
+
+        // Save the data to storage
+        if (window.saveDataToStorage) {
+          console.log("FileManager: Saving data to storage");
+          window.saveDataToStorage(currentTreeName);
+        }
+
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.treeReplaced?.replace(
+              "{treeName}",
+              currentTreeName
+            ) || `Tree "${currentTreeName}" replaced successfully`,
+            "success"
+          );
+        }
+      } else {
+        // merge
+        const currentTreeData = treeManager.getCurrentTreeData();
+        console.log("FileManager: Merging with current tree data");
+        console.log(
+          "FileManager: Current tree persons:",
+          currentTreeData?.persons?.length || 0
+        );
+        console.log(
+          "FileManager: Imported persons:",
+          treeData?.persons?.length || 0
+        );
+
+        const mergedData = mergeTreeData(currentTreeData, treeData);
+        console.log(
+          "FileManager: Merged persons:",
+          mergedData?.persons?.length || 0
+        );
+
+        window.genealogyData = new GenealogyData(mergedData);
+
+        // Save the data to storage
+        if (window.saveDataToStorage) {
+          console.log("FileManager: Saving data to storage");
+          const currentTreeName = treeManager.getCurrentTreeName();
+          window.saveDataToStorage(currentTreeName);
+        }
+
+        const currentTreeName = treeManager.getCurrentTreeName();
+        if (window.showNotification) {
+          window.showNotification(
+            currentTranslations.treeMerged?.replace(
+              "{treeName}",
+              currentTreeName
+            ) || `Data merged into "${currentTreeName}" successfully`,
+            "success"
+          );
+        }
+      }
+
+      console.log(
+        "FileManager: Final genealogyData persons count:",
+        window.genealogyData.persons?.length || 0
+      );
+
+      // Small delay to ensure data is properly set before triggering events
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Trigger data update events
+      console.log("FileManager: Dispatching events");
+      document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
+      document.dispatchEvent(
+        new CustomEvent("genealogy-tree-changed", {
+          detail: {treeName: treeManager.getCurrentTreeName()},
+        })
+      );
+
+      // Notify TreeSwitcher to update its dropdown
+      document.dispatchEvent(
+        new CustomEvent("tree-manager-update", {
+          detail: {
+            action: "tree-created",
+            treeName: treeManager.getCurrentTreeName(),
+          },
+        })
+      );
+    }
+
+    async function processAllTreesUpload(
+      data,
+      uploadMode,
+      treeManager,
+      genealogyData
+    ) {
+      const importedTrees = data.trees || {};
+      const importedActiveTree = data.activeTreeName;
+
+      for (const [treeName, treeData] of Object.entries(importedTrees)) {
+        const availableTrees = treeManager.getAvailableTrees();
+        if (availableTrees.includes(treeName)) {
+          if (uploadMode === "merge") {
+            const existingData = treeManager.getTreeData(treeName);
+            const mergedData = mergeTreeData(existingData, treeData);
+
+            // Switch to this tree first
+            await treeManager.switchToTree(treeName);
+
+            // Now load the merged data
+            window.genealogyData = new GenealogyData(mergedData);
+
+            // Save the data to storage (now it will save to the correct tree)
+            if (window.saveDataToStorage) {
+              window.saveDataToStorage(treeName);
+            }
+          } else if (uploadMode === "replace") {
+            // Switch to the tree first
+            await treeManager.switchToTree(treeName);
+
+            // Now load the replacement data
+            window.genealogyData = new GenealogyData(treeData);
+
+            // Save the data to storage (now it will save to the correct tree)
+            if (window.saveDataToStorage) {
+              window.saveDataToStorage(treeName);
+            }
+          }
+          // Skip if new-tree mode and tree exists
+        } else {
+          await treeManager.createNewTree(treeName, false);
+
+          // Switch to the new tree first
+          await treeManager.switchToTree(treeName);
+
+          // Now load the data into the new tree
+          window.genealogyData = new GenealogyData(treeData);
+
+          // Save the data to storage (now it will save to the correct tree)
+          if (window.saveDataToStorage) {
+            window.saveDataToStorage(treeName);
+          }
+        }
+      }
+
+      // Switch to imported active tree if it exists and was imported
+      const availableTrees = treeManager.getAvailableTrees();
+      if (importedActiveTree && availableTrees.includes(importedActiveTree)) {
+        await treeManager.switchToTree(importedActiveTree);
+      } else {
+        // Refresh current tree - stay on current tree
+        const currentTreeData = treeManager.getCurrentTreeData();
+        window.genealogyData = new GenealogyData(currentTreeData);
+      }
+
+      const treeCount = Object.keys(importedTrees).length;
+      if (window.showNotification) {
+        window.showNotification(
+          currentTranslations.allTreesImported?.replace("{count}", treeCount) ||
+            `${treeCount} trees imported successfully`,
+          "success"
+        );
+      }
+
+      // Small delay to ensure data is properly set before triggering events
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Trigger data update events
+      document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
+      document.dispatchEvent(
+        new CustomEvent("genealogy-tree-changed", {
+          detail: {treeName: treeManager.getCurrentTreeName()},
+        })
+      );
+
+      // Notify TreeSwitcher to update its dropdown
+      document.dispatchEvent(
+        new CustomEvent("tree-manager-update", {
+          detail: {
+            action: "trees-imported",
+            treeName: treeManager.getCurrentTreeName(),
+          },
+        })
+      );
+    }
+
+    function mergeTreeData(existingData, newData) {
+      const mergedPersons = [...(existingData.persons || [])];
+      const existingNames = new Set(mergedPersons.map((p) => p.name));
+
+      // Add new persons that don't exist
+      for (const person of newData.persons || []) {
+        if (!existingNames.has(person.name)) {
+          mergedPersons.push(person);
+          existingNames.add(person.name);
+        }
+      }
+
+      return {persons: mergedPersons};
+    }
+
+    // Event listeners
+    if (fileManagerClose) {
+      fileManagerClose.addEventListener("click", hideFileManager);
+    }
+
+    if (downloadCurrentTreeBtn) {
+      downloadCurrentTreeBtn.addEventListener("click", downloadCurrentTree);
+    }
+
+    if (downloadAllTreesBtn) {
+      downloadAllTreesBtn.addEventListener("click", downloadAllTrees);
+    }
+
+    if (selectFileButton) {
+      selectFileButton.addEventListener("click", () => {
+        fileUploadInput.click();
+      });
+    }
+
+    if (fileUploadInput) {
+      fileUploadInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          handleFileSelect(file);
+        }
+      });
+    }
+
+    if (uploadDropZone) {
+      uploadDropZone.addEventListener("click", () => {
+        fileUploadInput.click();
+      });
+
+      uploadDropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadDropZone.classList.add("drag-over");
+      });
+
+      uploadDropZone.addEventListener("dragleave", () => {
+        uploadDropZone.classList.remove("drag-over");
+      });
+
+      uploadDropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadDropZone.classList.remove("drag-over");
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFileSelect(files[0]);
+        }
+      });
+    }
+
+    // Radio button change handler
+    document.addEventListener("change", (e) => {
+      if (e.target.name === "upload-mode") {
+        const selectedValue = e.target.value;
+        console.log("FileManager: Upload mode changed to:", selectedValue);
+
+        // Save to localStorage
+        saveUploadModeToStorage();
+
+        // Update UI
+        if (selectedValue === "new-tree") {
+          if (newTreeNameInput) newTreeNameInput.style.display = "block";
+        } else {
+          if (newTreeNameInput) newTreeNameInput.style.display = "none";
+        }
+      }
+    });
+
+    if (confirmUploadBtn) {
+      confirmUploadBtn.addEventListener("click", confirmUpload);
+    }
+
+    if (cancelUploadBtn) {
+      cancelUploadBtn.addEventListener("click", () => {
+        resetUploadState();
+      });
+    }
+
+    // Close dialog when clicking outside
+    fileManagerDialog.addEventListener("click", (e) => {
+      if (e.target === fileManagerDialog) {
+        hideFileManager();
+      }
+    });
+
+    // Make the dialog functions globally available
+    window.fileManagerDialog = {
+      show: showFileManager,
+      hide: hideFileManager,
+    };
+
+    console.log("FileManager: Initialization complete");
+
+    return {
+      updateTranslations: updateFileManagerTranslations,
+      show: showFileManager,
+      hide: hideFileManager,
+    };
+  }
+
+  // Initialize when DOM is ready
+  document.addEventListener("DOMContentLoaded", initializeFileManager);
+</script>

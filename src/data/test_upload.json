@@ -1,0 +1,22 @@
+{
+    "persons": [
+        {
+            "id": "test1",
+            "name": "Test Person",
+            "birth": "1980",
+            "death": "",
+            "gender": "M",
+            "parents": [],
+            "children": []
+        },
+        {
+            "id": "test2",
+            "name": "Test Spouse",
+            "birth": "1985",
+            "death": "",
+            "gender": "F",
+            "parents": [],
+            "children": []
+        }
+    ]
+}

@@ -2,6 +2,7 @@
 import type {TreeDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
+import FileManagerDialog from "./FileManagerDialog.astro";
 import GraphRenderer from "./GraphRenderer.astro";
 import Notification from "./Notification.astro";
 import Toolbar from "./Toolbar.astro";
@@ -23,6 +24,7 @@ const {data, language, translations} = Astro.props;
 </div>
 
 <EditPersonDialog language={language} translations={translations} />
+<FileManagerDialog language={language} translations={translations} />
 <TreeManagerDialog language={language} translations={translations} />
 
 <style>
@@ -75,6 +77,31 @@ const {data, language, translations} = Astro.props;
         `Loaded data from localStorage for tree: ${currentTreeName}`,
         activeTreeData
       );
+      console.log(
+        `Persons count in loaded data:`,
+        activeTreeData?.persons?.length || 0
+      );
+
+      // Additional debugging
+      const rawStorageData = storageManager.getStorageData();
+      console.log(`Raw storage data:`, rawStorageData);
+      if (rawStorageData && rawStorageData.trees) {
+        console.log(
+          `Available trees in storage:`,
+          Object.keys(rawStorageData.trees)
+        );
+        console.log(
+          `Active tree name in storage:`,
+          rawStorageData.activeTreeName
+        );
+        if (rawStorageData.trees[currentTreeName]) {
+          console.log(
+            `Data for current tree ${currentTreeName}:`,
+            rawStorageData.trees[currentTreeName]
+          );
+        }
+      }
+
       return new GenealogyData(activeTreeData);
     } catch (error) {
       console.warn("Failed to load data from localStorage:", error);
@@ -86,12 +113,35 @@ const {data, language, translations} = Astro.props;
     }
   }
 
-  function saveDataToStorage() {
+  function saveDataToStorage(treeName = null) {
     try {
+      const targetTreeName = treeName || currentTreeName;
+      // Always use window.genealogyData to ensure we get the current data
+      const currentData = window.genealogyData || genealogyData;
       const treeData = {
-        persons: genealogyData.persons,
+        persons: currentData.persons,
       };
-      storageManager.saveTreeData(currentTreeName, treeData, true);
+      console.log(`About to save data to tree: ${targetTreeName}`);
+      console.log(`Data being saved:`, treeData);
+      console.log(`Persons count:`, treeData.persons?.length || 0);
+      console.log(
+        `Using data from:`,
+        window.genealogyData ? "window.genealogyData" : "local genealogyData"
+      );
+
+      storageManager.saveTreeData(targetTreeName, treeData, true);
+      console.log(`Data saved to tree: ${targetTreeName}`);
+
+      // Verify the save worked
+      const savedData = storageManager.getTreeData(targetTreeName);
+      console.log(
+        `Verification - data retrieved for ${targetTreeName}:`,
+        savedData
+      );
+      console.log(
+        `Verification - persons count:`,
+        savedData?.persons?.length || 0
+      );
     } catch (error) {
       console.error("Failed to save data to localStorage:", error);
     }
