@@ -279,6 +279,13 @@ const {language, translations} = Astro.props;
 
     // Initialize toolbar button event listeners
     function initializeToolbarEvents() {
+      // Prevent multiple event listener attachments
+      if (window.toolbarEventsInitialized) {
+        console.log("Toolbar: Events already initialized, skipping");
+        return;
+      }
+      window.toolbarEventsInitialized = true;
+
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
       const manageTreesButton = document.getElementById("manage-trees-button");

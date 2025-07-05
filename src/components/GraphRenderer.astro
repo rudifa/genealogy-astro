@@ -246,6 +246,9 @@ const {language, translations} = Astro.props;
         renderGraph();
       };
 
+      // Expose renderGraph to global scope for external calls
+      window.renderGraph = renderGraph;
+
       // Listen for data updates
       window.addEventListener("genealogy-data-updated", function () {
         console.log("GraphRenderer: Data updated, re-rendering graph");
