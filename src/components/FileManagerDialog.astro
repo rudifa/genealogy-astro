@@ -563,7 +563,7 @@ const {language, translations} = Astro.props;
       try {
         const treeManager = window.genealogyTreeManager;
         const currentTreeName =
-          treeManager?.getCurrentTreeName() || "current-tree";
+          treeManager?.getSelectedTreeName() || "current-tree";
         const currentTreeData = treeManager?.getCurrentTreeData();
 
         if (!currentTreeData) {
@@ -626,7 +626,7 @@ const {language, translations} = Astro.props;
         const treeManager = window.genealogyTreeManager;
         const allTrees = {};
         const availableTrees = treeManager?.getAvailableTrees() || [];
-        const currentTreeName = treeManager?.getCurrentTreeName() || "";
+        const currentTreeName = treeManager?.getSelectedTreeName() || "";
 
         if (availableTrees.length === 0) {
           if (window.showNotification) {
@@ -648,7 +648,7 @@ const {language, translations} = Astro.props;
 
         const dataToDownload = {
           type: "all-trees",
-          activeTreeName: currentTreeName,
+          selectedTree: currentTreeName,
           trees: allTrees,
           exportDate: new Date().toISOString(),
           version: "1.0",
@@ -811,11 +811,11 @@ const {language, translations} = Astro.props;
           </div>
         `;
 
-        if (data.activeTreeName) {
+        if (data.selectedTree) {
           infoHtml += `
             <div class="file-info-item">
-              <span class="file-info-label">${currentTranslations.activeTree || "Active Tree"}:</span>
-              <span class="file-info-value">${data.activeTreeName}</span>
+              <span class="file-info-label">${currentTranslations.activeTree || "Selected Tree"}:</span>
+              <span class="file-info-value">${data.selectedTree}</span>
             </div>
           `;
         }
@@ -1034,7 +1034,7 @@ const {language, translations} = Astro.props;
           );
         }
       } else if (uploadMode === "replace") {
-        const currentTreeName = treeManager.getCurrentTreeName();
+        const currentTreeName = treeManager.getSelectedTreeName();
         console.log("FileManager: Replacing current tree:", currentTreeName);
         window.genealogyData = new GenealogyTreeData(treeData);
         console.log(
@@ -1081,11 +1081,11 @@ const {language, translations} = Astro.props;
         // Save the data to storage
         if (window.saveDataToStorage) {
           console.log("FileManager: Saving data to storage");
-          const currentTreeName = treeManager.getCurrentTreeName();
+          const currentTreeName = treeManager.getSelectedTreeName();
           window.saveDataToStorage(currentTreeName);
         }
 
-        const currentTreeName = treeManager.getCurrentTreeName();
+        const currentTreeName = treeManager.getSelectedTreeName();
         if (window.showNotification) {
           window.showNotification(
             currentTranslations.treeMerged?.replace(
@@ -1110,7 +1110,7 @@ const {language, translations} = Astro.props;
       document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
       document.dispatchEvent(
         new CustomEvent("genealogy-tree-changed", {
-          detail: {treeName: treeManager.getCurrentTreeName()},
+          detail: {treeName: treeManager.getSelectedTreeName()},
         })
       );
 
@@ -1119,7 +1119,7 @@ const {language, translations} = Astro.props;
         new CustomEvent("tree-manager-update", {
           detail: {
             action: "tree-created",
-            treeName: treeManager.getCurrentTreeName(),
+            treeName: treeManager.getSelectedTreeName(),
           },
         })
       );
@@ -1132,7 +1132,7 @@ const {language, translations} = Astro.props;
       genealogyData
     ) {
       const importedTrees = data.trees || {};
-      const importedActiveTree = data.activeTreeName;
+      const importedSelectedTree = data.selectedTree;
 
       for (const [treeName, treeData] of Object.entries(importedTrees)) {
         const availableTrees = treeManager.getAvailableTrees();
@@ -1180,10 +1180,13 @@ const {language, translations} = Astro.props;
         }
       }
 
-      // Switch to imported active tree if it exists and was imported
+      // Switch to imported selected tree if it exists and was imported
       const availableTrees = treeManager.getAvailableTrees();
-      if (importedActiveTree && availableTrees.includes(importedActiveTree)) {
-        await treeManager.switchToTree(importedActiveTree);
+      if (
+        importedSelectedTree &&
+        availableTrees.includes(importedSelectedTree)
+      ) {
+        await treeManager.switchToTree(importedSelectedTree);
       } else {
         // Refresh current tree - stay on current tree
         const currentTreeData = treeManager.getCurrentTreeData();
@@ -1206,7 +1209,7 @@ const {language, translations} = Astro.props;
       document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
       document.dispatchEvent(
         new CustomEvent("genealogy-tree-changed", {
-          detail: {treeName: treeManager.getCurrentTreeName()},
+          detail: {treeName: treeManager.getSelectedTreeName()},
         })
       );
 
@@ -1215,7 +1218,7 @@ const {language, translations} = Astro.props;
         new CustomEvent("tree-manager-update", {
           detail: {
             action: "trees-imported",
-            treeName: treeManager.getCurrentTreeName(),
+            treeName: treeManager.getSelectedTreeName(),
           },
         })
       );

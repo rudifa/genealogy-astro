@@ -916,7 +916,7 @@ const {language, translations} = Astro.props;
 
     function updateMergeDisplay() {
       const currentTree =
-        window.genealogyTreeManager?.getCurrentTreeName() ||
+        window.genealogyTreeManager?.getSelectedTreeName() ||
         currentTranslations.currentTree;
 
       if (selectedOther) {
@@ -977,7 +977,7 @@ const {language, translations} = Astro.props;
       if (window.genealogyTreeManager) {
         console.log(
           "Current tree after update:",
-          window.genealogyTreeManager.getCurrentTreeName()
+          window.genealogyTreeManager.getSelectedTreeName()
         );
       }
     }
@@ -1268,7 +1268,7 @@ const {language, translations} = Astro.props;
       if (!treeList || !window.genealogyTreeManager) return;
 
       const trees = window.genealogyTreeManager.getAvailableTrees();
-      const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+      const currentTree = window.genealogyTreeManager.getSelectedTreeName();
 
       treeList.innerHTML = "";
 
@@ -1314,7 +1314,7 @@ const {language, translations} = Astro.props;
           const currentTreeData =
             window.genealogyTreeManager.getCurrentTreeData();
           const currentTreeName =
-            window.genealogyTreeManager.getCurrentTreeName();
+            window.genealogyTreeManager.getSelectedTreeName();
 
           // Get the other tree data
           const otherTreeData =

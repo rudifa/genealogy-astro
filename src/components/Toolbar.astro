@@ -400,7 +400,7 @@ const {language, translations} = Astro.props;
               const trees =
                 window.genealogyTreeManager?.getAvailableTrees?.() || [];
               const currentTree =
-                window.genealogyTreeManager?.getCurrentTreeName?.() ||
+                window.genealogyTreeManager?.getSelectedTreeName?.() ||
                 "Unknown";
 
               const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees

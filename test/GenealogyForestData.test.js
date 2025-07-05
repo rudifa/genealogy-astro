@@ -19,6 +19,18 @@ global.localStorage = {
   }
 };
 
+// Mock CustomEvent and document for Node.js environment
+global.CustomEvent = function(type, options) {
+  this.type = type;
+  this.detail = options ? options.detail : undefined;
+};
+
+global.document = {
+  dispatchEvent: function(event) {
+    // Default no-op implementation
+  }
+};
+
 describe('GenealogyForestData', () => {
   let currentForestData;
   const testTreeData = {
@@ -48,7 +60,7 @@ describe('GenealogyForestData', () => {
 
   describe('Basic Operations', () => {
     it('should return default tree name when no data exists', () => {
-      const treeName = currentForestData.getCurrentTreeName();
+      const treeName = currentForestData.getSelectedTreeName();
       assert.strictEqual(treeName, "Test Tree");
     });
 
@@ -64,10 +76,15 @@ describe('GenealogyForestData', () => {
 
     it('should get storage statistics correctly', () => {
       const stats = currentForestData.getStorageStats();
-      assert.strictEqual(stats.treeCount, 0);
-      assert.strictEqual(stats.totalPersons, 0);
+      assert.strictEqual(stats.treeCount, 1);
+      assert.strictEqual(stats.totalPersons, 2);
       assert.strictEqual(stats.activeTree, "Test Tree");
-      assert.deepStrictEqual(stats.trees, {});
+      assert.deepStrictEqual(stats.trees, {
+        "Test Tree": {
+          personCount: 2,
+          isActive: true
+        }
+      });
     });
   });
 
@@ -128,7 +145,7 @@ describe('GenealogyForestData', () => {
       const success = currentForestData.switchToTree("Second Tree");
       assert.strictEqual(success, true);
 
-      const currentTree = currentForestData.getCurrentTreeName();
+      const currentTree = currentForestData.getSelectedTreeName();
       assert.strictEqual(currentTree, "Second Tree");
     });
 
@@ -165,7 +182,7 @@ describe('GenealogyForestData', () => {
       currentForestData.switchToTree("Target Tree");
       currentForestData.renameTree("Target Tree", "Renamed Tree");
 
-      const currentTree = currentForestData.getCurrentTreeName();
+      const currentTree = currentForestData.getSelectedTreeName();
       assert.strictEqual(currentTree, "Renamed Tree");
     });
 
@@ -181,7 +198,7 @@ describe('GenealogyForestData', () => {
       currentForestData.switchToTree("Target Tree");
       currentForestData.deleteTree("Target Tree");
 
-      const currentTree = currentForestData.getCurrentTreeName();
+      const currentTree = currentForestData.getSelectedTreeName();
       assert.strictEqual(currentTree, "Test Tree");
     });
 
@@ -241,25 +258,13 @@ describe('GenealogyForestData', () => {
       currentForestData.createNewTree("Tree 2", testTreeData);
     });
 
-    it('should clear all storage data', () => {
-      currentForestData.clearStorage();
-
-      // Test indirectly by checking that we get default values
-      // (which indicates storage is empty)
-      const trees = currentForestData.getAvailableTrees();
-      assert.deepStrictEqual(trees, ["Test Tree"]);
-
-      const currentTree = currentForestData.getCurrentTreeName();
-      assert.strictEqual(currentTree, "Test Tree");
-    });
-
     it('should reset to default state', () => {
       currentForestData.resetToDefault();
 
       const trees = currentForestData.getAvailableTrees();
       assert.deepStrictEqual(trees, ["Test Tree"]);
 
-      const currentTree = currentForestData.getCurrentTreeName();
+      const currentTree = currentForestData.getSelectedTreeName();
       assert.strictEqual(currentTree, "Test Tree");
     });
 

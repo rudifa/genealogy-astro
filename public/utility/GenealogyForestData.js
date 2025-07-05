@@ -1,14 +1,21 @@
 /**
  * GenealogyForestData handles the forest of genealogy trees.
  * Uses the browser's localStorage global API for persistent data storage.
- * Manages the ForestDataType structure: { activeTreeName, trees: Record<string, TreeDataType> }
+ * Manages the ForestDataType structure: { selectedTreeName, trees: Record<string, TreeDataType> }
  *
  * Expected data structures (matching TypeScript interfaces):
  * - PersonType: { name: string, mother?: string, father?: string }
  * - TreeDataType: { persons: PersonType[] }
- * - ForestDataType: { activeTreeName: string, trees: Record<string, TreeDataType> }
+ * - ForestDataType: { selectedTreeName: string, trees: Record<string, TreeDataType> }
  */
 export class GenealogyForestData {
+  // Private fields
+  #storageKey;
+  #defaultTreeName;
+  #defaultTreeData;
+  #verbose;
+  #currentTreeData;
+
   /**
    * @param {string} storageKey - The localStorage key to use
    * @param {string} defaultTreeName - The name of the default tree
@@ -17,10 +24,16 @@ export class GenealogyForestData {
    * @param {boolean} verbose - Whether to log success messages (default: true)
    */
   constructor(storageKey, defaultTreeName, defaultTreeData, verbose = true) {
-    this.storageKey = storageKey;
-    this.defaultTreeName = defaultTreeName;
-    this.defaultTreeData = defaultTreeData;
-    this.verbose = verbose;
+    this.#storageKey = storageKey;
+    this.#defaultTreeName = defaultTreeName;
+    this.#defaultTreeData = defaultTreeData;
+    this.#verbose = verbose;
+
+    // Initialize current tree data from storage or create default
+    if (this.#getStorageData() === null) {
+      this.resetToDefault();
+    }
+    this.#currentTreeData = this.#getStorageData();
   }
 
   // Data persistence methods
@@ -32,7 +45,7 @@ export class GenealogyForestData {
    */
   #getStorageData() {
     try {
-      const storedData = localStorage.getItem(this.storageKey);
+      const storedData = localStorage.getItem(this.#storageKey);
       if (storedData) {
         return JSON.parse(storedData);
       }
@@ -47,8 +60,8 @@ export class GenealogyForestData {
    * @param {Object} data - The data to store
    * @private
    */
-  #putDataToStorage(data) {
-    localStorage.setItem(this.storageKey, JSON.stringify(data));
+  #putToStorage(data) {
+    localStorage.setItem(this.#storageKey, JSON.stringify(data));
   }
 
   /**
@@ -58,10 +71,10 @@ export class GenealogyForestData {
    */
   #initialForestDataStructure() {
     return {
-      activeTreeName: this.defaultTreeName,
+      selectedTreeName: this.#defaultTreeName,
       trees: {
-        [this.defaultTreeName]: {
-          persons: this.defaultTreeData.persons || [],
+        [this.#defaultTreeName]: {
+          persons: this.#defaultTreeData.persons || [],
         },
       },
     };
@@ -70,12 +83,11 @@ export class GenealogyForestData {
   // Getter methods
 
   /**
-   * Get the current active tree name
-   * @returns {string} Active tree name
+   * Get the currently selected tree name (application working state)
+   * @returns {string} Selected tree name
    */
-  getCurrentTreeName() {
-    const storedData = this.#getStorageData();
-    return storedData?.activeTreeName || this.defaultTreeName;
+  getSelectedTreeName() {
+    return this.#currentTreeData?.selectedTreeName || this.#defaultTreeName;
   }
 
   /**
@@ -84,14 +96,13 @@ export class GenealogyForestData {
    */
   getAvailableTrees() {
     try {
-      const storedData = this.#getStorageData();
-      if (storedData && storedData.trees) {
-        return Object.keys(storedData.trees);
+      if (this.#currentTreeData && this.#currentTreeData.trees) {
+        return Object.keys(this.#currentTreeData.trees);
       }
     } catch (error) {
       console.error("Failed to get available trees:", error);
     }
-    return [this.defaultTreeName];
+    return [this.#defaultTreeName];
   }
 
   /**
@@ -100,26 +111,25 @@ export class GenealogyForestData {
    * @returns {Object|null} Tree data matching TreeDataType or null if not found
    */
   getTreeData(treeName) {
-    const storedData = this.#getStorageData();
-    if (storedData && storedData.trees && storedData.trees[treeName]) {
-      return storedData.trees[treeName];
+    if (this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]) {
+      return this.#currentTreeData.trees[treeName];
     }
 
     // Return default tree data if requesting default tree
-    if (treeName === this.defaultTreeName) {
-      return this.defaultTreeData;
+    if (treeName === this.#defaultTreeName) {
+      return this.#defaultTreeData;
     }
 
     return null;
   }
 
   /**
-   * Get the currently active tree data
-   * @returns {Object} Active tree data matching TreeDataType
+   * Get the currently selected tree data (application working state)
+   * @returns {Object} Selected tree data matching TreeDataType
    */
   getActiveTreeData() {
-    const currentTreeName = this.getCurrentTreeName();
-    return this.getTreeData(currentTreeName) || this.defaultTreeData;
+    const currentTreeName = this.getSelectedTreeName();
+    return this.getTreeData(currentTreeName) || this.#defaultTreeData;
   }
 
   /**
@@ -128,8 +138,7 @@ export class GenealogyForestData {
    * @returns {boolean} True if tree exists
    */
   treeExists(treeName) {
-    const storedData = this.#getStorageData();
-    return !!(storedData && storedData.trees && storedData.trees[treeName]);
+    return !!(this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]);
   }
 
   /**
@@ -137,12 +146,11 @@ export class GenealogyForestData {
    * @returns {Object} Storage statistics
    */
   getStorageStats() {
-    const storedData = this.#getStorageData();
-    if (!storedData || !storedData.trees) {
+    if (!this.#currentTreeData || !this.#currentTreeData.trees) {
       return {
         treeCount: 0,
         totalPersons: 0,
-        activeTree: this.defaultTreeName,
+        activeTree: this.#defaultTreeName,
         trees: {},
       };
     }
@@ -150,19 +158,19 @@ export class GenealogyForestData {
     const trees = {};
     let totalPersons = 0;
 
-    Object.keys(storedData.trees).forEach((treeName) => {
-      const personCount = storedData.trees[treeName].persons?.length || 0;
+    Object.keys(this.#currentTreeData.trees).forEach((treeName) => {
+      const personCount = this.#currentTreeData.trees[treeName].persons?.length || 0;
       trees[treeName] = {
         personCount,
-        isActive: treeName === storedData.activeTreeName,
+        isActive: treeName === this.#currentTreeData.selectedTreeName,
       };
       totalPersons += personCount;
     });
 
     return {
-      treeCount: Object.keys(storedData.trees).length,
+      treeCount: Object.keys(this.#currentTreeData.trees).length,
       totalPersons,
-      activeTree: storedData.activeTreeName,
+      activeTree: this.#currentTreeData.selectedTreeName,
       trees,
     };
   }
@@ -172,31 +180,29 @@ export class GenealogyForestData {
    * Save tree data to storage
    * @param {string} treeName - Name of the tree
    * @param {Object} treeData - Tree data matching TreeDataType
-   * @param {boolean} setAsActive - Whether to set this tree as active
+   * @param {boolean} setAsActive - Whether to set this tree as the selected working tree
    */
   saveTreeData(treeName, treeData, setAsActive = false) {
     try {
-      let storedData = this.#getStorageData();
-
-      if (!storedData || !storedData.trees) {
-        storedData = this.#initialForestDataStructure();
+      if (!this.#currentTreeData || !this.#currentTreeData.trees) {
+        this.#currentTreeData = this.#initialForestDataStructure();
       }
 
       // Update the tree data
-      storedData.trees[treeName] = {
+      this.#currentTreeData.trees[treeName] = {
         persons: treeData.persons || [],
       };
 
-      // Set as active if requested
+      // Set as selected if requested
       if (setAsActive) {
-        storedData.activeTreeName = treeName;
+        this.#currentTreeData.selectedTreeName = treeName;
       }
 
-      this.#putDataToStorage(storedData);
-      if (this.verbose) {
+      this.#putToStorage(this.#currentTreeData);
+      if (this.#verbose) {
         console.log(
           `Saved data to localStorage for tree: ${treeName}, trees: ${Object.keys(
-            storedData.trees
+            this.#currentTreeData.trees
           )}`
         );
       }
@@ -207,17 +213,16 @@ export class GenealogyForestData {
   }
 
   /**
-   * Switch to a different tree
+   * Switch to a different tree (change application working state)
    * @param {string} treeName - Name of the tree to switch to
    * @returns {boolean} True if successful, false otherwise
    */
   switchToTree(treeName) {
     try {
-      const storedData = this.#getStorageData();
-      if (storedData && storedData.trees && storedData.trees[treeName]) {
-        storedData.activeTreeName = treeName;
-        this.#putDataToStorage(storedData);
-        if (this.verbose) {
+      if (this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]) {
+        this.#currentTreeData.selectedTreeName = treeName;
+        this.#putToStorage(this.#currentTreeData);
+        if (this.#verbose) {
           console.log(`Switched to tree: ${treeName}`);
         }
         return true;
@@ -246,24 +251,23 @@ export class GenealogyForestData {
 
     treeName = treeName.trim();
 
-    let storedData = this.#getStorageData();
-    if (!storedData || !storedData.trees) {
-      storedData = this.#initialForestDataStructure();
+    if (!this.#currentTreeData || !this.#currentTreeData.trees) {
+      this.#currentTreeData = this.#initialForestDataStructure();
     }
 
-    if (storedData.trees[treeName]) {
+    if (this.#currentTreeData.trees[treeName]) {
       throw new Error(
         translations?.treeNameExists || "Tree with this name already exists"
       );
     }
 
     // Create new tree with source data or empty
-    storedData.trees[treeName] = {
+    this.#currentTreeData.trees[treeName] = {
       persons: sourceTreeData ? [...(sourceTreeData.persons || [])] : [],
     };
 
-    this.#putDataToStorage(storedData);
-    if (this.verbose) {
+    this.#putToStorage(this.#currentTreeData);
+    if (this.#verbose) {
       console.log(`Created new tree: ${treeName}`);
     }
     return true;
@@ -277,34 +281,33 @@ export class GenealogyForestData {
    * @throws {Error} If tree cannot be deleted or not found
    */
   deleteTree(treeName, translations = null) {
-    if (treeName === this.defaultTreeName) {
+    if (treeName === this.#defaultTreeName) {
       const errorMessage =
         translations?.cannotDeleteFamilyExample ||
-        `Cannot delete the ${this.defaultTreeName} tree`;
+        `Cannot delete the ${this.#defaultTreeName} tree`;
       throw new Error(errorMessage);
     }
 
-    const storedData = this.#getStorageData();
-    if (!storedData || !storedData.trees || !storedData.trees[treeName]) {
+    if (!this.#currentTreeData || !this.#currentTreeData.trees || !this.#currentTreeData.trees[treeName]) {
       const errorMessage = translations?.treeNotFound || "Tree not found";
       throw new Error(errorMessage);
     }
 
-    delete storedData.trees[treeName];
+    delete this.#currentTreeData.trees[treeName];
 
-    // If we're deleting the active tree, switch to default
-    if (storedData.activeTreeName === treeName) {
-      storedData.activeTreeName = this.defaultTreeName;
+    // If we're deleting the selected tree, switch to default
+    if (this.#currentTreeData.selectedTreeName === treeName) {
+      this.#currentTreeData.selectedTreeName = this.#defaultTreeName;
       // Ensure default tree exists
-      if (!storedData.trees[this.defaultTreeName]) {
-        storedData.trees[this.defaultTreeName] = {
-          persons: this.defaultTreeData.persons || [],
+      if (!this.#currentTreeData.trees[this.#defaultTreeName]) {
+        this.#currentTreeData.trees[this.#defaultTreeName] = {
+          persons: this.#defaultTreeData.persons || [],
         };
       }
     }
 
-    this.#putDataToStorage(storedData);
-    if (this.verbose) {
+    this.#putToStorage(this.#currentTreeData);
+    if (this.#verbose) {
       console.log(`Deleted tree: ${treeName}`);
     }
     return true;
@@ -331,53 +334,38 @@ export class GenealogyForestData {
       return true; // No change needed
     }
 
-    if (oldName === this.defaultTreeName) {
+    if (oldName === this.#defaultTreeName) {
       const errorMessage =
         translations?.cannotRenameFamilyExample ||
-        `Cannot rename the ${this.defaultTreeName} tree`;
+        `Cannot rename the ${this.#defaultTreeName} tree`;
       throw new Error(errorMessage);
     }
 
-    const storedData = this.#getStorageData();
-    if (!storedData || !storedData.trees || !storedData.trees[oldName]) {
+    if (!this.#currentTreeData || !this.#currentTreeData.trees || !this.#currentTreeData.trees[oldName]) {
       const errorMessage = translations?.treeNotFound || "Tree not found";
       throw new Error(errorMessage);
     }
 
-    if (storedData.trees[newName]) {
+    if (this.#currentTreeData.trees[newName]) {
       const errorMessage =
         translations?.treeNameExists || "Tree with this name already exists";
       throw new Error(errorMessage);
     }
 
     // Copy tree data to new name
-    storedData.trees[newName] = storedData.trees[oldName];
-    delete storedData.trees[oldName];
+    this.#currentTreeData.trees[newName] = this.#currentTreeData.trees[oldName];
+    delete this.#currentTreeData.trees[oldName];
 
-    // Update active tree name if necessary
-    if (storedData.activeTreeName === oldName) {
-      storedData.activeTreeName = newName;
+    // Update selected tree name if necessary
+    if (this.#currentTreeData.selectedTreeName === oldName) {
+      this.#currentTreeData.selectedTreeName = newName;
     }
 
-    this.#putDataToStorage(storedData);
-    if (this.verbose) {
+    this.#putToStorage(this.#currentTreeData);
+    if (this.#verbose) {
       console.log(`Renamed tree from ${oldName} to ${newName}`);
     }
     return true;
-  }
-
-  /**
-   * Clear all storage data
-   */
-  clearStorage() {
-    try {
-      localStorage.removeItem(this.storageKey);
-      if (this.verbose) {
-        console.log("Cleared all storage data");
-      }
-    } catch (error) {
-      console.error("Failed to clear storage:", error);
-    }
   }
 
   /**
@@ -386,8 +374,9 @@ export class GenealogyForestData {
   resetToDefault() {
     try {
       const initialStructure = this.#initialForestDataStructure();
-      this.#putDataToStorage(initialStructure);
-      if (this.verbose) {
+      this.#putToStorage(initialStructure);
+      this.#currentTreeData = initialStructure;
+      if (this.#verbose) {
         console.log("Reset storage to default state");
       }
     } catch (error) {

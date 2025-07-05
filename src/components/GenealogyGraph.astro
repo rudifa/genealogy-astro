@@ -70,7 +70,7 @@ const {data, language, translations} = Astro.props;
 
   function loadDataFromStorage() {
     try {
-      currentTreeName = currentForestData.getCurrentTreeName();
+      currentTreeName = currentForestData.getSelectedTreeName();
       const activeTreeData = currentForestData.getActiveTreeData();
 
       console.log(
@@ -91,8 +91,8 @@ const {data, language, translations} = Astro.props;
           Object.keys(rawStorageData.trees)
         );
         console.log(
-          `Active tree name in storage:`,
-          rawStorageData.activeTreeName
+          `Selected tree name in storage:`,
+          rawStorageData.selectedTree
         );
         if (rawStorageData.trees[currentTreeName]) {
           console.log(
@@ -216,7 +216,7 @@ const {data, language, translations} = Astro.props;
 
       // If we deleted the active tree, update our local variables
       if (treeName === currentTreeName && success) {
-        currentTreeName = currentForestData.getCurrentTreeName();
+        currentTreeName = currentForestData.getSelectedTreeName();
         const newTreeData = currentForestData.getActiveTreeData();
         currentTreeData = new GenealogyTreeData(newTreeData);
       }
@@ -247,9 +247,8 @@ const {data, language, translations} = Astro.props;
   window.genealogyDebug = {
     saveToStorage: saveDataToStorage,
     resetToOriginal: resetToOriginalData,
-    clearStorage: () => currentForestData.clearStorage(),
     getData: () => currentTreeData,
-    getCurrentTreeName: () => currentTreeName,
+    getSelectedTreeName: () => currentTreeName,
     getStoredData: () => currentForestData.getStorageData(),
     getAvailableTrees: getAvailableTrees,
     switchToTree: switchToTree,
@@ -261,7 +260,7 @@ const {data, language, translations} = Astro.props;
 
   // Make tree management functions available globally for the future families dialog
   window.genealogyTreeManager = {
-    getCurrentTreeName: () => currentTreeName,
+    getSelectedTreeName: () => currentTreeName,
     getCurrentTreeData: () => ({persons: currentTreeData.persons}),
     getTreeData: (treeName) => currentForestData.getTreeData(treeName),
     getOriginalFamilyExampleData: () => {

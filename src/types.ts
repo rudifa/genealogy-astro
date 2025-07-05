@@ -10,7 +10,7 @@ export interface TreeDataType {
 }
 
 export interface ForestDataType {
-  activeTreeName: string;
+  selectedTree: string;
   trees: Record<string, TreeDataType>;
 }
 
@@ -18,7 +18,7 @@ export interface ForestDataType {
 declare global {
   interface Window {
     genealogyTreeManager?: {
-      getCurrentTreeName(): string;
+      getSelectedTreeName(): string;
       getAvailableTrees(): string[];
       switchToTree(treeName: string): Promise<boolean>;
       createNewTree(
