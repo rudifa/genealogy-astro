@@ -10,10 +10,10 @@
 - **Persistent Storage:** Your work is automatically saved in your browser's local storage.
 - **Responsive Design:** Works on desktop, laptop, tablet, and mobile.
 - **Live Demo:** Published on Vercel at [genealogy-astro.vercel.app](https://genealogy-astro.vercel.app/)
+- **File Download/Upload:** Save your trees to your computer or tablet for backup or sharing, and load them back anytime.
 
 ## Missing features
 
-- File Import/Export: Save your trees to your computer for backup or sharing, and load them back anytime.
 - Load multiple files and merge them
 
 ## Possible features
