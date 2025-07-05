@@ -18,6 +18,10 @@ export interface Translations {
   manageTrees: string;
   loading: string;
 
+  // Mode Toggle
+  goToForestMode: string;
+  goToOneTreeMode: string;
+
   // Dialog
   editPerson: string;
   addNewPerson: string;

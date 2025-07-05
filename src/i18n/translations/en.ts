@@ -18,6 +18,10 @@ export const en: Translations = {
   manageTrees: "Manage Trees",
   loading: "Loading...",
 
+  // Mode Toggle
+  goToForestMode: "Go to Forest Mode",
+  goToOneTreeMode: "Go to One Tree Mode",
+
   // Dialog
   editPerson: "Edit Person",
   addNewPerson: "Add New Person",

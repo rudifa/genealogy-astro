@@ -18,6 +18,10 @@ export const fr: Translations = {
   manageTrees: "Gérer les Arbres",
   loading: "Chargement...",
 
+  // Mode Toggle
+  goToForestMode: "Aller au Mode Forêt",
+  goToOneTreeMode: "Aller au Mode Arbre Solitaire",
+
   // Dialog
   editPerson: "Modifier Personne",
   addNewPerson: "Ajouter Nouvelle Personne",
