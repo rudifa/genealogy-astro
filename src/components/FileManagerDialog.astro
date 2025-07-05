@@ -81,10 +81,10 @@ const {language, translations} = Astro.props;
                 {translations.createNewTreeFile}
               </label>
             </div>
-            <div id='new-tree-name-input'>
+            <div id='file-manager-tree-name-input' style='display: none;'>
               <input
                 type='text'
-                id='new-tree-name'
+                id='file-manager-tree-name'
                 placeholder={translations.enterTreeName}
                 maxlength='100'
               />
@@ -350,11 +350,11 @@ const {language, translations} = Astro.props;
     margin: 0;
   }
 
-  #new-tree-name-input {
+  #file-manager-tree-name-input {
     margin-top: 10px;
   }
 
-  #new-tree-name {
+  #file-manager-tree-name {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #dee2e6;
@@ -460,8 +460,10 @@ const {language, translations} = Astro.props;
     const uploadDropZone = document.getElementById("upload-drop-zone");
     const selectFileButton = document.getElementById("select-file-button");
     const uploadOptions = document.querySelector(".upload-options");
-    const newTreeNameInput = document.getElementById("new-tree-name-input");
-    const newTreeName = document.getElementById("new-tree-name");
+    const newTreeNameInput = document.getElementById(
+      "file-manager-tree-name-input"
+    );
+    const newTreeName = document.getElementById("file-manager-tree-name");
     const confirmUploadBtn = document.getElementById("confirm-upload");
     const cancelUploadBtn = document.getElementById("cancel-upload");
     const fileInfoSection = document.getElementById("file-info-section");

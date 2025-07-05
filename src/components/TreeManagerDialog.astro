@@ -27,13 +27,13 @@ const {language, translations} = Astro.props;
       </div>
 
       <div class='new-tree-section'>
-        <label for='new-tree-name' id='create-tree-label'
+        <label for='tree-manager-tree-name' id='create-tree-label'
           >{translations.createNewTree}</label
         >
         <div class='new-tree-inputs'>
           <input
             type='text'
-            id='new-tree-name'
+            id='tree-manager-tree-name'
             placeholder={translations.enterTreeName}
             maxlength='50'
           />
@@ -783,7 +783,7 @@ const {language, translations} = Astro.props;
     const closeButton = document.getElementById("close-tree-dialog");
     const cancelButton = document.getElementById("dialog-cancel");
     const createButton = document.getElementById("create-tree-button");
-    const newTreeInput = document.getElementById("new-tree-name");
+    const newTreeInput = document.getElementById("tree-manager-tree-name");
     const copyCheckbox = document.getElementById("copy-current-tree");
     const copyCheckboxContainer = document.getElementById(
       "copy-checkbox-container"
@@ -878,12 +878,12 @@ const {language, translations} = Astro.props;
         availableTreesLabel.textContent = currentTranslations.availableTrees;
 
       const createNewTreeLabel = dialog?.querySelector(
-        '.new-tree-section label[for="new-tree-name"]'
+        '.new-tree-section label[for="tree-manager-tree-name"]'
       );
       if (createNewTreeLabel)
         createNewTreeLabel.textContent = currentTranslations.createNewTree;
 
-      const newTreeInput = dialog?.querySelector("#new-tree-name");
+      const newTreeInput = dialog?.querySelector("#tree-manager-tree-name");
       if (newTreeInput)
         newTreeInput.placeholder = currentTranslations.enterTreeName;
 
@@ -927,7 +927,11 @@ const {language, translations} = Astro.props;
             .replace("{treeB}", selectedOther);
         }
         if (copyCheckboxContainer) {
-          copyCheckboxContainer.style.setProperty("visibility", "hidden", "important");
+          copyCheckboxContainer.style.setProperty(
+            "visibility",
+            "hidden",
+            "important"
+          );
         }
       } else {
         // Show normal mode
@@ -935,7 +939,11 @@ const {language, translations} = Astro.props;
           createTreeLabel.textContent = currentTranslations.createNewTree;
         }
         if (copyCheckboxContainer) {
-          copyCheckboxContainer.style.setProperty("visibility", "visible", "important");
+          copyCheckboxContainer.style.setProperty(
+            "visibility",
+            "visible",
+            "important"
+          );
         }
       }
     }
@@ -1224,8 +1232,15 @@ const {language, translations} = Astro.props;
 
         // Add visual indication that the name is clickable
         treeNameSpan.style.setProperty("cursor", "pointer", "important");
-        treeNameSpan.style.setProperty("text-decoration", "underline", "important");
-        treeNameSpan.title = currentTranslations.clickToSwitchTo.replace("{treeName}", treeName);
+        treeNameSpan.style.setProperty(
+          "text-decoration",
+          "underline",
+          "important"
+        );
+        treeNameSpan.title = currentTranslations.clickToSwitchTo.replace(
+          "{treeName}",
+          treeName
+        );
       }
 
       // Add general click handler to tree item to prevent any other unwanted behavior
@@ -1267,7 +1282,9 @@ const {language, translations} = Astro.props;
     }
 
     function updateCreateButtonState() {
-      if (!newTreeInput || !createButton) return;
+      if (!newTreeInput || !createButton) {
+        return;
+      }
 
       const treeName = newTreeInput.value.trim();
       const isEmpty = treeName === "";
@@ -1308,9 +1325,7 @@ const {language, translations} = Astro.props;
           }
 
           // Import GenealogyData class
-          const {GenealogyData} = await import(
-            "/utility/GenealogyData.js"
-          );
+          const {GenealogyData} = await import("/utility/GenealogyData.js");
 
           // Create GenealogyData instances
           const currentTree = new GenealogyData(currentTreeData);
@@ -1394,7 +1409,11 @@ const {language, translations} = Astro.props;
     }
 
     if (newTreeInput) {
-      newTreeInput.addEventListener("input", updateCreateButtonState);
+      const inputHandler = function (event) {
+        updateCreateButtonState();
+      };
+
+      newTreeInput.addEventListener("input", inputHandler);
       newTreeInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter" && !createButton.disabled) {
           createNewTree();
@@ -1422,5 +1441,7 @@ const {language, translations} = Astro.props;
   }
 
   // Initialize when DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeTreeManagementDialog);
+  document.addEventListener("DOMContentLoaded", function () {
+    initializeTreeManagementDialog();
+  });
 </script>
