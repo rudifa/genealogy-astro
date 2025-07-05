@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
 console.log('=== MERGE FUNCTIONALITY DEMONSTRATION (Node.js) ===\n');
 
@@ -9,7 +9,7 @@ function testErrorHandling() {
   console.log('🚨 Testing Error Handling Scenarios');
   console.log('─'.repeat(50));
 
-  const testTree = new GenealogyData({
+  const testTree = new GenealogyTreeData({
     persons: [
       { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe' }
     ]
@@ -18,7 +18,7 @@ function testErrorHandling() {
   // Test 1: Invalid tree type
   console.log('1. Testing invalid tree type error:');
   try {
-    testTree.mergeTree({ persons: [] }); // Not a GenealogyData instance
+    testTree.mergeTree({ persons: [] }); // Not a GenealogyTreeData instance
   } catch (error) {
     console.log(`   ✓ Caught expected error: "${error.message}"`);
   }
@@ -26,10 +26,10 @@ function testErrorHandling() {
   // Test 2: Invalid merge strategy (gets caught and put in conflicts)
   console.log('\n2. Testing invalid merge strategy handling:');
   try {
-    const tree1 = new GenealogyData({
+    const tree1 = new GenealogyTreeData({
       persons: [{ name: 'Test', mother: 'Mom', father: 'Dad' }]
     });
-    const tree2 = new GenealogyData({
+    const tree2 = new GenealogyTreeData({
       persons: [{ name: 'Test', mother: 'Other Mom', father: 'Other Dad' }]
     });
     const stats = tree1.mergeTree(tree2, 'invalid-strategy');
@@ -73,13 +73,13 @@ function testSuccessfulMerges() {
   // Scenario 1: Basic merge with error handling wrapper
   console.log('1. Basic merge with error handling:');
   try {
-    const tree1 = new GenealogyData({
+    const tree1 = new GenealogyTreeData({
       persons: [
         { name: 'Alice', mother: 'Mom A', father: null }
       ]
     });
 
-    const tree2 = new GenealogyData({
+    const tree2 = new GenealogyTreeData({
       persons: [
         { name: 'Alice', mother: null, father: 'Dad A' },
         { name: 'Bob', mother: 'Mom B', father: 'Dad B' }
@@ -108,13 +108,13 @@ function testSuccessfulMerges() {
   // Scenario 2: Merge with conflicts
   console.log('\n2. Merge with conflicts and error handling:');
   try {
-    const tree1 = new GenealogyData({
+    const tree1 = new GenealogyTreeData({
       persons: [
         { name: 'Charlie', mother: 'Original Mom', father: 'Original Dad' }
       ]
     });
 
-    const tree2 = new GenealogyData({
+    const tree2 = new GenealogyTreeData({
       persons: [
         { name: 'Charlie', mother: 'Different Mom', father: 'Different Dad' }
       ]
@@ -155,13 +155,13 @@ function testAllStrategies() {
     console.log(`Testing strategy: ${strategy}`);
 
     try {
-      const tree1 = new GenealogyData({
+      const tree1 = new GenealogyTreeData({
         persons: [
           { name: 'Test Person', mother: 'Mom 1', father: null }
         ]
       });
 
-      const tree2 = new GenealogyData({
+      const tree2 = new GenealogyTreeData({
         persons: [
           { name: 'Test Person', mother: null, father: 'Dad 2' }
         ]
@@ -194,7 +194,7 @@ Here's how you should handle mergeTree errors in your Astro components:
      // Handle success
    } catch (error) {
      // Handle specific errors
-     if (error.message.includes('must be an instance of GenealogyData')) {
+     if (error.message.includes('must be an instance of GenealogyTreeData')) {
        showUserError('Invalid data format');
      } else {
        showUserError('Merge failed: ' + error.message);
@@ -215,7 +215,7 @@ Here's how you should handle mergeTree errors in your Astro components:
    async function safeMerge(treeData, strategy) {
      try {
        validateBeforeMerge(treeData, strategy);
-       const otherTree = new GenealogyData(treeData);
+       const otherTree = new GenealogyTreeData(treeData);
        const stats = genealogyData.mergeTree(otherTree, strategy);
        saveDataToStorage();
        showSuccess('Merge completed!');

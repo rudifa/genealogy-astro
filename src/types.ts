@@ -9,7 +9,7 @@ export interface TreeDataType {
   persons: PersonType[];
 }
 
-export interface StorageDataType {
+export interface ForestDataType {
   activeTreeName: string;
   trees: Record<string, TreeDataType>;
 }

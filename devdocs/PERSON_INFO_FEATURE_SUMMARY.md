@@ -18,7 +18,7 @@ Successfully implemented a new `person.info` field that allows users to add addi
 
 ### 2. Backend Logic Updates
 
-**GenealogyData.js (`public/utility/GenealogyData.js`)**
+**GenealogyTreeData.js (`public/utility/GenealogyTreeData.js`)**
 
 - Updated JSDoc comments to include info field
 - Modified `addPerson()` and `updatePerson()` methods
@@ -135,7 +135,7 @@ The info field can contain various types of information:
 
 ### Test Coverage Added
 
-Added comprehensive test suite in `test/GenealogyData.test.js`:
+Added comprehensive test suite in `test/GenealogyTreeData.test.js`:
 
 #### Person Info Field Tests (10 tests)
 

@@ -1324,12 +1324,14 @@ const {language, translations} = Astro.props;
             throw new Error("Could not retrieve tree data for merging");
           }
 
-          // Import GenealogyData class
-          const {GenealogyData} = await import("/utility/GenealogyData.js");
+          // Import GenealogyTreeData class
+          const {GenealogyTreeData} = await import(
+            "/utility/GenealogyTreeData.js"
+          );
 
-          // Create GenealogyData instances
-          const currentTree = new GenealogyData(currentTreeData);
-          const otherTree = new GenealogyData(otherTreeData);
+          // Create GenealogyTreeData instances
+          const currentTree = new GenealogyTreeData(currentTreeData);
+          const otherTree = new GenealogyTreeData(otherTreeData);
 
           // Perform the merge using default strategy
           const mergeStats = currentTree.mergeTree(

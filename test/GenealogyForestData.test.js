@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert';
-import { StorageManager } from '../public/utility/StorageManager.js';
+import { GenealogyForestData } from '../public/utility/GenealogyForestData.js';
 
 // Mock localStorage for Node.js environment
 global.localStorage = {
@@ -19,8 +19,8 @@ global.localStorage = {
   }
 };
 
-describe('StorageManager', () => {
-  let storageManager;
+describe('GenealogyForestData', () => {
+  let currentForestData;
   const testTreeData = {
     persons: [
       { name: "John Doe", mother: null, father: null },
@@ -32,8 +32,8 @@ describe('StorageManager', () => {
     // Clear localStorage before each test
     global.localStorage.clear();
 
-    // Initialize fresh StorageManager
-    storageManager = new StorageManager(
+    // Initialize fresh GenealogyForestData
+    currentForestData = new GenealogyForestData(
       "test-genealogy-data",
       "Test Tree",
       testTreeData,
@@ -48,22 +48,22 @@ describe('StorageManager', () => {
 
   describe('Basic Operations', () => {
     it('should return default tree name when no data exists', () => {
-      const treeName = storageManager.getCurrentTreeName();
+      const treeName = currentForestData.getCurrentTreeName();
       assert.strictEqual(treeName, "Test Tree");
     });
 
     it('should return default tree in available trees list', () => {
-      const trees = storageManager.getAvailableTrees();
+      const trees = currentForestData.getAvailableTrees();
       assert.deepStrictEqual(trees, ["Test Tree"]);
     });
 
     it('should return default tree data when no storage exists', () => {
-      const activeData = storageManager.getActiveTreeData();
+      const activeData = currentForestData.getActiveTreeData();
       assert.deepStrictEqual(activeData, testTreeData);
     });
 
     it('should get storage statistics correctly', () => {
-      const stats = storageManager.getStorageStats();
+      const stats = currentForestData.getStorageStats();
       assert.strictEqual(stats.treeCount, 0);
       assert.strictEqual(stats.totalPersons, 0);
       assert.strictEqual(stats.activeTree, "Test Tree");
@@ -73,36 +73,36 @@ describe('StorageManager', () => {
 
   describe('Tree Creation', () => {
     it('should create a new tree successfully', () => {
-      const success = storageManager.createNewTree("New Tree", testTreeData);
+      const success = currentForestData.createNewTree("New Tree", testTreeData);
       assert.strictEqual(success, true);
 
-      const trees = storageManager.getAvailableTrees();
+      const trees = currentForestData.getAvailableTrees();
       assert.ok(trees.includes("New Tree"));
     });
 
     it('should create an empty tree when no source data provided', () => {
-      const success = storageManager.createNewTree("Empty Tree");
+      const success = currentForestData.createNewTree("Empty Tree");
       assert.strictEqual(success, true);
 
-      const treeData = storageManager.getTreeData("Empty Tree");
+      const treeData = currentForestData.getTreeData("Empty Tree");
       assert.deepStrictEqual(treeData.persons, []);
     });
 
     it('should throw error for empty tree name', () => {
       assert.throws(() => {
-        storageManager.createNewTree("");
+        currentForestData.createNewTree("");
       }, /Tree name cannot be empty/);
 
       assert.throws(() => {
-        storageManager.createNewTree("   ");
+        currentForestData.createNewTree("   ");
       }, /Tree name cannot be empty/);
     });
 
     it('should throw error for duplicate tree name', () => {
-      storageManager.createNewTree("Test Tree 2");
+      currentForestData.createNewTree("Test Tree 2");
 
       assert.throws(() => {
-        storageManager.createNewTree("Test Tree 2");
+        currentForestData.createNewTree("Test Tree 2");
       }, /Tree with this name already exists/);
     });
 
@@ -113,7 +113,7 @@ describe('StorageManager', () => {
       };
 
       assert.throws(() => {
-        storageManager.createNewTree("", null, translations);
+        currentForestData.createNewTree("", null, translations);
       }, /Custom empty message/);
     });
   });
@@ -121,26 +121,26 @@ describe('StorageManager', () => {
   describe('Tree Switching', () => {
     beforeEach(() => {
       // Create a second tree for switching tests
-      storageManager.createNewTree("Second Tree", testTreeData);
+      currentForestData.createNewTree("Second Tree", testTreeData);
     });
 
     it('should switch to existing tree successfully', () => {
-      const success = storageManager.switchToTree("Second Tree");
+      const success = currentForestData.switchToTree("Second Tree");
       assert.strictEqual(success, true);
 
-      const currentTree = storageManager.getCurrentTreeName();
+      const currentTree = currentForestData.getCurrentTreeName();
       assert.strictEqual(currentTree, "Second Tree");
     });
 
     it('should return false when switching to non-existent tree', () => {
-      const success = storageManager.switchToTree("Non-existent Tree");
+      const success = currentForestData.switchToTree("Non-existent Tree");
       assert.strictEqual(success, false);
     });
 
     it('should update storage stats after switching', () => {
-      storageManager.switchToTree("Second Tree");
+      currentForestData.switchToTree("Second Tree");
 
-      const stats = storageManager.getStorageStats();
+      const stats = currentForestData.getStorageStats();
       assert.strictEqual(stats.activeTree, "Second Tree");
       assert.strictEqual(stats.trees["Second Tree"].isActive, true);
       assert.strictEqual(stats.trees["Test Tree"].isActive, false);
@@ -149,56 +149,56 @@ describe('StorageManager', () => {
 
   describe('Tree Operations', () => {
     beforeEach(() => {
-      storageManager.createNewTree("Target Tree", testTreeData);
+      currentForestData.createNewTree("Target Tree", testTreeData);
     });
 
     it('should rename tree successfully', () => {
-      const success = storageManager.renameTree("Target Tree", "Renamed Tree");
+      const success = currentForestData.renameTree("Target Tree", "Renamed Tree");
       assert.strictEqual(success, true);
 
-      const trees = storageManager.getAvailableTrees();
+      const trees = currentForestData.getAvailableTrees();
       assert.ok(trees.includes("Renamed Tree"));
       assert.ok(!trees.includes("Target Tree"));
     });
 
     it('should update active tree name when renaming active tree', () => {
-      storageManager.switchToTree("Target Tree");
-      storageManager.renameTree("Target Tree", "Renamed Tree");
+      currentForestData.switchToTree("Target Tree");
+      currentForestData.renameTree("Target Tree", "Renamed Tree");
 
-      const currentTree = storageManager.getCurrentTreeName();
+      const currentTree = currentForestData.getCurrentTreeName();
       assert.strictEqual(currentTree, "Renamed Tree");
     });
 
     it('should delete tree successfully', () => {
-      const success = storageManager.deleteTree("Target Tree");
+      const success = currentForestData.deleteTree("Target Tree");
       assert.strictEqual(success, true);
 
-      const trees = storageManager.getAvailableTrees();
+      const trees = currentForestData.getAvailableTrees();
       assert.ok(!trees.includes("Target Tree"));
     });
 
     it('should switch to default when deleting active tree', () => {
-      storageManager.switchToTree("Target Tree");
-      storageManager.deleteTree("Target Tree");
+      currentForestData.switchToTree("Target Tree");
+      currentForestData.deleteTree("Target Tree");
 
-      const currentTree = storageManager.getCurrentTreeName();
+      const currentTree = currentForestData.getCurrentTreeName();
       assert.strictEqual(currentTree, "Test Tree");
     });
 
     it('should throw error when trying to delete default tree', () => {
       assert.throws(() => {
-        storageManager.deleteTree("Test Tree");
+        currentForestData.deleteTree("Test Tree");
       }, /Cannot delete the Test Tree tree/);
     });
 
     it('should throw error when trying to rename default tree', () => {
       assert.throws(() => {
-        storageManager.renameTree("Test Tree", "New Name");
+        currentForestData.renameTree("Test Tree", "New Name");
       }, /Cannot rename the Test Tree tree/);
     });
 
     it('should handle rename with same name gracefully', () => {
-      const success = storageManager.renameTree("Target Tree", "Target Tree");
+      const success = currentForestData.renameTree("Target Tree", "Target Tree");
       assert.strictEqual(success, true);
     });
   });
@@ -212,9 +212,9 @@ describe('StorageManager', () => {
         ]
       };
 
-      storageManager.saveTreeData("Test Tree", treeData, true);
+      currentForestData.saveTreeData("Test Tree", treeData, true);
 
-      const retrievedData = storageManager.getTreeData("Test Tree");
+      const retrievedData = currentForestData.getTreeData("Test Tree");
       assert.deepStrictEqual(retrievedData, treeData);
     });
 
@@ -226,9 +226,9 @@ describe('StorageManager', () => {
         ]
       };
 
-      storageManager.saveTreeData("Test Tree", treeData, true);
+      currentForestData.saveTreeData("Test Tree", treeData, true);
 
-      const stats = storageManager.getStorageStats();
+      const stats = currentForestData.getStorageStats();
       assert.strictEqual(stats.totalPersons, 2);
       assert.strictEqual(stats.trees["Test Tree"].personCount, 2);
     });
@@ -237,30 +237,35 @@ describe('StorageManager', () => {
   describe('Storage Management', () => {
     beforeEach(() => {
       // Set up some data
-      storageManager.createNewTree("Tree 1", testTreeData);
-      storageManager.createNewTree("Tree 2", testTreeData);
+      currentForestData.createNewTree("Tree 1", testTreeData);
+      currentForestData.createNewTree("Tree 2", testTreeData);
     });
 
     it('should clear all storage data', () => {
-      storageManager.clearStorage();
+      currentForestData.clearStorage();
 
-      const data = storageManager.getStorageData();
-      assert.strictEqual(data, null);
+      // Test indirectly by checking that we get default values
+      // (which indicates storage is empty)
+      const trees = currentForestData.getAvailableTrees();
+      assert.deepStrictEqual(trees, ["Test Tree"]);
+
+      const currentTree = currentForestData.getCurrentTreeName();
+      assert.strictEqual(currentTree, "Test Tree");
     });
 
     it('should reset to default state', () => {
-      storageManager.resetToDefault();
+      currentForestData.resetToDefault();
 
-      const trees = storageManager.getAvailableTrees();
+      const trees = currentForestData.getAvailableTrees();
       assert.deepStrictEqual(trees, ["Test Tree"]);
 
-      const currentTree = storageManager.getCurrentTreeName();
+      const currentTree = currentForestData.getCurrentTreeName();
       assert.strictEqual(currentTree, "Test Tree");
     });
 
     it('should check tree existence correctly', () => {
-      assert.strictEqual(storageManager.treeExists("Tree 1"), true);
-      assert.strictEqual(storageManager.treeExists("Non-existent"), false);
+      assert.strictEqual(currentForestData.treeExists("Tree 1"), true);
+      assert.strictEqual(currentForestData.treeExists("Non-existent"), false);
     });
   });
 });

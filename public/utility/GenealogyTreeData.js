@@ -1,12 +1,12 @@
 /**
- * GenealogyData handles genealogy tree operations and DOT graph generation.
+ * GenealogyTreeData handles genealogy tree operations and DOT graph generation.
  * Manages person data and relationships for family tree visualization.
  *
  * Expected data structures (matching TypeScript interfaces):
  * - PersonType: { name: string, mother?: string, father?: string }
  * - TreeDataType: { persons: PersonType[] }
  */
-export class GenealogyData {
+export class GenealogyTreeData {
   /**
    * @param {Object} initialData - Tree data matching TreeDataType interface
    * @param {Array} initialData.persons - Array of person objects with name, mother?, father? properties
@@ -250,14 +250,14 @@ export class GenealogyData {
 
   /**
    * Merge another genealogy tree into this one
-   * @param {GenealogyData} otherTree - Another GenealogyData instance to merge
+   * @param {GenealogyTreeData} otherTree - Another GenealogyTreeData instance to merge
    * @param {string} mergeStrategy - Strategy for merging duplicate persons: 'keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'
    * @param {boolean} updateReferences - Whether to update references after merging (default: true)
    * @returns {Object} Merge statistics: { merged: number, added: number, conflicts: Array }
    */
   mergeTree(otherTree, mergeStrategy = 'combine-non-null', updateReferences = true) {
-    if (!(otherTree instanceof GenealogyData)) {
-      throw new Error('otherTree must be an instance of GenealogyData');
+    if (!(otherTree instanceof GenealogyTreeData)) {
+      throw new Error('otherTree must be an instance of GenealogyTreeData');
     }
 
     const stats = {

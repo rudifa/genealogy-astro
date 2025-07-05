@@ -42,8 +42,8 @@
         "lint": "astro check",
         "clean": "rm -rf dist .astro",
         "test": "node --test 'test/**/*.test.js'",
-        "test:storage": "node test/StorageManager.test.js",
-        "test:genealogy": "node test/GenealogyData.test.js",
+        "test:forest-data": "node test/GenealogyForestData.test.js",
+        "test:tree-data": "node test/GenealogyTreeData.test.js",
         "test:manual": "echo 'Manual tests are in the manual/ directory. Run them individually with node manual/<filename>.js'"
     },
     "dependencies": {

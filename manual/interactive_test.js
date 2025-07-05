@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
 console.log('=== INTERACTIVE MERGE TESTING ===');
 console.log('This script demonstrates various merge scenarios you can modify and test\n');
@@ -10,8 +10,8 @@ function testMergeScenario(description, tree1Data, tree2Data, strategy = 'combin
   console.log(`🧪 ${description}`);
   console.log('─'.repeat(50));
 
-  const tree1 = new GenealogyData(tree1Data);
-  const tree2 = new GenealogyData(tree2Data);
+  const tree1 = new GenealogyTreeData(tree1Data);
+  const tree2 = new GenealogyTreeData(tree2Data);
 
   console.log('Tree 1:');
   tree1.persons.forEach(p => console.log(`  ${p.name} (mother: ${p.mother || 'null'}, father: ${p.father || 'null'})`));
@@ -128,8 +128,8 @@ const testData2 = {
 const strategies = ['keep-first', 'keep-second', 'combine-non-null', 'prefer-complete'];
 
 strategies.forEach(strategy => {
-  const tree1 = new GenealogyData(JSON.parse(JSON.stringify(testData1)));
-  const tree2 = new GenealogyData(JSON.parse(JSON.stringify(testData2)));
+  const tree1 = new GenealogyTreeData(JSON.parse(JSON.stringify(testData1)));
+  const tree2 = new GenealogyTreeData(JSON.parse(JSON.stringify(testData2)));
 
   const stats = tree1.mergeTree(tree2, strategy);
   const alice = tree1.persons.find(p => p.name === 'Alice Test');

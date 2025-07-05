@@ -1,8 +1,8 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
-describe('GenealogyData', () => {
+describe('GenealogyTreeData', () => {
   let data;
   const initialPersons = {
     persons: [
@@ -13,7 +13,7 @@ describe('GenealogyData', () => {
 
   beforeEach(() => {
     // Deep copy to prevent tests from interfering with each other
-    data = new GenealogyData(JSON.parse(JSON.stringify(initialPersons)));
+    data = new GenealogyTreeData(JSON.parse(JSON.stringify(initialPersons)));
   });
 
   it('should initialize correctly and add missing persons', () => {
@@ -121,7 +121,7 @@ describe('GenealogyData', () => {
   });
 
   it('should generate a DOT string for a person with one parent', () => {
-    const singleParentData = new GenealogyData({
+    const singleParentData = new GenealogyTreeData({
       persons: [{ name: 'Child', mother: 'Mom', father: null }]
     });
     const dotString = singleParentData.genealogyDotString();
@@ -141,7 +141,7 @@ describe('Person Merging', () => {
 
   beforeEach(() => {
     // Deep copy to prevent tests from interfering with each other
-    data = new GenealogyData(JSON.parse(JSON.stringify(initialPersons)));
+    data = new GenealogyTreeData(JSON.parse(JSON.stringify(initialPersons)));
   });
 
   it('should merge two persons using combine-non-null strategy', () => {
@@ -237,11 +237,11 @@ describe('Tree Merging', () => {
 
   beforeEach(() => {
     // Deep copy to prevent tests from interfering with each other
-    data = new GenealogyData(JSON.parse(JSON.stringify(initialPersons)));
+    data = new GenealogyTreeData(JSON.parse(JSON.stringify(initialPersons)));
   });
 
   it('should merge trees using combine-non-null strategy', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Different Mom', father: 'Jack Doe' },
         { name: 'Alice Smith', mother: 'Alice Mom', father: 'Alice Dad' },
@@ -264,7 +264,7 @@ describe('Tree Merging', () => {
   });
 
   it('should merge trees using keep-first strategy', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Different Mom', father: 'Jack Doe' },
         { name: 'Alice Smith', mother: 'Alice Mom', father: 'Alice Dad' },
@@ -282,7 +282,7 @@ describe('Tree Merging', () => {
   });
 
   it('should merge trees using keep-second strategy', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Different Mom', father: 'Jack Doe' },
         { name: 'Alice Smith', mother: 'Alice Mom', father: 'Alice Dad' },
@@ -300,7 +300,7 @@ describe('Tree Merging', () => {
   });
 
   it('should detect conflicts when merging', () => {
-    const conflictTree = new GenealogyData({
+    const conflictTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Conflicting Mom', father: 'Conflicting Dad' }
       ]
@@ -315,7 +315,7 @@ describe('Tree Merging', () => {
   });
 
   it('should handle empty tree merge', () => {
-    const emptyTree = new GenealogyData({ persons: [] });
+    const emptyTree = new GenealogyTreeData({ persons: [] });
     const stats = data.mergeTree(emptyTree);
 
     assert.strictEqual(stats.merged, 0);
@@ -324,14 +324,14 @@ describe('Tree Merging', () => {
     assert.strictEqual(data.persons.length, 3, 'Original tree should be unchanged');
   });
 
-  it('should throw error when merging with non-GenealogyData object', () => {
+  it('should throw error when merging with non-GenealogyTreeData object', () => {
     assert.throws(() => {
       data.mergeTree({ persons: [] });
-    }, /otherTree must be an instance of GenealogyData/);
+    }, /otherTree must be an instance of GenealogyTreeData/);
   });
 
   it('should merge without updating references when specified', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Different Mom', father: 'Jack Doe' },
         { name: 'Alice Smith', mother: 'Alice Mom', father: 'Alice Dad' },
@@ -349,7 +349,7 @@ describe('Tree Merging', () => {
   });
 
   it('should merge complex tree with multiple relationships', () => {
-    const complexTree = new GenealogyData({
+    const complexTree = new GenealogyTreeData({
       persons: [
         { name: 'Grandpa Smith', mother: null, father: null },
         { name: 'Grandma Smith', mother: null, father: null },
@@ -382,7 +382,7 @@ describe('Person Info Field', () => {
   };
 
   beforeEach(() => {
-    data = new GenealogyData(JSON.parse(JSON.stringify(initialPersonsWithInfo)));
+    data = new GenealogyTreeData(JSON.parse(JSON.stringify(initialPersonsWithInfo)));
   });
 
   it('should initialize correctly with info fields', () => {
@@ -493,7 +493,7 @@ describe('Person Merging with Info Field', () => {
   let data;
 
   beforeEach(() => {
-    data = new GenealogyData({
+    data = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: 'Original info' },
         { name: 'Jane Doe', mother: null, father: null, info: null },
@@ -540,7 +540,7 @@ describe('Person Merging with Info Field', () => {
   });
 
   it('should detect info conflicts during tree merge', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'John Doe', mother: 'Jane Doe', father: 'Jack Doe', info: 'Different info' }
       ]
@@ -560,7 +560,7 @@ describe('Person Merging with Info Field', () => {
   });
 
   it('should merge trees without info conflicts when no conflicts exist', () => {
-    const otherTree = new GenealogyData({
+    const otherTree = new GenealogyTreeData({
       persons: [
         { name: 'New Person', mother: null, father: null, info: 'Some info' },
         { name: 'Jane Doe', mother: 'Grandma', father: 'Grandpa', info: 'Added info' }

@@ -433,7 +433,7 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {GenealogyData} from "/utility/GenealogyData.js";
+  import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
 
   // File Manager functionality
   function initializeFileManager() {
@@ -985,7 +985,7 @@ const {language, translations} = Astro.props;
 
         // Now load the imported data into the new tree
         console.log("FileManager: Setting genealogyData with imported data");
-        window.genealogyData = new GenealogyData(treeData);
+        window.genealogyData = new GenealogyTreeData(treeData);
         console.log(
           "FileManager: New genealogyData persons count:",
           window.genealogyData.persons?.length || 0
@@ -1036,7 +1036,7 @@ const {language, translations} = Astro.props;
       } else if (uploadMode === "replace") {
         const currentTreeName = treeManager.getCurrentTreeName();
         console.log("FileManager: Replacing current tree:", currentTreeName);
-        window.genealogyData = new GenealogyData(treeData);
+        window.genealogyData = new GenealogyTreeData(treeData);
         console.log(
           "FileManager: New genealogyData persons count:",
           window.genealogyData.persons?.length || 0
@@ -1076,7 +1076,7 @@ const {language, translations} = Astro.props;
           mergedData?.persons?.length || 0
         );
 
-        window.genealogyData = new GenealogyData(mergedData);
+        window.genealogyData = new GenealogyTreeData(mergedData);
 
         // Save the data to storage
         if (window.saveDataToStorage) {
@@ -1145,7 +1145,7 @@ const {language, translations} = Astro.props;
             await treeManager.switchToTree(treeName);
 
             // Now load the merged data
-            window.genealogyData = new GenealogyData(mergedData);
+            window.genealogyData = new GenealogyTreeData(mergedData);
 
             // Save the data to storage (now it will save to the correct tree)
             if (window.saveDataToStorage) {
@@ -1156,7 +1156,7 @@ const {language, translations} = Astro.props;
             await treeManager.switchToTree(treeName);
 
             // Now load the replacement data
-            window.genealogyData = new GenealogyData(treeData);
+            window.genealogyData = new GenealogyTreeData(treeData);
 
             // Save the data to storage (now it will save to the correct tree)
             if (window.saveDataToStorage) {
@@ -1171,7 +1171,7 @@ const {language, translations} = Astro.props;
           await treeManager.switchToTree(treeName);
 
           // Now load the data into the new tree
-          window.genealogyData = new GenealogyData(treeData);
+          window.genealogyData = new GenealogyTreeData(treeData);
 
           // Save the data to storage (now it will save to the correct tree)
           if (window.saveDataToStorage) {
@@ -1187,7 +1187,7 @@ const {language, translations} = Astro.props;
       } else {
         // Refresh current tree - stay on current tree
         const currentTreeData = treeManager.getCurrentTreeData();
-        window.genealogyData = new GenealogyData(currentTreeData);
+        window.genealogyData = new GenealogyTreeData(currentTreeData);
       }
 
       const treeCount = Object.keys(importedTrees).length;
