@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
 console.log('=== GENEALOGY DATA MERGE TESTING ===\n');
 
@@ -40,14 +40,14 @@ function displayMergeStats(stats) {
 console.log('🧪 TEST CASE 1: Basic merge with complementary information');
 console.log('='.repeat(60));
 
-const tree1 = new GenealogyData({
+const tree1 = new GenealogyTreeData({
   persons: [
     { name: 'Alice', mother: 'Helen', father: null },
     { name: 'Bob', mother: null, father: 'Robert' }
   ]
 });
 
-const tree2 = new GenealogyData({
+const tree2 = new GenealogyTreeData({
   persons: [
     { name: 'Alice', mother: null, father: 'Henry' },
     { name: 'Charlie', mother: 'Sarah', father: 'David' }
@@ -58,7 +58,7 @@ displayTree(tree1, 'Tree 1 (before merge)');
 displayTree(tree2, 'Tree 2');
 
 console.log('Strategy: combine-non-null');
-const tree1Copy = new GenealogyData({ persons: JSON.parse(JSON.stringify(tree1.persons)) });
+const tree1Copy = new GenealogyTreeData({ persons: JSON.parse(JSON.stringify(tree1.persons)) });
 const stats1 = tree1Copy.mergeTree(tree2, 'combine-non-null');
 displayMergeStats(stats1);
 displayTree(tree1Copy, 'Result after merge');
@@ -67,14 +67,14 @@ displayTree(tree1Copy, 'Result after merge');
 console.log('🧪 TEST CASE 2: Conflicting information with different strategies');
 console.log('='.repeat(60));
 
-const conflictTree1 = new GenealogyData({
+const conflictTree1 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: 'Mary', father: 'Paul' },
     { name: 'Mary', mother: 'Grandma1', father: 'Grandpa1' }
   ]
 });
 
-const conflictTree2 = new GenealogyData({
+const conflictTree2 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: 'Maria', father: 'Paulo' },
     { name: 'Jane', mother: 'Anna', father: 'Mark' }
@@ -88,7 +88,7 @@ const strategies = ['keep-first', 'keep-second', 'combine-non-null', 'prefer-com
 
 strategies.forEach(strategy => {
   console.log(`--- Strategy: ${strategy} ---`);
-  const testTree = new GenealogyData({ persons: JSON.parse(JSON.stringify(conflictTree1.persons)) });
+  const testTree = new GenealogyTreeData({ persons: JSON.parse(JSON.stringify(conflictTree1.persons)) });
   const stats = testTree.mergeTree(conflictTree2, strategy);
   displayMergeStats(stats);
 
@@ -100,7 +100,7 @@ strategies.forEach(strategy => {
 console.log('🧪 TEST CASE 3: Complex family relationships');
 console.log('='.repeat(60));
 
-const familyTree1 = new GenealogyData({
+const familyTree1 = new GenealogyTreeData({
   persons: [
     { name: 'Child1', mother: 'Mom', father: 'Dad' },
     { name: 'Child2', mother: 'Mom', father: 'Dad' },
@@ -108,7 +108,7 @@ const familyTree1 = new GenealogyData({
   ]
 });
 
-const familyTree2 = new GenealogyData({
+const familyTree2 = new GenealogyTreeData({
   persons: [
     { name: 'Child3', mother: 'Mom', father: 'Dad' },
     { name: 'Mom', mother: 'Grandma', father: 'Grandpa' },
@@ -120,7 +120,7 @@ displayTree(familyTree1, 'Family Tree 1');
 displayTree(familyTree2, 'Family Tree 2');
 
 console.log('Strategy: combine-non-null');
-const mergedFamily = new GenealogyData({ persons: JSON.parse(JSON.stringify(familyTree1.persons)) });
+const mergedFamily = new GenealogyTreeData({ persons: JSON.parse(JSON.stringify(familyTree1.persons)) });
 const familyStats = mergedFamily.mergeTree(familyTree2, 'combine-non-null');
 displayMergeStats(familyStats);
 displayTree(mergedFamily, 'Merged Family Tree');
@@ -129,7 +129,7 @@ displayTree(mergedFamily, 'Merged Family Tree');
 console.log('🧪 TEST CASE 4: Individual person merge examples');
 console.log('='.repeat(60));
 
-const testTree = new GenealogyData({ persons: [] });
+const testTree = new GenealogyTreeData({ persons: [] });
 
 const personTests = [
   {
@@ -170,8 +170,8 @@ console.log('🧪 TEST CASE 5: Edge cases');
 console.log('='.repeat(60));
 
 console.log('5a. Merging empty tree:');
-const emptyTree = new GenealogyData({ persons: [] });
-const nonEmptyTree = new GenealogyData({
+const emptyTree = new GenealogyTreeData({ persons: [] });
+const nonEmptyTree = new GenealogyTreeData({
   persons: [{ name: 'Solo', mother: null, father: null }]
 });
 displayTree(nonEmptyTree, 'Non-empty tree');
@@ -180,23 +180,23 @@ displayMergeStats(emptyStats);
 displayTree(nonEmptyTree, 'After merging empty tree');
 
 console.log('5b. Self-merge (tree merging with itself):');
-const selfTree = new GenealogyData({
+const selfTree = new GenealogyTreeData({
   persons: [
     { name: 'Self1', mother: 'Mom', father: 'Dad' },
     { name: 'Self2', mother: 'Mom', father: null }
   ]
 });
 displayTree(selfTree, 'Self tree before');
-const selfTreeCopy = new GenealogyData({ persons: JSON.parse(JSON.stringify(selfTree.persons)) });
+const selfTreeCopy = new GenealogyTreeData({ persons: JSON.parse(JSON.stringify(selfTree.persons)) });
 const selfStats = selfTree.mergeTree(selfTreeCopy);
 displayMergeStats(selfStats);
 displayTree(selfTree, 'Self tree after self-merge');
 
 console.log('5c. Merge without updating references:');
-const noRefTree1 = new GenealogyData({
+const noRefTree1 = new GenealogyTreeData({
   persons: [{ name: 'Base', mother: null, father: null }]
 });
-const noRefTree2 = new GenealogyData({
+const noRefTree2 = new GenealogyTreeData({
   persons: [{ name: 'New', mother: 'Unknown Mom', father: 'Unknown Dad' }]
 });
 console.log(`Before merge (no ref update): ${noRefTree1.persons.length} persons`);
@@ -204,7 +204,7 @@ const noRefStats = noRefTree1.mergeTree(noRefTree2, 'combine-non-null', false);
 console.log(`After merge (no ref update): ${noRefTree1.persons.length} persons`);
 displayMergeStats(noRefStats);
 
-const withRefTree1 = new GenealogyData({
+const withRefTree1 = new GenealogyTreeData({
   persons: [{ name: 'Base', mother: null, father: null }]
 });
 console.log(`Before merge (with ref update): ${withRefTree1.persons.length} persons`);

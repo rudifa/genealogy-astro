@@ -108,7 +108,7 @@ const {currentTree, language, translations} = Astro.props;
 
       try {
         const availableTrees = window.genealogyTreeManager.getAvailableTrees();
-        const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+        const currentTree = window.genealogyTreeManager.getSelectedTreeName();
 
         // Clear existing options
         treeSelect.innerHTML = "";
@@ -155,7 +155,7 @@ const {currentTree, language, translations} = Astro.props;
         }
 
         try {
-          const currentTree = window.genealogyTreeManager.getCurrentTreeName();
+          const currentTree = window.genealogyTreeManager.getSelectedTreeName();
 
           if (selectedTree !== currentTree) {
             console.log(`Switching from "${currentTree}" to "${selectedTree}"`);

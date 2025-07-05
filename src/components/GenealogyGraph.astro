@@ -2,6 +2,7 @@
 import type {TreeDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
+import FileManagerDialog from "./FileManagerDialog.astro";
 import GraphRenderer from "./GraphRenderer.astro";
 import Notification from "./Notification.astro";
 import Toolbar from "./Toolbar.astro";
@@ -23,6 +24,7 @@ const {data, language, translations} = Astro.props;
 </div>
 
 <EditPersonDialog language={language} translations={translations} />
+<FileManagerDialog language={language} translations={translations} />
 <TreeManagerDialog language={language} translations={translations} />
 
 <style>
@@ -40,8 +42,8 @@ const {data, language, translations} = Astro.props;
   type='module'
   define:vars={{genealogyDataJson: JSON.stringify(data)}}
 >
-  import {GenealogyData} from "/utility/GenealogyData.js";
-  import {StorageManager} from "/utility/StorageManager.js";
+  import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
+  import {GenealogyForestData} from "/utility/GenealogyForestData.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
   // genealogyDataJson is provided by Astro's define:vars
@@ -50,48 +52,100 @@ const {data, language, translations} = Astro.props;
   const STORAGE_KEY = "genealogy-app-data";
   const EXAMPLE_TREE_NAME = "Family Example";
 
-  let genealogyData;
+  let currentTreeData;
   let currentTreeName = EXAMPLE_TREE_NAME;
-  let storageManager;
+  let currentForestData;
 
-  function initialGenealogyData() {
+  function initialGenealogyTreeData() {
     // @ts-ignore - genealogyDataJson is provided by Astro's define:vars
     return JSON.parse(genealogyDataJson);
   }
 
   // Initialize storage manager
-  storageManager = new StorageManager(
+  currentForestData = new GenealogyForestData(
     STORAGE_KEY,
     EXAMPLE_TREE_NAME,
-    initialGenealogyData()
+    initialGenealogyTreeData()
   );
 
   function loadDataFromStorage() {
     try {
-      currentTreeName = storageManager.getCurrentTreeName();
-      const activeTreeData = storageManager.getActiveTreeData();
+      currentTreeName = currentForestData.getSelectedTreeName();
+      const activeTreeData = currentForestData.getActiveTreeData();
 
       console.log(
         `Loaded data from localStorage for tree: ${currentTreeName}`,
         activeTreeData
       );
-      return new GenealogyData(activeTreeData);
+      console.log(
+        `Persons count in loaded data:`,
+        activeTreeData?.persons?.length || 0
+      );
+
+      // Additional debugging
+      const rawStorageData = currentForestData.getStorageData();
+      console.log(`Raw storage data:`, rawStorageData);
+      if (rawStorageData && rawStorageData.trees) {
+        console.log(
+          `Available trees in storage:`,
+          Object.keys(rawStorageData.trees)
+        );
+        console.log(
+          `Selected tree name in storage:`,
+          rawStorageData.selectedTree
+        );
+        if (rawStorageData.trees[currentTreeName]) {
+          console.log(
+            `Data for current tree ${currentTreeName}:`,
+            rawStorageData.trees[currentTreeName]
+          );
+        }
+      }
+
+      // If you need overall storage statistics
+      const storageStats = currentForestData.getStorageStats();
+      console.log(`Storage statistics:`, storageStats);
+
+      return new GenealogyTreeData(activeTreeData);
     } catch (error) {
       console.warn("Failed to load data from localStorage:", error);
 
       // Fallback to initial data
       console.log("Using initial data from server");
       currentTreeName = EXAMPLE_TREE_NAME;
-      return new GenealogyData(initialGenealogyData());
+      return new GenealogyTreeData(initialGenealogyTreeData());
     }
   }
 
-  function saveDataToStorage() {
+  function saveDataToStorage(treeName = null) {
     try {
+      const targetTreeName = treeName || currentTreeName;
+      // Always use window.genealogyData to ensure we get the current data
+      const currentData = window.genealogyData || currentTreeData;
       const treeData = {
-        persons: genealogyData.persons,
+        persons: currentData.persons,
       };
-      storageManager.saveTreeData(currentTreeName, treeData, true);
+      console.log(`About to save data to tree: ${targetTreeName}`);
+      console.log(`Data being saved:`, treeData);
+      console.log(`Persons count:`, treeData.persons?.length || 0);
+      console.log(
+        `Using data from:`,
+        window.genealogyData ? "window.genealogyData" : "local genealogyData"
+      );
+
+      currentForestData.saveTreeData(targetTreeName, treeData, true);
+      console.log(`Data saved to tree: ${targetTreeName}`);
+
+      // Verify the save worked
+      const savedData = currentForestData.getTreeData(targetTreeName);
+      console.log(
+        `Verification - data retrieved for ${targetTreeName}:`,
+        savedData
+      );
+      console.log(
+        `Verification - persons count:`,
+        savedData?.persons?.length || 0
+      );
     } catch (error) {
       console.error("Failed to save data to localStorage:", error);
     }
@@ -102,19 +156,19 @@ const {data, language, translations} = Astro.props;
       // Save current tree data first
       saveDataToStorage();
 
-      // Use StorageManager to switch
-      const success = storageManager.switchToTree(treeName);
+      // Use GenealogyForestData to switch
+      const success = currentForestData.switchToTree(treeName);
       if (success) {
         currentTreeName = treeName;
-        const newTreeData = storageManager.getTreeData(treeName);
-        genealogyData = new GenealogyData(newTreeData);
+        const newTreeData = currentForestData.getTreeData(treeName);
+        currentTreeData = new GenealogyTreeData(newTreeData);
 
         // Update the global reference so other components can access the new data
-        window.genealogyData = genealogyData;
+        window.genealogyData = currentTreeData;
 
         console.log(`Switched to tree: ${treeName}`);
-        console.log("New genealogy data:", genealogyData);
-        console.log("Persons in new tree:", genealogyData.persons);
+        console.log("New genealogy data:", currentTreeData);
+        console.log("Persons in new tree:", currentTreeData.persons);
         console.log("Updated window.genealogyData:", window.genealogyData);
         return true;
       }
@@ -138,11 +192,11 @@ const {data, language, translations} = Astro.props;
         sourceTreeData = {persons: customPersonsData};
       } else if (copyFromCurrent) {
         // Copy from current tree
-        sourceTreeData = {persons: genealogyData.persons};
+        sourceTreeData = {persons: currentTreeData.persons};
       }
       // If neither, sourceTreeData remains null for empty tree
 
-      return storageManager.createNewTree(
+      return currentForestData.createNewTree(
         treeName,
         sourceTreeData,
         currentTranslations
@@ -155,13 +209,16 @@ const {data, language, translations} = Astro.props;
 
   function deleteTree(treeName) {
     try {
-      const success = storageManager.deleteTree(treeName, currentTranslations);
+      const success = currentForestData.deleteTree(
+        treeName,
+        currentTranslations
+      );
 
       // If we deleted the active tree, update our local variables
       if (treeName === currentTreeName && success) {
-        currentTreeName = storageManager.getCurrentTreeName();
-        const newTreeData = storageManager.getActiveTreeData();
-        genealogyData = new GenealogyData(newTreeData);
+        currentTreeName = currentForestData.getSelectedTreeName();
+        const newTreeData = currentForestData.getActiveTreeData();
+        currentTreeData = new GenealogyTreeData(newTreeData);
       }
 
       return success;
@@ -172,14 +229,14 @@ const {data, language, translations} = Astro.props;
   }
 
   function getAvailableTrees() {
-    return storageManager.getAvailableTrees();
+    return currentForestData.getAvailableTrees();
   }
 
   function resetToOriginalData() {
     try {
-      storageManager.resetToDefault();
+      currentForestData.resetToDefault();
       currentTreeName = EXAMPLE_TREE_NAME;
-      genealogyData = new GenealogyData(initialGenealogyData());
+      currentTreeData = new GenealogyTreeData(initialGenealogyTreeData());
       console.log("Reset to original data");
     } catch (error) {
       console.error("Failed to reset to original data:", error);
@@ -190,28 +247,27 @@ const {data, language, translations} = Astro.props;
   window.genealogyDebug = {
     saveToStorage: saveDataToStorage,
     resetToOriginal: resetToOriginalData,
-    clearStorage: () => storageManager.clearStorage(),
-    getData: () => genealogyData,
-    getCurrentTreeName: () => currentTreeName,
-    getStoredData: () => storageManager.getStorageData(),
+    getData: () => currentTreeData,
+    getSelectedTreeName: () => currentTreeName,
+    getStoredData: () => currentForestData.getStorageData(),
     getAvailableTrees: getAvailableTrees,
     switchToTree: switchToTree,
     createNewTree: createNewTree,
     deleteTree: deleteTree,
-    storageManager: storageManager, // Expose StorageManager for advanced debugging
-    getStorageStats: () => storageManager.getStorageStats(),
+    currentForestData: currentForestData, // Expose GenealogyForestData for advanced debugging
+    getStorageStats: () => currentForestData.getStorageStats(),
   };
 
   // Make tree management functions available globally for the future families dialog
   window.genealogyTreeManager = {
-    getCurrentTreeName: () => currentTreeName,
-    getCurrentTreeData: () => ({persons: genealogyData.persons}),
-    getTreeData: (treeName) => storageManager.getTreeData(treeName),
+    getSelectedTreeName: () => currentTreeName,
+    getCurrentTreeData: () => ({persons: currentTreeData.persons}),
+    getTreeData: (treeName) => currentForestData.getTreeData(treeName),
     getOriginalFamilyExampleData: () => {
-      // Return the original data processed through GenealogyData
+      // Return the original data processed through GenealogyTreeData
       // to match how it would be initialized (with auto-created parent placeholders)
-      const rawOriginalData = initialGenealogyData();
-      const processedData = new GenealogyData(rawOriginalData);
+      const rawOriginalData = initialGenealogyTreeData();
+      const processedData = new GenealogyTreeData(rawOriginalData);
       return {persons: processedData.persons};
     },
     getAvailableTrees: getAvailableTrees,
@@ -222,7 +278,7 @@ const {data, language, translations} = Astro.props;
         updateTreeNameDisplay();
         // Update the edit dialog with new genealogy data
         if (window.updateEditDialogData) {
-          window.updateEditDialogData(genealogyData);
+          window.updateEditDialogData(currentTreeData);
         }
         // Trigger graph re-render
         const event = new CustomEvent("genealogy-tree-changed", {
@@ -250,7 +306,7 @@ const {data, language, translations} = Astro.props;
     },
     renameTree: async (oldName, newName) => {
       try {
-        const success = storageManager.renameTree(
+        const success = currentForestData.renameTree(
           oldName,
           newName,
           currentTranslations
@@ -270,13 +326,13 @@ const {data, language, translations} = Astro.props;
     resetFamilyExample: async () => {
       try {
         // Always load the original family example data
-        const originalData = initialGenealogyData();
+        const originalData = initialGenealogyTreeData();
 
         // If we're currently on the Family Example tree, update the current data
         if (currentTreeName === EXAMPLE_TREE_NAME) {
-          genealogyData = new GenealogyData(originalData);
+          currentTreeData = new GenealogyTreeData(originalData);
           // Update the global reference so other components can access the new data
-          window.genealogyData = genealogyData;
+          window.genealogyData = currentTreeData;
           console.log(
             "Reset Family Example: Updated window.genealogyData:",
             window.genealogyData
@@ -285,7 +341,7 @@ const {data, language, translations} = Astro.props;
 
         // Save the reset data to storage for the Family Example tree
         const treeData = {persons: originalData.persons};
-        storageManager.saveTreeData(EXAMPLE_TREE_NAME, treeData, false);
+        currentForestData.saveTreeData(EXAMPLE_TREE_NAME, treeData, false);
 
         // If we're currently on the Family Example tree, trigger a graph update
         if (currentTreeName === EXAMPLE_TREE_NAME) {
@@ -303,7 +359,7 @@ const {data, language, translations} = Astro.props;
     },
   };
 
-  genealogyData = loadDataFromStorage();
+  currentTreeData = loadDataFromStorage();
   const graphvizPromise = Graphviz.load();
 
   // UI state management
@@ -386,13 +442,13 @@ const {data, language, translations} = Astro.props;
   async function initializeGenealogySystem() {
     try {
       // --- Initialize the edit dialog ---
-      const {openEditDialog, updateGenealogyData} =
-        window.initializeEditDialog(genealogyData);
+      const {openEditDialog, updateGenealogyTreeData} =
+        window.initializeEditDialog(currentTreeData);
 
       // Make functions available globally for components
       window.currentOpenEditDialog = openEditDialog;
-      window.updateEditDialogData = updateGenealogyData;
-      window.genealogyData = genealogyData;
+      window.updateEditDialogData = updateGenealogyTreeData;
+      window.genealogyData = currentTreeData;
       window.genealogyIsRendering = false;
       window.saveDataToStorage = saveDataToStorage;
       window.setLoadingState = setLoadingState;
@@ -440,7 +496,7 @@ const {data, language, translations} = Astro.props;
 
     // If a tree was deleted or switched, ensure edit dialog has current data
     if (window.updateEditDialogData) {
-      window.updateEditDialogData(genealogyData);
+      window.updateEditDialogData(currentTreeData);
     }
   });
 </script>

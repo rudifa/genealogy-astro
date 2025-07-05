@@ -2,7 +2,7 @@
 
 ## What Was Added
 
-### 🔧 **Core Methods in `GenealogyData` class:**
+### 🔧 **Core Methods in `GenealogyTreeData` class:**
 
 1. **`mergePerson(person1, person2, strategy)`** - Merges two person objects with same name
 2. **`mergeTree(otherTree, strategy, updateReferences)`** - Merges another genealogy tree into current one
@@ -10,7 +10,7 @@
 ### 📋 **Merge Strategies:**
 - `'combine-non-null'` (default) - Uses first non-null value for each field
 - `'keep-first'` - Always keeps the existing person's data
-- `'keep-second'` - Always uses the incoming person's data  
+- `'keep-second'` - Always uses the incoming person's data
 - `'prefer-complete'` - Chooses person with more complete information
 
 ### 🧪 **Comprehensive Testing:**
@@ -31,9 +31,9 @@
 ### **Methods throw specific errors:**
 ```javascript
 // mergeTree() throws:
-"otherTree must be an instance of GenealogyData"
+"otherTree must be an instance of GenealogyTreeData"
 
-// mergePerson() throws:  
+// mergePerson() throws:
 "Both persons must be provided for merging"
 "Cannot merge persons with different names"
 "Unknown merge strategy: [strategy]"
@@ -45,7 +45,7 @@ try {
   const stats = genealogyData.mergeTree(otherTree, 'combine-non-null');
   console.log(`Merged: ${stats.merged}, Added: ${stats.added}, Conflicts: ${stats.conflicts.length}`);
 } catch (error) {
-  if (error.message.includes('must be an instance of GenealogyData')) {
+  if (error.message.includes('must be an instance of GenealogyTreeData')) {
     showError('Invalid data format');
   } else {
     showError(`Merge failed: ${error.message}`);
@@ -57,13 +57,13 @@ try {
 
 ### **Basic Tree Merge:**
 ```javascript
-const tree1 = new GenealogyData({
+const tree1 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: 'Mary', father: null }
   ]
 });
 
-const tree2 = new GenealogyData({
+const tree2 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: null, father: 'Bob' },
     { name: 'Alice', mother: 'Sarah', father: 'Tom' }
@@ -91,7 +91,7 @@ if (stats.conflicts.length > 0) {
 
 The `merge_integration_example.js` shows how to integrate merge functionality into your Astro components with:
 - ✅ Proper error handling
-- ✅ User-friendly notifications  
+- ✅ User-friendly notifications
 - ✅ File upload support
 - ✅ Loading states
 - ✅ Input validation
@@ -119,7 +119,7 @@ The `merge_integration_example.js` shows how to integrate merge functionality in
 # Run all original tests + new merge tests
 npm test
 
-# Run Node.js compatible error handling tests  
+# Run Node.js compatible error handling tests
 node node_merge_tests.js
 
 # Run comprehensive manual tests

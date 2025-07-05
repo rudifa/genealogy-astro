@@ -223,9 +223,9 @@ const {language, translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
-  export function initializeEditDialog(initialGenealogyData) {
+  export function initializeEditDialog(initialGenealogyTreeData) {
     // Keep a reference to the current genealogy data that can be updated
-    let genealogyData = initialGenealogyData;
+    let genealogyData = initialGenealogyTreeData;
     // Use global translations, with English as fallback
     let t = window.genealogyTranslations?.[window.currentLanguage] ||
       window.genealogyTranslations?.en || {
@@ -503,8 +503,8 @@ const {language, translations} = Astro.props;
     });
 
     // Function to update the genealogy data reference
-    function updateGenealogyData(newGenealogyData) {
-      genealogyData = newGenealogyData;
+    function updateGenealogyTreeData(newGenealogyTreeData) {
+      genealogyData = newGenealogyTreeData;
       console.log(
         "EditPersonDialog updated with new genealogy data:",
         genealogyData
@@ -512,7 +512,7 @@ const {language, translations} = Astro.props;
     }
 
     // Return the openEditDialog function and update function so they can be called from outside
-    return {openEditDialog, updateGenealogyData};
+    return {openEditDialog, updateGenealogyTreeData};
   }
 
   // Make the function available globally

@@ -1,0 +1,56 @@
+{
+    "persons": [
+        {
+            "id": "steve1",
+            "name": "Steve Smith",
+            "birthDate": "1980-01-15",
+            "deathDate": "",
+            "parents": [],
+            "spouses": [
+                "mary1"
+            ],
+            "children": [
+                "john1",
+                "jane1"
+            ]
+        },
+        {
+            "id": "mary1",
+            "name": "Mary Johnson",
+            "birthDate": "1982-03-22",
+            "deathDate": "",
+            "parents": [],
+            "spouses": [
+                "steve1"
+            ],
+            "children": [
+                "john1",
+                "jane1"
+            ]
+        },
+        {
+            "id": "john1",
+            "name": "John Smith",
+            "birthDate": "2005-07-10",
+            "deathDate": "",
+            "parents": [
+                "steve1",
+                "mary1"
+            ],
+            "spouses": [],
+            "children": []
+        },
+        {
+            "id": "jane1",
+            "name": "Jane Smith",
+            "birthDate": "2008-12-03",
+            "deathDate": "",
+            "parents": [
+                "steve1",
+                "mary1"
+            ],
+            "spouses": [],
+            "children": []
+        }
+    ]
+}

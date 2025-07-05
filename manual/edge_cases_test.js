@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
 console.log('=== EDGE CASES & CONSIDERATIONS ===\n');
 
 // Test Case 1: Circular relationships (should be handled gracefully)
 console.log('1. Testing circular relationship handling');
-const circularTree1 = new GenealogyData({
+const circularTree1 = new GenealogyTreeData({
   persons: [
     { name: 'Alice', mother: 'Bob', father: null },
     { name: 'Bob', mother: 'Alice', father: null }
   ]
 });
 
-const circularTree2 = new GenealogyData({
+const circularTree2 = new GenealogyTreeData({
   persons: [
     { name: 'Charlie', mother: 'Alice', father: 'Bob' }
   ]
@@ -33,7 +33,7 @@ console.log();
 
 // Test Case 2: Same person as both mother and father (unusual but possible in data errors)
 console.log('2. Testing same person as both parents');
-const sameParentTree = new GenealogyData({ persons: [] });
+const sameParentTree = new GenealogyTreeData({ persons: [] });
 try {
   const result = sameParentTree.mergePerson(
     { name: 'Child', mother: 'Parent', father: 'Parent' },
@@ -48,14 +48,14 @@ console.log();
 
 // Test Case 3: Very long names and special characters
 console.log('3. Testing special characters and long names');
-const specialTree1 = new GenealogyData({
+const specialTree1 = new GenealogyTreeData({
   persons: [
     { name: 'José María García-López', mother: 'María José', father: null },
     { name: 'O\'Connor-Smith', mother: null, father: 'Patrick O\'Connor' }
   ]
 });
 
-const specialTree2 = new GenealogyData({
+const specialTree2 = new GenealogyTreeData({
   persons: [
     { name: 'José María García-López', mother: null, father: 'Juan García' },
     { name: 'Zhang Wei (张伟)', mother: 'Li Mei', father: 'Zhang Jun' }
@@ -74,7 +74,7 @@ console.log();
 
 // Test Case 4: Empty strings vs null values
 console.log('4. Testing empty strings vs null values');
-const emptyStringTree = new GenealogyData({ persons: [] });
+const emptyStringTree = new GenealogyTreeData({ persons: [] });
 try {
   const result1 = emptyStringTree.mergePerson(
     { name: 'Test', mother: '', father: null },
@@ -96,8 +96,8 @@ console.log();
 
 // Test Case 5: Memory usage with large merges
 console.log('5. Memory and performance considerations');
-const largeTree1 = new GenealogyData({ persons: [] });
-const largeTree2 = new GenealogyData({ persons: [] });
+const largeTree1 = new GenealogyTreeData({ persons: [] });
+const largeTree2 = new GenealogyTreeData({ persons: [] });
 
 // Create larger test data
 for (let i = 1; i <= 100; i++) {
@@ -130,13 +130,13 @@ console.log();
 
 // Test Case 6: Multiple consecutive merges
 console.log('6. Testing multiple consecutive merges');
-const baseTree = new GenealogyData({
+const baseTree = new GenealogyTreeData({
   persons: [{ name: 'Base Person', mother: null, father: null }]
 });
 
 const trees = [];
 for (let i = 1; i <= 5; i++) {
-  trees.push(new GenealogyData({
+  trees.push(new GenealogyTreeData({
     persons: [
       { name: 'Base Person', mother: i % 2 === 0 ? `Mom-${i}` : null, father: i % 3 === 0 ? `Dad-${i}` : null },
       { name: `Person-${i}`, mother: `Mom-${i}`, father: `Dad-${i}` }
@@ -164,7 +164,7 @@ console.log();
 
 // Test Case 7: Error recovery and validation
 console.log('7. Error handling and recovery');
-const errorTree = new GenealogyData({ persons: [{ name: 'Valid', mother: null, father: null }] });
+const errorTree = new GenealogyTreeData({ persons: [{ name: 'Valid', mother: null, father: null }] });
 
 try {
   errorTree.mergeTree(null);

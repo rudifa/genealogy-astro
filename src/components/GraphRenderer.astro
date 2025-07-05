@@ -246,6 +246,9 @@ const {language, translations} = Astro.props;
         renderGraph();
       };
 
+      // Expose renderGraph to global scope for external calls
+      window.renderGraph = renderGraph;
+
       // Listen for data updates
       window.addEventListener("genealogy-data-updated", function () {
         console.log("GraphRenderer: Data updated, re-rendering graph");
@@ -255,13 +258,12 @@ const {language, translations} = Astro.props;
       // --- Listen for data changes from the dialog ---
       document.addEventListener("genealogy-data-changed", async (event) => {
         try {
-          const saveDataToStorage = window.saveDataToStorage;
           const showNotification = window.showNotification;
 
           console.log("GraphRenderer: genealogy-data-changed event received");
 
-          // Save to localStorage whenever data changes
-          if (saveDataToStorage) saveDataToStorage();
+          // Don't save to storage here - the FileManager already did that
+          // if (saveDataToStorage) saveDataToStorage();
 
           await renderGraph();
 

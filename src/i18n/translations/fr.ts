@@ -18,6 +18,10 @@ export const fr: Translations = {
   manageTrees: "Gérer les Arbres",
   loading: "Chargement...",
 
+  // Mode Toggle
+  goToForestMode: "Aller au Mode Forêt",
+  goToOneTreeMode: "Aller au Mode Arbre Solitaire",
+
   // Dialog
   editPerson: "Modifier Personne",
   addNewPerson: "Ajouter Nouvelle Personne",
@@ -132,4 +136,49 @@ export const fr: Translations = {
   errorLoadingFamilyExample: "Erreur lors du chargement de l'exemple familial",
   errorOpeningTreeManagement:
     "Erreur lors de l'ouverture de la gestion des arbres",
+  errorOpeningFileManager:
+    "Erreur lors de l'ouverture de la gestion des fichiers",
+
+  // File Manager
+  manageFiles: "Gérer les Fichiers",
+  downloadSection: "Télécharger",
+  uploadSection: "Téléverser",
+  downloadCurrentTree: "Télécharger l'Arbre Actuel",
+  downloadAllTrees: "Télécharger Tous les Arbres",
+  dragDropOrClick:
+    "Glissez-déposez un fichier JSON ici ou cliquez pour sélectionner",
+  selectFile: "Sélectionner un Fichier",
+  uploadOptions: "Options de Téléversement",
+  mergeWithExisting: "Fusionner avec les données existantes",
+  replaceExisting: "Remplacer les données existantes",
+  createNewTreeFile: "Créer un nouvel arbre",
+  confirmUpload: "Téléverser",
+  fileInformation: "Informations du Fichier",
+  fileName: "Nom du Fichier",
+  fileSize: "Taille du Fichier",
+  fileType: "Type",
+  singleTree: "Arbre Unique",
+  allTrees: "Tous les Arbres",
+  treeCount: "Arbres",
+  totalPersons: "Total des Personnes",
+  activeTree: "Arbre Actif",
+  exportDate: "Date d'Export",
+  personCount: "Personnes",
+
+  // File Manager notifications
+  noTreeDataToDownload: "Aucune donnée d'arbre à télécharger",
+  treeDownloaded: 'Arbre "{treeName}" téléchargé avec succès',
+  noTreesToDownload: "Aucun arbre à télécharger",
+  allTreesDownloaded: "Tous les {count} arbres téléchargés avec succès",
+  errorDownloadingTree: "Erreur lors du téléchargement de l'arbre",
+  errorDownloadingTrees: "Erreur lors du téléchargement des arbres",
+  invalidFileType: "Veuillez sélectionner un fichier JSON",
+  invalidJsonFile: "Fichier JSON invalide",
+  noFileSelected: "Aucun fichier sélectionné",
+  errorProcessingFile: "Erreur lors du traitement du fichier",
+  errorDuringUpload: "Erreur lors du téléversement",
+  newTreeCreated: 'Nouvel arbre "{treeName}" créé avec succès',
+  treeReplaced: 'Arbre "{treeName}" remplacé avec succès',
+  treeMerged: 'Données fusionnées dans "{treeName}" avec succès',
+  allTreesImported: "{count} arbres importés avec succès",
 };

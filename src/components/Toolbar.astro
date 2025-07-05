@@ -20,8 +20,21 @@ const {language, translations} = Astro.props;
   />
   <button id='add-button' type='button'>{translations.addPerson}</button>
   <button id='clear-button' type='button'>{translations.clearAll}</button>
+
+  <div class='mode-separator'></div>
+  <button
+    id='mode-toggle-button'
+    type='button'
+    title='Go to Forest Mode'
+    class='mode-toggle'>...</button
+  >
+  <div class='mode-separator'></div>
+
   <button id='manage-trees-button' type='button'
     >{translations.manageTrees}</button
+  >
+  <button id='manage-files-button' type='button'
+    >{translations.manageFiles}</button
   >
   <div id='loading-indicator' class='loading-indicator' style='display: none;'>
     <div class='spinner'></div>
@@ -128,6 +141,66 @@ const {language, translations} = Astro.props;
     font-size: 16px;
   }
 
+  #manage-files-button {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a2d9f 100%);
+    color: white;
+    border-color: #6f42c1;
+    font-weight: 600;
+    position: relative;
+  }
+
+  #manage-files-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a2d9f 0%, #4a247a 100%);
+    border-color: #5a2d9f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(111, 66, 193, 0.3);
+  }
+
+  #manage-files-button:before {
+    content: "";
+    margin-right: 0px;
+    font-size: 16px;
+  }
+
+  .mode-separator {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      #dee2e6 50%,
+      transparent 100%
+    );
+    margin: 8px 0;
+  }
+
+  .mode-toggle {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border: none;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 8px 16px !important;
+    min-height: 40px;
+    letter-spacing: 2px;
+  }
+
+  .mode-toggle:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+  }
+
+  .mode-toggle:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+  }
+
+  /* Hide manage buttons in one tree mode */
+  .toolbar.one-tree-mode #manage-trees-button,
+  .toolbar.one-tree-mode #manage-files-button {
+    display: none;
+  }
+
   .loading-indicator {
     display: flex;
     flex-direction: column;
@@ -201,6 +274,47 @@ const {language, translations} = Astro.props;
       return;
     }
     window.toolbarInitialized = true;
+
+    // Mode management
+    let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
+
+    function updateModeDisplay() {
+      const toolbar = document.querySelector(".toolbar");
+      const modeToggleButton = document.getElementById("mode-toggle-button");
+
+      if (isOneTreeMode) {
+        toolbar.classList.add("one-tree-mode");
+        if (modeToggleButton) {
+          const tooltip =
+            currentTranslations.goToForestMode || "Go to Forest Mode";
+          modeToggleButton.title = tooltip;
+          modeToggleButton.setAttribute("title", tooltip);
+        }
+      } else {
+        toolbar.classList.remove("one-tree-mode");
+        if (modeToggleButton) {
+          const tooltip =
+            currentTranslations.goToOneTreeMode || "Go to One Tree Mode";
+          modeToggleButton.title = tooltip;
+          modeToggleButton.setAttribute("title", tooltip);
+        }
+      }
+    }
+
+    function toggleMode() {
+      isOneTreeMode = !isOneTreeMode;
+      localStorage.setItem(
+        "genealogy-ui-mode",
+        isOneTreeMode ? "one-tree" : "forest"
+      );
+      updateModeDisplay();
+
+      if (window.showNotification) {
+        const mode = isOneTreeMode ? "One Tree Mode" : "Forest Mode";
+        window.showNotification(`Switched to ${mode}`, "info");
+      }
+    }
+
     // Store current translations (will be updated by language changes)
     let currentTranslations = translations;
 
@@ -212,6 +326,7 @@ const {language, translations} = Astro.props;
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
+      const manageFilesButton = document.getElementById("manage-files-button");
       const loadingIndicator = document.querySelector(
         "#loading-indicator span"
       );
@@ -220,8 +335,13 @@ const {language, translations} = Astro.props;
       if (clearButton) clearButton.textContent = currentTranslations.clearAll;
       if (manageTreesButton)
         manageTreesButton.textContent = currentTranslations.manageTrees;
+      if (manageFilesButton)
+        manageFilesButton.textContent = currentTranslations.manageFiles;
       if (loadingIndicator)
         loadingIndicator.textContent = currentTranslations.loading;
+
+      // Update mode toggle tooltip
+      updateModeDisplay();
     }
 
     // Listen for language changes
@@ -252,9 +372,18 @@ const {language, translations} = Astro.props;
 
     // Initialize toolbar button event listeners
     function initializeToolbarEvents() {
+      // Prevent multiple event listener attachments
+      if (window.toolbarEventsInitialized) {
+        console.log("Toolbar: Events already initialized, skipping");
+        return;
+      }
+      window.toolbarEventsInitialized = true;
+
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
+      const modeToggleButton = document.getElementById("mode-toggle-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
+      const manageFilesButton = document.getElementById("manage-files-button");
 
       // Add button event listener
       if (addButton) {
@@ -357,6 +486,17 @@ const {language, translations} = Astro.props;
         });
       }
 
+      // Mode toggle button event listener
+      if (modeToggleButton) {
+        modeToggleButton.addEventListener("click", () => {
+          try {
+            toggleMode();
+          } catch (error) {
+            console.error("Error toggling mode:", error);
+          }
+        });
+      }
+
       // Manage trees button event listener
       if (manageTreesButton) {
         manageTreesButton.addEventListener("click", () => {
@@ -372,7 +512,7 @@ const {language, translations} = Astro.props;
               const trees =
                 window.genealogyTreeManager?.getAvailableTrees?.() || [];
               const currentTree =
-                window.genealogyTreeManager?.getCurrentTreeName?.() ||
+                window.genealogyTreeManager?.getSelectedTreeName?.() ||
                 "Unknown";
 
               const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
@@ -395,6 +535,42 @@ const {language, translations} = Astro.props;
           }
         });
       }
+
+      // Manage files button event listener
+      if (manageFilesButton) {
+        manageFilesButton.addEventListener("click", () => {
+          try {
+            // Check if rendering is in progress
+            if (window.genealogyIsRendering) return;
+
+            // Open file management dialog
+            if (window.fileManagerDialog) {
+              window.fileManagerDialog.show();
+            } else {
+              console.warn("File manager dialog not available");
+              if (window.showNotification) {
+                window.showNotification(
+                  currentTranslations.errorOpeningFileManager ||
+                    "File manager is loading...",
+                  "info"
+                );
+              }
+            }
+          } catch (error) {
+            console.error("Error opening file management:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorOpeningFileManager ||
+                  "Error opening file management",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Initialize mode display
+      updateModeDisplay();
 
       // Add keyboard shortcuts
       document.addEventListener("keydown", (event) => {

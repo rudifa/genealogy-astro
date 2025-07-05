@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { GenealogyData } from '../public/utility/GenealogyData.js';
+import { GenealogyTreeData } from '../public/utility/GenealogyTreeData.js';
 
 console.log('=== MERGE STRATEGY ANALYSIS ===\n');
 
@@ -41,7 +41,7 @@ scenarios.forEach((scenario, index) => {
   console.log(`   Person 2: mother="${scenario.person2.mother}", father="${scenario.person2.father}"`);
   console.log('   Results:');
 
-  const tree = new GenealogyData({ persons: [] });
+  const tree = new GenealogyTreeData({ persons: [] });
 
   strategies.forEach(strategy => {
     try {
@@ -59,12 +59,12 @@ console.log('=== TREE MERGE COMPLEXITY ANALYSIS ===\n');
 
 // Simple merge
 console.log('1. Simple Merge (no conflicts)');
-const simpleTree1 = new GenealogyData({
+const simpleTree1 = new GenealogyTreeData({
   persons: [
     { name: 'Person A', mother: 'Mom A', father: null }
   ]
 });
-const simpleTree2 = new GenealogyData({
+const simpleTree2 = new GenealogyTreeData({
   persons: [
     { name: 'Person B', mother: 'Mom B', father: 'Dad B' }
   ]
@@ -78,14 +78,14 @@ console.log(`Stats: merged=${simpleStats.merged}, added=${simpleStats.added}, co
 
 // Medium complexity merge
 console.log('2. Medium Complexity Merge (some overlap)');
-const mediumTree1 = new GenealogyData({
+const mediumTree1 = new GenealogyTreeData({
   persons: [
     { name: 'Alice', mother: 'Mother A', father: 'Father A' },
     { name: 'Bob', mother: 'Mother B', father: null },
     { name: 'Shared Person', mother: 'Original Mom', father: null }
   ]
 });
-const mediumTree2 = new GenealogyData({
+const mediumTree2 = new GenealogyTreeData({
   persons: [
     { name: 'Charlie', mother: 'Mother C', father: 'Father C' },
     { name: 'Shared Person', mother: null, father: 'New Dad' },
@@ -107,14 +107,14 @@ console.log();
 
 // High complexity merge with multiple conflicts
 console.log('3. High Complexity Merge (multiple conflicts)');
-const complexTree1 = new GenealogyData({
+const complexTree1 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: 'Mary Smith', father: 'James Smith' },
     { name: 'Jane', mother: 'Lisa Brown', father: 'Robert Brown' },
     { name: 'Common Person', mother: 'Mom 1', father: 'Dad 1' }
   ]
 });
-const complexTree2 = new GenealogyData({
+const complexTree2 = new GenealogyTreeData({
   persons: [
     { name: 'John', mother: 'Maria Gonzalez', father: 'Jose Gonzalez' },
     { name: 'Mike', mother: 'Sarah White', father: 'David White' },
@@ -126,7 +126,7 @@ console.log(`Tree 1: ${complexTree1.persons.length} persons initially`);
 console.log(`Tree 2: ${complexTree2.persons.length} persons`);
 
 strategies.forEach(strategy => {
-  const testTree = new GenealogyData({ persons: JSON.parse(JSON.stringify(complexTree1.persons)) });
+  const testTree = new GenealogyTreeData({ persons: JSON.parse(JSON.stringify(complexTree1.persons)) });
   const stats = testTree.mergeTree(complexTree2, strategy);
   console.log(`  Strategy "${strategy}": merged=${stats.merged}, added=${stats.added}, conflicts=${stats.conflicts.length}`);
 
@@ -144,8 +144,8 @@ console.log('\n=== PERFORMANCE & EDGE CASES ===\n');
 
 // Large tree merge simulation
 console.log('4. Large Tree Simulation');
-const largeTree1 = new GenealogyData({ persons: [] });
-const largeTree2 = new GenealogyData({ persons: [] });
+const largeTree1 = new GenealogyTreeData({ persons: [] });
+const largeTree2 = new GenealogyTreeData({ persons: [] });
 
 // Generate some test data
 for (let i = 1; i <= 20; i++) {

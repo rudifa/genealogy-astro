@@ -18,6 +18,10 @@ export const en: Translations = {
   manageTrees: "Manage Trees",
   loading: "Loading...",
 
+  // Mode Toggle
+  goToForestMode: "Go to Forest Mode",
+  goToOneTreeMode: "Go to One Tree Mode",
+
   // Dialog
   editPerson: "Edit Person",
   addNewPerson: "Add New Person",
@@ -127,4 +131,47 @@ export const en: Translations = {
   errorUpdateAfterTreeChange: "Failed to update graph after tree change",
   errorLoadingFamilyExample: "Error loading family example",
   errorOpeningTreeManagement: "Error opening tree management",
+  errorOpeningFileManager: "Error opening file management",
+
+  // File Manager
+  manageFiles: "Manage Files",
+  downloadSection: "Download",
+  uploadSection: "Upload",
+  downloadCurrentTree: "Download Current Tree",
+  downloadAllTrees: "Download All Trees",
+  dragDropOrClick: "Drag & drop a JSON file here or click to select",
+  selectFile: "Select File",
+  uploadOptions: "Upload Options",
+  mergeWithExisting: "Merge with existing data",
+  replaceExisting: "Replace existing data",
+  createNewTreeFile: "Create new tree",
+  confirmUpload: "Upload",
+  fileInformation: "File Information",
+  fileName: "File Name",
+  fileSize: "File Size",
+  fileType: "Type",
+  singleTree: "Single Tree",
+  allTrees: "All Trees",
+  treeCount: "Trees",
+  totalPersons: "Total Persons",
+  activeTree: "Active Tree",
+  exportDate: "Export Date",
+  personCount: "Persons",
+
+  // File Manager notifications
+  noTreeDataToDownload: "No tree data to download",
+  treeDownloaded: 'Tree "{treeName}" downloaded successfully',
+  noTreesToDownload: "No trees to download",
+  allTreesDownloaded: "All {count} trees downloaded successfully",
+  errorDownloadingTree: "Error downloading tree",
+  errorDownloadingTrees: "Error downloading trees",
+  invalidFileType: "Please select a JSON file",
+  invalidJsonFile: "Invalid JSON file",
+  noFileSelected: "No file selected",
+  errorProcessingFile: "Error processing file",
+  errorDuringUpload: "Error during upload",
+  newTreeCreated: 'New tree "{treeName}" created successfully',
+  treeReplaced: 'Tree "{treeName}" replaced successfully',
+  treeMerged: 'Data merged into "{treeName}" successfully',
+  allTreesImported: "{count} trees imported successfully",
 };
