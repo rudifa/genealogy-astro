@@ -1,9 +1,11 @@
-# genealogy-astro: A simple genealogy graph viewer + editor built with Astro
+# genealogy-astro
+
+#### A simple genealogy graph viewer + editor built with Astro
 
 ## Features
 
 - **Interactive Family Tree:** View and edit your family tree visually, in your browser.
-- **Persons**: The family tree consists of persons, each with their *Name* and optionally their *Mother*, *Father* and *Info*.
+- **Persons**: The family tree consists of persons, each with their _Name_ and optionally their _Mother_, _Father_ and _Info_.
 - **Multi-Tree Management:** Create and manage multiple family trees, all within your browser.
 - **Easy Editing:** Add, edit, and remove people with a simple dialog. Add and remove family trees.
 - **Multilingual:** Full user experience in English, French, and German.
