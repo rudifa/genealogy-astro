@@ -15,70 +15,83 @@ const {language, translations} = Astro.props;
 
 <div id='edit-dialog' class='dialog-overlay' style='display: none;'>
   <div class='dialog-content'>
-    <h2>{translations.editPerson}</h2>
-    <div id='error-message' class='error-message' style='display: none;'></div>
-    <form id='edit-form'>
-      <input type='hidden' id='original-name' name='originalName' />
-      <div class='form-field'>
-        <label for='person-name'
-          >{translations.name}: <span class='required'
-            >{translations.required}</span
-          ></label
-        >
-        <input
-          type='text'
-          id='person-name'
-          name='name'
-          required
-          maxlength='100'
-          autocomplete='off'
-          data-1p-ignore
-        />
-        <div class='field-error' id='name-error'></div>
+    <div class='dialog-header'>
+      <h2>{translations.editPerson}</h2>
+      <button
+        id='close-edit-dialog'
+        class='close-button'
+        type='button'
+        aria-label='Close'>×</button
+      >
+    </div>
+    <div class='dialog-body'>
+      <div id='error-message' class='error-message' style='display: none;'>
       </div>
-      <div class='form-field'>
-        <label for='person-mother'>{translations.mother}:</label>
-        <input
-          type='text'
-          id='person-mother'
-          name='mother'
-          maxlength='100'
-          autocomplete='off'
-          data-1p-ignore
-        />
-        <div class='field-error' id='mother-error'></div>
-      </div>
-      <div class='form-field'>
-        <label for='person-father'>{translations.father}:</label>
-        <input
-          type='text'
-          id='person-father'
-          name='father'
-          maxlength='100'
-          autocomplete='off'
-          data-1p-ignore
-        />
-        <div class='field-error' id='father-error'></div>
-      </div>
-      <div class='form-field'>
-        <label for='person-info'>{translations.info}:</label>
-        <input
-          type='text'
-          id='person-info'
-          name='info'
-          maxlength='200'
-          autocomplete='off'
-          data-1p-ignore
-          placeholder='e.g., Birth year, profession, location...'
-        />
-        <div class='field-error' id='info-error'></div>
-      </div>
-      <div class='dialog-buttons'>
-        <button type='submit' id='save-button'>{translations.save}</button>
-        <button type='button' id='remove-button'>{translations.remove}</button>
-        <button type='button' id='cancel-button'>{translations.cancel}</button>
-      </div>
-    </form>
+      <form id='edit-form'>
+        <input type='hidden' id='original-name' name='originalName' />
+        <div class='form-field'>
+          <label for='person-name'
+            >{translations.name}: <span class='required'
+              >{translations.required}</span
+            ></label
+          >
+          <input
+            type='text'
+            id='person-name'
+            name='name'
+            required
+            maxlength='100'
+            autocomplete='off'
+            data-1p-ignore
+          />
+          <div class='field-error' id='name-error'></div>
+        </div>
+        <div class='form-field'>
+          <label for='person-mother'>{translations.mother}:</label>
+          <input
+            type='text'
+            id='person-mother'
+            name='mother'
+            maxlength='100'
+            autocomplete='off'
+            data-1p-ignore
+          />
+          <div class='field-error' id='mother-error'></div>
+        </div>
+        <div class='form-field'>
+          <label for='person-father'>{translations.father}:</label>
+          <input
+            type='text'
+            id='person-father'
+            name='father'
+            maxlength='100'
+            autocomplete='off'
+            data-1p-ignore
+          />
+          <div class='field-error' id='father-error'></div>
+        </div>
+        <div class='form-field'>
+          <label for='person-info'>{translations.info}:</label>
+          <input
+            type='text'
+            id='person-info'
+            name='info'
+            maxlength='200'
+            autocomplete='off'
+            data-1p-ignore
+            placeholder='e.g., Birth year, profession, location...'
+          />
+          <div class='field-error' id='info-error'></div>
+        </div>
+        <div class='dialog-buttons'>
+          <button type='submit' id='save-button'>{translations.save}</button>
+          <button type='button' id='remove-button'>{translations.remove}</button
+          >
+          <button type='button' id='cancel-button'>{translations.cancel}</button
+          >
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -89,24 +102,118 @@ const {language, translations} = Astro.props;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.75),
+      rgba(15, 23, 42, 0.6)
+    );
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
   }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   .dialog-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    padding: 0;
+    border-radius: 20px;
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    max-width: 700px;
+    width: 95vw;
     min-width: 450px;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
   }
-  .dialog-content h2 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px 20px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    position: relative;
+  }
+
+  .dialog-header::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(148, 163, 184, 0.3),
+      transparent
+    );
+  }
+
+  .dialog-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  .close-button {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    font-size: 24px;
+    cursor: pointer;
+    color: #475569;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+  }
+
+  .close-button:hover {
+    background: rgba(148, 163, 184, 0.2);
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #334155;
+    transform: scale(1.05);
+  }
+
+  .close-button:active {
+    transform: scale(0.95);
+  }
+
+  .dialog-body {
+    padding: 32px;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
   }
 
   .form-field {
@@ -254,6 +361,7 @@ const {language, translations} = Astro.props;
     const infoInput = document.getElementById("person-info");
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
+    const closeButton = document.getElementById("close-edit-dialog");
     const removeButton = document.getElementById("remove-button");
     const errorMessage = document.getElementById("error-message");
 
@@ -444,6 +552,11 @@ const {language, translations} = Astro.props;
 
     // Cancel button closes the dialog
     cancelButton.addEventListener("click", closeEditDialog);
+
+    // Close button closes the dialog
+    if (closeButton) {
+      closeButton.addEventListener("click", closeEditDialog);
+    }
 
     // Close dialog when clicking overlay
     dialog.addEventListener("click", (e) => {
