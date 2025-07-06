@@ -61,7 +61,6 @@ const {language, translations} = Astro.props;
             </div>
           </div>
           <div class='upload-options'>
-            <h4>{translations.uploadOptions}</h4>
             <div class='radio-group'>
               <label>
                 <input type='radio' name='upload-mode' value='merge' />
@@ -120,56 +119,119 @@ const {language, translations} = Astro.props;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.75),
+      rgba(15, 23, 42, 0.6)
+    );
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   .dialog-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    padding: 0;
+    border-radius: 20px;
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
     position: relative;
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .dialog-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
+    padding: 28px 32px 20px;
+    margin-bottom: 0;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    position: relative;
+  }
+
+  .dialog-header::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(148, 163, 184, 0.3),
+      transparent
+    );
   }
 
   .dialog-header h2 {
     margin: 0;
-    color: #333;
+    color: #1e293b;
     font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 
   .close-button {
-    background: none;
-    border: none;
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
     font-size: 24px;
     cursor: pointer;
-    color: #666;
-    padding: 5px;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
+    color: #475569;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
   }
 
   .close-button:hover {
-    background-color: #f0f0f0;
-    color: #333;
+    background: rgba(148, 163, 184, 0.2);
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #334155;
+    transform: scale(1.05);
+  }
+
+  .close-button:active {
+    transform: scale(0.95);
   }
 
   .dialog-body {
     max-height: none;
     overflow: visible;
-    padding: 0;
+    padding: 32px;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
   }
 
   .file-manager-dialog {
@@ -204,6 +266,42 @@ const {language, translations} = Astro.props;
     flex-direction: column;
     gap: 15px;
     align-items: stretch;
+  }
+
+  /* Download buttons side by side */
+  .file-section .file-operations {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .file-section .file-operations .operation-button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Upload section keeps vertical layout */
+  .upload-area {
+    width: 100%;
+  }
+
+  /* Upload section side-by-side layout */
+  .upload-area + .upload-options {
+    margin-top: 0;
+    margin-left: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Make upload section horizontal */
+  .file-section:nth-child(2) .file-operations {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .upload-area {
+    flex: 1;
+    min-width: 0;
   }
 
   .operation-button {
@@ -328,8 +426,8 @@ const {language, translations} = Astro.props;
   .radio-group {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin: 15px 0;
+    gap: 8px;
+    margin: 10px 0;
   }
 
   .radio-group label {
@@ -337,9 +435,10 @@ const {language, translations} = Astro.props;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    padding: 8px;
+    padding: 6px 8px;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    font-size: 13px;
   }
 
   .radio-group label:hover {
@@ -408,8 +507,34 @@ const {language, translations} = Astro.props;
     }
 
     .operation-button {
-      min-width: 150px;
+      min-width: 120px;
       font-size: 13px;
+    }
+
+    /* Stack download buttons vertically on mobile */
+    .file-section .file-operations {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .file-section .file-operations .operation-button {
+      width: 100%;
+    }
+
+    /* Stack upload area and options vertically on mobile */
+    .file-section:nth-child(2) .file-operations {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .upload-area + .upload-options {
+      margin-left: 0;
+      margin-top: 0;
+    }
+
+    .radio-group label {
+      font-size: 14px;
+      padding: 8px;
     }
 
     .upload-drop-zone {
@@ -510,7 +635,6 @@ const {language, translations} = Astro.props;
       const downloadSectionTitle = document.querySelector(".file-section h3");
       const uploadSectionTitle =
         document.querySelectorAll(".file-section h3")[1];
-      const uploadOptionsTitle = document.querySelector(".upload-options h4");
       const fileInfoTitle = document.querySelector("#file-info-section h3");
 
       // Update drag/drop text
@@ -540,8 +664,6 @@ const {language, translations} = Astro.props;
         downloadSectionTitle.textContent = currentTranslations.downloadSection;
       if (uploadSectionTitle)
         uploadSectionTitle.textContent = currentTranslations.uploadSection;
-      if (uploadOptionsTitle)
-        uploadOptionsTitle.textContent = currentTranslations.uploadOptions;
       if (fileInfoTitle)
         fileInfoTitle.textContent = currentTranslations.fileInformation;
 
