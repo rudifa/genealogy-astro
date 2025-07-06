@@ -446,8 +446,24 @@ const {language, translations} = Astro.props;
     }
     window.fileManagerInitialized = true;
 
-    // Store current translations
+    // Store current translations - check for current language state
     let currentTranslations = translations;
+
+    // Initialize with correct language if available
+    function initializeCorrectLanguage() {
+      const currentLang =
+        window.currentLanguage ||
+        localStorage.getItem("genealogy-language") ||
+        "en";
+      const availableTranslations = window.genealogyTranslations;
+
+      if (availableTranslations && availableTranslations[currentLang]) {
+        console.log("FileManager: Initializing with language:", currentLang);
+        currentTranslations = availableTranslations[currentLang];
+        // Update UI immediately
+        updateFileManagerTranslations(currentTranslations);
+      }
+    }
 
     // DOM elements
     const fileManagerDialog = document.getElementById("file-manager-dialog");
@@ -479,7 +495,83 @@ const {language, translations} = Astro.props;
     // Update translations
     function updateFileManagerTranslations(newTranslations) {
       currentTranslations = newTranslations;
-      // Update any dynamic text content if needed
+
+      // Update button texts
+      const downloadCurrentTreeBtn = document.getElementById(
+        "download-current-tree"
+      );
+      const downloadAllTreesBtn = document.getElementById("download-all-trees");
+      const selectFileButton = document.getElementById("select-file-button");
+      const confirmUploadBtn = document.getElementById("confirm-upload");
+      const cancelUploadBtn = document.getElementById("cancel-upload");
+
+      // Update section headers
+      const dialogTitle = document.querySelector("#file-manager-dialog h2");
+      const downloadSectionTitle = document.querySelector(".file-section h3");
+      const uploadSectionTitle =
+        document.querySelectorAll(".file-section h3")[1];
+      const uploadOptionsTitle = document.querySelector(".upload-options h4");
+      const fileInfoTitle = document.querySelector("#file-info-section h3");
+
+      // Update drag/drop text
+      const dragDropText = document.querySelector(".upload-drop-zone p");
+
+      // Update radio button labels
+      const radioLabels = document.querySelectorAll(".radio-group label");
+
+      // Update placeholder
+      const treeNameInput = document.getElementById("file-manager-tree-name");
+
+      if (downloadCurrentTreeBtn)
+        downloadCurrentTreeBtn.textContent =
+          currentTranslations.downloadCurrentTree;
+      if (downloadAllTreesBtn)
+        downloadAllTreesBtn.textContent = currentTranslations.downloadAllTrees;
+      if (selectFileButton)
+        selectFileButton.textContent = currentTranslations.selectFile;
+      if (confirmUploadBtn)
+        confirmUploadBtn.textContent = currentTranslations.confirmUpload;
+      if (cancelUploadBtn)
+        cancelUploadBtn.textContent = currentTranslations.cancel;
+
+      if (dialogTitle)
+        dialogTitle.textContent = currentTranslations.manageFiles;
+      if (downloadSectionTitle)
+        downloadSectionTitle.textContent = currentTranslations.downloadSection;
+      if (uploadSectionTitle)
+        uploadSectionTitle.textContent = currentTranslations.uploadSection;
+      if (uploadOptionsTitle)
+        uploadOptionsTitle.textContent = currentTranslations.uploadOptions;
+      if (fileInfoTitle)
+        fileInfoTitle.textContent = currentTranslations.fileInformation;
+
+      if (dragDropText)
+        dragDropText.textContent = currentTranslations.dragDropOrClick;
+
+      if (treeNameInput)
+        treeNameInput.placeholder = currentTranslations.enterTreeName;
+
+      // Update radio button labels
+      if (radioLabels.length >= 3) {
+        const radioTexts = [
+          currentTranslations.mergeWithExisting,
+          currentTranslations.replaceExisting,
+          currentTranslations.createNewTreeFile,
+        ];
+
+        radioLabels.forEach((label, index) => {
+          if (radioTexts[index]) {
+            // Get the radio input and preserve it, but update the text
+            const input = label.querySelector('input[type="radio"]');
+            if (input) {
+              // Clear the label content and rebuild it
+              label.innerHTML = "";
+              label.appendChild(input);
+              label.appendChild(document.createTextNode(radioTexts[index]));
+            }
+          }
+        });
+      }
     }
 
     // Listen for language changes
@@ -1332,6 +1424,11 @@ const {language, translations} = Astro.props;
       show: showFileManager,
       hide: hideFileManager,
     };
+
+    // Initialize with correct language after setup
+    setTimeout(() => {
+      initializeCorrectLanguage();
+    }, 100);
 
     console.log("FileManager: Initialization complete");
 

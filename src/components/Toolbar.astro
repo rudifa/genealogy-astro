@@ -310,8 +310,13 @@ const {language, translations} = Astro.props;
       updateModeDisplay();
 
       if (window.showNotification) {
-        const mode = isOneTreeMode ? "One Tree Mode" : "Forest Mode";
-        window.showNotification(`Switched to ${mode}`, "info");
+        const notificationKey = isOneTreeMode
+          ? "switchedToOneTreeMode"
+          : "switchedToForestMode";
+        const message =
+          currentTranslations[notificationKey] ||
+          `Switched to ${isOneTreeMode ? "One Tree Mode" : "Forest Mode"}`;
+        window.showNotification(message, "info");
       }
     }
 

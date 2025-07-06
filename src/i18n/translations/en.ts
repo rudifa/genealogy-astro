@@ -21,6 +21,8 @@ export const en: Translations = {
   // Mode Toggle
   goToForestMode: "Go to Forest Mode",
   goToOneTreeMode: "Go to One Tree Mode",
+  switchedToForestMode: "Switched to Forest Mode",
+  switchedToOneTreeMode: "Switched to One Tree Mode",
 
   // Dialog
   editPerson: "Edit Person",

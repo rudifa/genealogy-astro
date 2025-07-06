@@ -21,6 +21,8 @@ export interface Translations {
   // Mode Toggle
   goToForestMode: string;
   goToOneTreeMode: string;
+  switchedToForestMode: string;
+  switchedToOneTreeMode: string;
 
   // Dialog
   editPerson: string;
