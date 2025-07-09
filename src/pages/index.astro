@@ -9,6 +9,7 @@ import type {TreeDataType} from "@/types";
 import {getTranslations, translations, type Language} from "../i18n/index";
 
 const genealogyData: TreeDataType = jsonData;
+const genealogyDataJson = JSON.stringify(genealogyData);
 
 // For now, we'll default to English on the server side
 // The client will handle language detection and updates
@@ -31,7 +32,12 @@ const t = getTranslations(currentLanguage);
   </main>
 </Layout>
 
-<script is:inline define:vars={{translationsData: JSON.stringify(translations)}}
+<script
+  is:inline
+  define:vars={{
+    translationsData: JSON.stringify(translations),
+    genealogyDataJson,
+  }}
 >
   // Use translations from the i18n system
   window.genealogyTranslations = JSON.parse(translationsData);
@@ -81,7 +87,40 @@ const t = getTranslations(currentLanguage);
     }
   };
 
-  document.addEventListener("DOMContentLoaded", window.detectAndSetLanguage);
+  // --- State Initialization (Step 1) ---
+  // Initialize state when genealogy data is available
+  async function initializeAppState() {
+    try {
+      // Import the state module
+      const {appState} = await import("/utility/State.js");
+
+      // Parse the genealogy data
+      const genealogyData = JSON.parse(genealogyDataJson);
+
+      // Pass the current language's translations (default to English)
+      const currentTranslations =
+        window.genealogyTranslations[window.currentLanguage] ||
+        window.genealogyTranslations.en;
+
+      // Initialize appState and expose to window
+      // IMPORTANT: Create a deep clone of genealogyData to prevent mutation of the original data
+      const genealogyDataClone = JSON.parse(JSON.stringify(genealogyData));
+      appState.initialize(genealogyDataClone, currentTranslations);
+      window.appState = appState;
+
+      console.log(
+        "✅ appState initialized successfully and is available as window.appState"
+      );
+    } catch (error) {
+      console.error("❌ Failed to initialize appState:", error);
+    }
+  }
+
+  // Initial language detection
+  window.detectAndSetLanguage();
+
+  // Initialize the app state
+  initializeAppState();
 
   // Handle language changes from the language switcher
   window.addEventListener("languageChanged", function (event) {

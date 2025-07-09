@@ -99,102 +99,100 @@ const {currentTree, language, translations} = Astro.props;
   }
 </style>
 
-<script is:inline>
-  document.addEventListener("DOMContentLoaded", function () {
-    const treeSelect = document.getElementById("tree-select");
+<script is:inline type='module'>
+  // 🎯 Direct import - VS Code can navigate to definition!
+  import {appState} from "/utility/State.js";
 
-    function updateTreeOptions() {
-      if (!treeSelect || !window.genealogyTreeManager) return;
+  // Initialize immediately since DOM is already ready in inline scripts
+  const treeSelect = document.getElementById("tree-select");
+  let unsubscribe = null;
 
-      try {
-        const availableTrees = window.genealogyTreeManager.getAvailableTrees();
-        const currentTree = window.genealogyTreeManager.getSelectedTreeName();
+  function updateTreeOptions() {
+    if (!treeSelect || !appState) return;
 
-        // Clear existing options
-        treeSelect.innerHTML = "";
+    try {
+      // 🎯 Direct method call with VS Code auto-completion!
+      const state = appState.getState();
+      const availableTrees = state.availableTrees;
+      const currentTree = state.currentTreeName;
 
-        // Add all available trees
-        availableTrees.forEach((treeName) => {
-          const option = document.createElement("option");
-          option.value = treeName;
-          option.textContent = `🌳 ${treeName}`;
-          option.selected = treeName === currentTree;
-          treeSelect.appendChild(option);
-        });
+      // Clear existing options
+      treeSelect.innerHTML = "";
 
-        console.log(
-          "Updated tree options:",
-          availableTrees,
-          "Current:",
-          currentTree
-        );
-      } catch (error) {
-        console.error("Error updating tree options:", error);
-      }
-    }
-
-    if (treeSelect) {
-      // Initialize tree options when tree manager is available
-      function initializeWhenReady() {
-        if (window.genealogyTreeManager) {
-          updateTreeOptions();
-        } else {
-          // Retry after a short delay
-          setTimeout(initializeWhenReady, 100);
-        }
-      }
-      initializeWhenReady();
-
-      // Handle tree selection changes
-      treeSelect.addEventListener("change", async function (event) {
-        const selectedTree = event.target.value;
-
-        if (!window.genealogyTreeManager) {
-          console.error("Tree manager not available");
-          return;
-        }
-
-        try {
-          const currentTree = window.genealogyTreeManager.getSelectedTreeName();
-
-          if (selectedTree !== currentTree) {
-            console.log(`Switching from "${currentTree}" to "${selectedTree}"`);
-
-            const success =
-              await window.genealogyTreeManager.switchToTree(selectedTree);
-
-            if (success) {
-              console.log(`Successfully switched to tree: ${selectedTree}`);
-
-              // Dispatch tree management update event
-              const updateEvent = new CustomEvent("tree-manager-update", {
-                detail: {action: "switch", treeName: selectedTree},
-              });
-              document.dispatchEvent(updateEvent);
-            } else {
-              console.error(`Failed to switch to tree: ${selectedTree}`);
-              // Reset selection to current tree
-              updateTreeOptions();
-            }
-          }
-        } catch (error) {
-          console.error("Error switching tree:", error);
-          // Reset selection to current tree
-          updateTreeOptions();
-        }
+      // Add all available trees
+      availableTrees.forEach((treeName) => {
+        const option = document.createElement("option");
+        option.value = treeName;
+        option.textContent = `🌳 ${treeName}`;
+        option.selected = treeName === currentTree;
+        treeSelect.appendChild(option);
       });
-    }
 
-    // Listen for tree management updates to refresh the dropdown
-    document.addEventListener("tree-manager-update", function (event) {
-      console.log("TreeSwitcher received tree-manager-update:", event.detail);
+      console.log(
+        "Updated tree options:",
+        availableTrees,
+        "Current:",
+        currentTree
+      );
+    } catch (error) {
+      console.error("Error updating tree options:", error);
+    }
+  }
+
+  // Subscribe to state changes
+  function initializeStateSubscription() {
+    // 🎯 Direct subscription - appState is imported, no need for null check!
+    unsubscribe = appState.subscribe((state) => {
       updateTreeOptions();
     });
+    console.log("TreeSwitcher subscribed to state changes");
+  }
 
-    // Listen for language changes to update any translatable content
-    window.addEventListener("languageChanged", function (event) {
-      // Currently no translatable content in tree switcher, but ready for future
-      console.log("TreeSwitcher received language change");
+  // Initialize subscription
+  initializeStateSubscription();
+
+  if (treeSelect) {
+    // Handle tree selection changes
+    treeSelect.addEventListener("change", async function (event) {
+      const selectedTree = event.target.value;
+
+      try {
+        // 🎯 Clean direct access to current state
+        const currentTree = appState.getState().currentTreeName;
+
+        if (selectedTree !== currentTree) {
+          console.log(`Switching from "${currentTree}" to "${selectedTree}"`);
+
+          // 🎯 Direct method call - VS Code shows method signature!
+          const success = await appState.switchToTree(selectedTree);
+
+          if (success) {
+            console.log(`Successfully switched to tree: ${selectedTree}`);
+            // State subscription will automatically update the UI
+          } else {
+            console.error(`Failed to switch to tree: ${selectedTree}`);
+            // Reset selection to current tree
+            updateTreeOptions();
+          }
+        }
+      } catch (error) {
+        console.error("Error switching tree:", error);
+        // Reset selection to current tree
+        updateTreeOptions();
+      }
     });
+  }
+
+  // Listen for language changes to update any translatable content
+  window.addEventListener("languageChanged", function (event) {
+    // Currently no translatable content in tree switcher, but ready for future
+    console.log("TreeSwitcher received language change");
+  });
+
+  // Cleanup on page unload
+  window.addEventListener("beforeunload", function () {
+    if (unsubscribe) {
+      unsubscribe();
+    }
   });
 </script>

@@ -44,7 +44,6 @@ const {data, language, translations} = Astro.props;
 >
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
   import {GenealogyForestData} from "/utility/GenealogyForestData.js";
-  import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
 
   // genealogyDataJson is provided by Astro's define:vars
 
@@ -83,24 +82,11 @@ const {data, language, translations} = Astro.props;
       );
 
       // Additional debugging
-      const rawStorageData = currentForestData.getStorageData();
-      console.log(`Raw storage data:`, rawStorageData);
-      if (rawStorageData && rawStorageData.trees) {
-        console.log(
-          `Available trees in storage:`,
-          Object.keys(rawStorageData.trees)
-        );
-        console.log(
-          `Selected tree name in storage:`,
-          rawStorageData.selectedTree
-        );
-        if (rawStorageData.trees[currentTreeName]) {
-          console.log(
-            `Data for current tree ${currentTreeName}:`,
-            rawStorageData.trees[currentTreeName]
-          );
-        }
-      }
+      console.log(`Available trees:`, currentForestData.getAvailableTrees());
+      console.log(
+        `Selected tree name:`,
+        currentForestData.getSelectedTreeName()
+      );
 
       // If you need overall storage statistics
       const storageStats = currentForestData.getStorageStats();
@@ -249,7 +235,6 @@ const {data, language, translations} = Astro.props;
     resetToOriginal: resetToOriginalData,
     getData: () => currentTreeData,
     getSelectedTreeName: () => currentTreeName,
-    getStoredData: () => currentForestData.getStorageData(),
     getAvailableTrees: getAvailableTrees,
     switchToTree: switchToTree,
     createNewTree: createNewTree,
@@ -260,17 +245,46 @@ const {data, language, translations} = Astro.props;
 
   // Make tree management functions available globally for the future families dialog
   window.genealogyTreeManager = {
-    getSelectedTreeName: () => currentTreeName,
-    getCurrentTreeData: () => ({persons: currentTreeData.persons}),
-    getTreeData: (treeName) => currentForestData.getTreeData(treeName),
+    currentForestData: currentForestData, // Expose for legacy compatibility
+    getSelectedTreeName: () => {
+      // Use centralized state if available, fallback to local
+      return window.appState
+        ? window.appState.getState().currentTreeName
+        : currentTreeName;
+    },
+    getCurrentTreeData: () => {
+      // Use centralized state if available, fallback to local
+      if (window.appState) {
+        const state = window.appState.getState();
+        return {persons: state.genealogyData.persons};
+      }
+      return {persons: currentTreeData.persons};
+    },
+    getTreeData: (treeName) => {
+      // Use centralized state if available, fallback to local
+      if (window.appState) {
+        return window.appState.getTreeData(treeName);
+      }
+      return currentForestData.getTreeData(treeName);
+    },
+    getAvailableTrees: () => {
+      // Use centralized state if available, fallback to local
+      if (window.appState) {
+        return window.appState.getState().availableTrees;
+      }
+      return getAvailableTrees();
+    },
     getOriginalFamilyExampleData: () => {
+      // Use centralized state if available, fallback to local
+      if (window.appState) {
+        return window.appState.getOriginalFamilyExampleData();
+      }
       // Return the original data processed through GenealogyTreeData
       // to match how it would be initialized (with auto-created parent placeholders)
       const rawOriginalData = initialGenealogyTreeData();
       const processedData = new GenealogyTreeData(rawOriginalData);
       return {persons: processedData.persons};
     },
-    getAvailableTrees: getAvailableTrees,
     switchToTree: async (treeName) => {
       const success = switchToTree(treeName);
       if (success) {
@@ -280,11 +294,7 @@ const {data, language, translations} = Astro.props;
         if (window.updateEditDialogData) {
           window.updateEditDialogData(currentTreeData);
         }
-        // Trigger graph re-render
-        const event = new CustomEvent("genealogy-tree-changed", {
-          detail: {treeName: currentTreeName},
-        });
-        document.dispatchEvent(event);
+        // Note: Graph re-render handled by state subscription
       }
       return success;
     },
@@ -294,13 +304,7 @@ const {data, language, translations} = Astro.props;
       if (success) {
         // Update tree name display if we deleted the active tree
         updateTreeNameDisplay();
-        if (treeName === currentTreeName) {
-          // Trigger graph re-render if we deleted the active tree
-          const event = new CustomEvent("genealogy-tree-changed", {
-            detail: {treeName: currentTreeName},
-          });
-          document.dispatchEvent(event);
-        }
+        // Note: Graph re-render handled by state subscription
       }
       return success;
     },
@@ -343,13 +347,7 @@ const {data, language, translations} = Astro.props;
         const treeData = {persons: originalData.persons};
         currentForestData.saveTreeData(EXAMPLE_TREE_NAME, treeData, false);
 
-        // If we're currently on the Family Example tree, trigger a graph update
-        if (currentTreeName === EXAMPLE_TREE_NAME) {
-          const event = new CustomEvent("genealogy-tree-changed", {
-            detail: {treeName: currentTreeName},
-          });
-          document.dispatchEvent(event);
-        }
+        // Note: Graph re-render handled by state subscription
 
         return true;
       } catch (error) {
@@ -360,7 +358,6 @@ const {data, language, translations} = Astro.props;
   };
 
   currentTreeData = loadDataFromStorage();
-  const graphvizPromise = Graphviz.load();
 
   // UI state management
   let isRendering = false;
@@ -414,21 +411,6 @@ const {data, language, translations} = Astro.props;
     console.log(`Current tree: ${currentTreeName}`);
   }
 
-  async function genealogySvgString(data) {
-    const dotString = data.genealogyDotString();
-
-    try {
-      const graphviz = await graphvizPromise;
-      return graphviz.layout(dotString, "svg", "dot");
-    } catch (error) {
-      console.error("Error rendering graph:", error);
-      throw new Error(`Failed to render graph: ${error.message}`);
-    }
-  }
-
-  // Make genealogySvgString available globally for GraphRenderer
-  window.genealogySvgString = genealogySvgString;
-
   // Loading state management
   function setLoadingState(loading) {
     isRendering = loading;
@@ -458,11 +440,7 @@ const {data, language, translations} = Astro.props;
 
       console.log("Genealogy system initialized successfully");
 
-      // Dispatch event to notify components that the system is ready
-      const readyEvent = new CustomEvent("genealogy-system-ready", {
-        detail: {initialized: true},
-      });
-      document.dispatchEvent(readyEvent);
+      // No longer need to dispatch ready event - components use direct state access
     } catch (error) {
       console.error("Error initializing genealogy system:", error);
       if (window.showNotification) {
@@ -475,8 +453,8 @@ const {data, language, translations} = Astro.props;
     }
   }
 
-  // Initialize the genealogy system when the DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeGenealogySystem);
+  // Initialize immediately since DOM is already ready in inline scripts
+  initializeGenealogySystem();
 
   // Listen for language changes
   window.addEventListener("languageChanged", function (event) {
@@ -487,16 +465,59 @@ const {data, language, translations} = Astro.props;
   });
 
   // Listen for tree management updates to ensure display is synchronized
-  document.addEventListener("tree-manager-update", function (event) {
-    const {action, treeName} = event.detail;
-    console.log(`Tree management update: ${action} for tree ${treeName}`);
+  function initializeStateSubscription() {
+    if (window.appState) {
+      const unsubscribe = window.appState.subscribe((state) => {
+        // Update local variables from state
+        const newTreeName = state.currentTreeName;
+        const newTreeData = {persons: state.genealogyData.persons};
 
-    // Force update of tree name display
-    updateTreeNameDisplay();
+        // Check if tree has actually changed
+        if (newTreeName !== currentTreeName) {
+          console.log(
+            `GenealogyGraph: Tree changed from ${currentTreeName} to ${newTreeName}`
+          );
+          currentTreeName = newTreeName;
+          currentTreeData = newTreeData;
 
-    // If a tree was deleted or switched, ensure edit dialog has current data
-    if (window.updateEditDialogData) {
-      window.updateEditDialogData(currentTreeData);
+          // Update tree name display
+          updateTreeNameDisplay();
+
+          // Update edit dialog with new genealogy data
+          if (window.updateEditDialogData) {
+            window.updateEditDialogData(currentTreeData);
+          }
+
+          // Note: Graph re-render handled by state subscription
+        }
+
+        // IMPORTANT: Sync local forest data with centralized state
+        // This ensures FileManagerDialog sees the same data as TreeManagerDialog
+        if (state.forestData && state.forestData !== currentForestData) {
+          console.log(
+            "GenealogyGraph: Syncing local forest data with centralized state"
+          );
+          currentForestData = state.forestData;
+
+          // Update the genealogyTreeManager to use the synchronized data
+          window.genealogyTreeManager.currentForestData = currentForestData;
+        }
+      });
+
+      console.log("GenealogyGraph subscribed to state changes");
+
+      // Store unsubscribe function for cleanup
+      window.addEventListener("beforeunload", function () {
+        unsubscribe();
+      });
+    } else {
+      // If appState isn't ready yet, log error and continue without state subscription
+      console.warn(
+        "GenealogyGraph: appState not available, state subscription skipped"
+      );
     }
-  });
+  }
+
+  // Initialize state subscription
+  initializeStateSubscription();
 </script>

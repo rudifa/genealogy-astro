@@ -774,9 +774,11 @@ const {language, translations} = Astro.props;
   }
 </style>
 
-<script is:inline define:vars={{translations}}>
+<script is:inline type='module' define:vars={{translations}}>
   // Tree Management Dialog functionality
-  function initializeTreeManagementDialog() {
+  import {appState} from "/utility/State.js";
+
+  async function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-manager-dialog");
     const closeButton = document.getElementById("close-tree-dialog");
     const cancelButton = document.getElementById("dialog-cancel");
@@ -793,17 +795,30 @@ const {language, translations} = Astro.props;
     let currentTranslations = translations;
     let selectedOther = null;
     let familyExampleNeedsReset = false; // Cache the reset button state
+    let unsubscribe = null; // For state subscription
+
+    // Subscribe to state changes to detect when Family Example tree is modified
+    if (appState) {
+      unsubscribe = appState.subscribe(async (state) => {
+        // Always update reset state when state changes
+        await checkFamilyExampleResetState();
+
+        // Update tree list if dialog is visible
+        if (dialog && dialog.style.display !== "none") {
+          await updateTreeList();
+        }
+      });
+    }
 
     // Check if Family Example tree needs reset (only called when dialog opens)
-    function checkFamilyExampleResetState() {
-      if (!window.genealogyTreeManager) {
+    async function checkFamilyExampleResetState() {
+      if (!appState) {
         familyExampleNeedsReset = false;
         return;
       }
 
       try {
-        const familyExampleData =
-          window.genealogyTreeManager.getTreeData("Family Example");
+        const familyExampleData = appState.getTreeData("Family Example");
 
         if (!familyExampleData) {
           familyExampleNeedsReset = false;
@@ -829,12 +844,14 @@ const {language, translations} = Astro.props;
         }
 
         // Get the original Family Example data for comparison
-        const originalData =
-          window.genealogyTreeManager.getOriginalFamilyExampleData();
+        const originalData = appState.getOriginalFamilyExampleData();
         console.log("- Original data available:", !!originalData);
+        console.log("- Original data:", originalData);
 
         if (originalData && originalData.persons) {
           console.log("- Original data available for comparison");
+          console.log("- Original persons count:", originalData.persons.length);
+          console.log("- Current persons count:", currentPersons.length);
 
           // Do a complete JSON comparison for exact match
           const currentJson = JSON.stringify(familyExampleData);
@@ -862,7 +879,7 @@ const {language, translations} = Astro.props;
     }
 
     // Update dialog content with new translations
-    function updateDialogTranslations(newTranslations) {
+    async function updateDialogTranslations(newTranslations) {
       currentTranslations = newTranslations;
 
       // Update static text elements
@@ -900,7 +917,7 @@ const {language, translations} = Astro.props;
       if (cancelButton) cancelButton.textContent = currentTranslations.cancel;
 
       // Update tree list tooltips if it's open
-      updateTreeList();
+      await updateTreeList();
     }
 
     // Listen for language changes
@@ -914,8 +931,7 @@ const {language, translations} = Astro.props;
 
     function updateMergeDisplay() {
       const currentTree =
-        window.genealogyTreeManager?.getSelectedTreeName() ||
-        currentTranslations.currentTree;
+        appState?.getState().currentTreeName || currentTranslations.currentTree;
 
       if (selectedOther) {
         // Show merge mode
@@ -946,12 +962,19 @@ const {language, translations} = Astro.props;
       }
     }
 
-    function showDialog() {
+    async function showDialog() {
       if (dialog) {
+        console.log(
+          "TreeManagerDialog: Opening dialog, checking reset state..."
+        );
         // Check reset state only when dialog opens
-        checkFamilyExampleResetState();
+        await checkFamilyExampleResetState();
+        console.log(
+          "TreeManagerDialog: Reset state after check:",
+          familyExampleNeedsReset
+        );
 
-        updateTreeList();
+        await updateTreeList();
         updateCurrentTreeDisplay();
         updateMergeDisplay();
         dialog.style.display = "flex";
@@ -971,11 +994,11 @@ const {language, translations} = Astro.props;
 
     function updateCurrentTreeDisplay() {
       // This function is kept for compatibility, but the main tree display
-      // is updated via the tree-manager-update event in GenealogyGraph
-      if (window.genealogyTreeManager) {
+      // is updated via the state subscription mechanism
+      if (appState) {
         console.log(
           "Current tree after update:",
-          window.genealogyTreeManager.getSelectedTreeName()
+          appState.getState().currentTreeName
         );
       }
     }
@@ -995,10 +1018,10 @@ const {language, translations} = Astro.props;
         // Current active tree shows checkmark
         mergeButtonHTML = `<span class="tree-action-indicator active" title="${currentTranslations.currentActiveTree}">✅</span>`;
       } else if (isMergeSelected) {
-        // Tree selected for merge shows refresh icon
+        // Tree selected for merge shows plus icon
         mergeButtonHTML = `<button class="tree-action-button merge-selected" type="button" data-action="merge-select" title="${currentTranslations.selectedForMerge}">➕</button>`;
       } else {
-        // Other trees show selection button (black square)
+        // Other trees show selection button
         mergeButtonHTML = `<button class="tree-action-button merge-select" type="button" data-action="merge-select" title="${currentTranslations.selectForMerge}">⬛</button>`;
       }
 
@@ -1081,8 +1104,7 @@ const {language, translations} = Astro.props;
             )
           ) {
             try {
-              const success =
-                await window.genealogyTreeManager.deleteTree(treeName);
+              const success = await appState.deleteTree(treeName);
               if (success) {
                 // Clear merge selection if deleting the selected merge tree
                 if (selectedOther === treeName) {
@@ -1091,18 +1113,10 @@ const {language, translations} = Astro.props;
                 }
 
                 // Update dialog displays first
-                updateTreeList();
+                await updateTreeList();
                 updateCurrentTreeDisplay();
 
-                // Ensure main toolbar is updated by dispatching a custom event
-                const event = new CustomEvent("tree-manager-update", {
-                  detail: {action: "delete", treeName: treeName},
-                });
-                document.dispatchEvent(event);
-
-                // Give a brief moment for all updates to complete
-                await new Promise((resolve) => setTimeout(resolve, 50));
-
+                // No delay needed - reactive state updates handle synchronization
                 hideDialog();
               } else {
                 alert(currentTranslations.failedToDeleteTree);
@@ -1129,22 +1143,13 @@ const {language, translations} = Astro.props;
 
           if (confirm(currentTranslations.confirmResetFamilyExample)) {
             try {
-              const success =
-                await window.genealogyTreeManager.resetFamilyExample();
+              const success = await appState.resetFamilyExample();
               if (success) {
                 // Update dialog displays first
-                updateTreeList();
+                await updateTreeList();
                 updateCurrentTreeDisplay();
 
-                // Ensure main toolbar is updated by dispatching a custom event
-                const event = new CustomEvent("tree-manager-update", {
-                  detail: {action: "reset", treeName: treeName},
-                });
-                document.dispatchEvent(event);
-
-                // Give a brief moment for all updates to complete
-                await new Promise((resolve) => setTimeout(resolve, 50));
-
+                // No delay needed - reactive state updates handle synchronization
                 // Close dialog after successful reset
                 hideDialog();
               } else {
@@ -1169,7 +1174,7 @@ const {language, translations} = Astro.props;
       if (mergeButton) {
         mergeButton.addEventListener(
           "click",
-          (event) => {
+          async (event) => {
             // Prevent the event from bubbling up to any parent elements
             event.stopPropagation();
             event.preventDefault();
@@ -1185,7 +1190,7 @@ const {language, translations} = Astro.props;
             }
 
             // Update the tree list to reflect the new selection state
-            updateTreeList();
+            await updateTreeList();
 
             // Update the create tree display
             updateMergeDisplay();
@@ -1202,18 +1207,10 @@ const {language, translations} = Astro.props;
         treeNameSpan.addEventListener("click", async (event) => {
           event.stopPropagation();
           try {
-            const success =
-              await window.genealogyTreeManager.switchToTree(treeName);
+            const success = await appState.switchToTree(treeName);
             if (success) {
-              updateTreeList();
+              await updateTreeList();
               updateCurrentTreeDisplay();
-
-              // Ensure main toolbar is updated
-              const switchEvent = new CustomEvent("tree-manager-update", {
-                detail: {action: "switch", treeName: treeName},
-              });
-              document.dispatchEvent(switchEvent);
-
               hideDialog();
             } else {
               alert(currentTranslations.failedToSwitchTree);
@@ -1262,11 +1259,15 @@ const {language, translations} = Astro.props;
       return treeItem;
     }
 
-    function updateTreeList() {
-      if (!treeList || !window.genealogyTreeManager) return;
+    async function updateTreeList() {
+      if (!treeList || !appState) return;
 
-      const trees = window.genealogyTreeManager.getAvailableTrees();
-      const currentTree = window.genealogyTreeManager.getSelectedTreeName();
+      // Recheck Family Example reset state since tree data may have changed
+      await checkFamilyExampleResetState();
+
+      const state = appState.getState();
+      const trees = state.availableTrees;
+      const currentTree = state.currentTreeName;
 
       treeList.innerHTML = "";
 
@@ -1291,7 +1292,7 @@ const {language, translations} = Astro.props;
     }
 
     async function createNewTree() {
-      if (!newTreeInput || !window.genealogyTreeManager) return;
+      if (!newTreeInput || !appState) return;
 
       const treeName = newTreeInput.value.trim();
       if (!treeName) {
@@ -1309,14 +1310,12 @@ const {language, translations} = Astro.props;
           );
 
           // Get the current tree data
-          const currentTreeData =
-            window.genealogyTreeManager.getCurrentTreeData();
-          const currentTreeName =
-            window.genealogyTreeManager.getSelectedTreeName();
+          const state = appState.getState();
+          const currentTreeData = {persons: state.genealogyData.persons};
+          const currentTreeName = state.currentTreeName;
 
           // Get the other tree data
-          const otherTreeData =
-            window.genealogyTreeManager.getTreeData(selectedOther);
+          const otherTreeData = appState.getTreeData(selectedOther);
 
           if (!currentTreeData || !otherTreeData) {
             throw new Error("Could not retrieve tree data for merging");
@@ -1340,7 +1339,7 @@ const {language, translations} = Astro.props;
           console.log("Merge statistics:", mergeStats);
 
           // Create the new tree with merged data
-          success = await window.genealogyTreeManager.createNewTree(
+          success = await appState.createNewTree(
             treeName,
             false,
             currentTree.persons
@@ -1358,28 +1357,19 @@ const {language, translations} = Astro.props;
         } else {
           // Normal mode: create tree with optional copy
           const copyData = copyCheckbox?.checked || false;
-          success = await window.genealogyTreeManager.createNewTree(
-            treeName,
-            copyData
-          );
+          success = await appState.createNewTree(treeName, copyData);
         }
 
         if (success) {
           newTreeInput.value = "";
           if (copyCheckbox) copyCheckbox.checked = false;
           updateCreateButtonState(); // Update button state after clearing input
-          updateTreeList();
+          await updateTreeList();
 
           // Switch to the new tree
-          await window.genealogyTreeManager.switchToTree(treeName);
-          updateTreeList();
+          await appState.switchToTree(treeName);
+          await updateTreeList();
           updateCurrentTreeDisplay();
-
-          // Dispatch event to notify other components (like TreeSwitcher)
-          const event = new CustomEvent("tree-manager-update", {
-            detail: {action: "create", treeName: treeName},
-          });
-          document.dispatchEvent(event);
 
           // Close dialog after successful creation and switch
           hideDialog();
@@ -1430,6 +1420,13 @@ const {language, translations} = Astro.props;
       });
     }
 
+    // Cleanup subscription on page unload
+    window.addEventListener("beforeunload", () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    });
+
     // Make the dialog functions available globally
     window.treeManagementDialog = {
       show: showDialog,
@@ -1440,8 +1437,8 @@ const {language, translations} = Astro.props;
     return {showDialog, hideDialog};
   }
 
-  // Initialize when DOM is ready
-  document.addEventListener("DOMContentLoaded", function () {
-    initializeTreeManagementDialog();
-  });
+  // Initialize immediately since DOM is already ready in inline scripts
+  (async function () {
+    await initializeTreeManagementDialog();
+  })();
 </script>

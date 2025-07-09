@@ -31,7 +31,7 @@ export class GenealogyForestData {
 
     // Initialize current tree data from storage or create default
     if (this.#getStorageData() === null) {
-      this.resetToDefault();
+      this.resetForestToDefault();
     }
     this.#currentTreeData = this.#getStorageData();
   }
@@ -74,7 +74,8 @@ export class GenealogyForestData {
       selectedTreeName: this.#defaultTreeName,
       trees: {
         [this.#defaultTreeName]: {
-          persons: this.#defaultTreeData.persons || [],
+          // IMPORTANT: Create a deep clone to prevent mutation of the original default data
+          persons: JSON.parse(JSON.stringify(this.#defaultTreeData.persons || [])),
         },
       },
     };
@@ -369,18 +370,67 @@ export class GenealogyForestData {
   }
 
   /**
-   * Reset storage to initial state with default tree
+   * Reset entire forest to initial state with only the default tree
+   * WARNING: This deletes ALL trees and recreates only the Family Example tree
    */
-  resetToDefault() {
+  resetForestToDefault() {
     try {
       const initialStructure = this.#initialForestDataStructure();
       this.#putToStorage(initialStructure);
       this.#currentTreeData = initialStructure;
       if (this.#verbose) {
-        console.log("Reset storage to default state");
+        console.log("Reset entire forest to default state - ALL trees deleted except Family Example");
       }
+      return true;
     } catch (error) {
-      console.error("Failed to reset storage:", error);
+      console.error("Failed to reset forest to default:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Reset Family Example tree to its original state
+   * This ONLY resets the Family Example tree, preserving all other trees
+   */
+  resetFamilyExample() {
+    try {
+      if (!this.#currentTreeData || !this.#currentTreeData.trees) {
+        this.#currentTreeData = this.#initialForestDataStructure();
+      }
+
+      // Only reset the Family Example tree, preserve all others
+      // IMPORTANT: Create a deep clone to prevent mutation of the original default data
+      this.#currentTreeData.trees[this.#defaultTreeName] = {
+        persons: JSON.parse(JSON.stringify(this.#defaultTreeData.persons || [])),
+      };
+
+      this.#putToStorage(this.#currentTreeData);
+      if (this.#verbose) {
+        console.log(`Reset ${this.#defaultTreeName} tree to original state`);
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to reset Family Example tree:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the original Family Example data for comparison
+   * Returns the initial default structure for the Family Example tree
+   */
+  getOriginalFamilyExampleData() {
+    try {
+      // Return a deep clone of the original default tree data
+      const originalData = JSON.parse(JSON.stringify(this.#defaultTreeData));
+      console.log("🔍 Original Family Example data:", {
+        personCount: originalData.persons?.length || 0,
+        persons: originalData.persons?.map(p => p.name) || []
+      });
+      return originalData;
+    } catch (error) {
+      console.error("Failed to get original Family Example data:", error);
+      return null;
     }
   }
 }

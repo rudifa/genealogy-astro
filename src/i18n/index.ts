@@ -18,6 +18,12 @@ export interface Translations {
   manageTrees: string;
   loading: string;
 
+  // Toolbar tooltips
+  addPersonTooltip: string;
+  clearAllTooltip: string;
+  manageTreesTooltip: string;
+  manageFilesTooltip: string;
+
   // Mode Toggle
   goToForestMode: string;
   goToOneTreeMode: string;

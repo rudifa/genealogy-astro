@@ -18,6 +18,12 @@ export const en: Translations = {
   manageTrees: "Manage Trees",
   loading: "Loading...",
 
+  // Toolbar tooltips
+  addPersonTooltip: "Add a new person to current tree",
+  clearAllTooltip: "Remove all persons from current tree",
+  manageTreesTooltip: "Create, switch, delete or merge family trees",
+  manageFilesTooltip: "Upload or download family tree data files",
+
   // Mode Toggle
   goToForestMode: "Go to Forest Mode",
   goToOneTreeMode: "Go to One Tree Mode",

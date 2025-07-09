@@ -18,6 +18,14 @@ export const fr: Translations = {
   manageTrees: "Gérer les Arbres",
   loading: "Chargement...",
 
+  // Toolbar tooltips
+  addPersonTooltip: "Ajouter une nouvelle personne à l'arbre actuel",
+  clearAllTooltip: "Supprimer toutes les personnes de l'arbre actuel",
+  manageTreesTooltip:
+    "Créer, changer, supprimer ou fusionner des arbres familiaux",
+  manageFilesTooltip:
+    "Télécharger ou charger des fichiers de données d'arbre familial",
+
   // Mode Toggle
   goToForestMode: "Aller au Mode Forêt",
   goToOneTreeMode: "Aller au Mode Arbre Solitaire",

@@ -330,6 +330,9 @@ const {language, translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
+  // 🎯 Direct import - VS Code can navigate to definition!
+  import {appState} from "/utility/State.js";
+
   export function initializeEditDialog(initialGenealogyTreeData) {
     // Keep a reference to the current genealogy data that can be updated
     let genealogyData = initialGenealogyTreeData;
@@ -350,6 +353,14 @@ const {language, translations} = Astro.props;
         parentNameLength: "{parent} name must be 100 characters or less",
         parentSameName: "{parent} cannot be the same as the person",
       };
+
+    // Debug translations
+    console.log("EditPersonDialog: Loaded translations:", t);
+    console.log("EditPersonDialog: Current language:", window.currentLanguage);
+    console.log(
+      "EditPersonDialog: Available translations:",
+      Object.keys(window.genealogyTranslations || {})
+    );
 
     // --- Get references to dialog elements ---
     const dialog = document.getElementById("edit-dialog");
@@ -410,6 +421,33 @@ const {language, translations} = Astro.props;
       updateDialogTranslations(event.detail.translations);
     });
 
+    // Function to refresh translations
+    function refreshTranslations() {
+      const newTranslations = window.genealogyTranslations?.[
+        window.currentLanguage
+      ] ||
+        window.genealogyTranslations?.en || {
+          editPerson: "Edit Person",
+          addNewPerson: "Add New Person",
+          nameRequired: "Name is required",
+          nameMaxLength: "Name must be 100 characters or less",
+          nameExists: "A person with this name already exists",
+          confirmRemove:
+            "Are you sure you want to remove {name}? This action cannot be undone.",
+          validationErrors: "Please fix the validation errors before saving",
+          errorSaving: "An error occurred while saving. Please try again.",
+          errorRemoving:
+            "An error occurred while removing the person. Please try again.",
+          parentNameLength: "{parent} name must be 100 characters or less",
+          parentSameName: "{parent} cannot be the same as the person",
+        };
+
+      // Update the translations object
+      t = newTranslations;
+
+      console.log("EditPersonDialog: Refreshed translations:", t);
+    }
+
     // --- Validation functions ---
     function validateName(name) {
       const trimmedName = name.trim();
@@ -421,7 +459,15 @@ const {language, translations} = Astro.props;
       }
       // Check for duplicate names (only for new persons or when name changed)
       if (isNewPerson || trimmedName !== originalNameInput.value) {
-        const existingPerson = genealogyData.persons.find(
+        // Get current genealogy data from state
+        let currentGenealogyData = genealogyData;
+        // 🎯 Direct method call - VS Code shows available methods!
+        if (appState) {
+          const state = appState.getState();
+          currentGenealogyData = state.genealogyData;
+        }
+
+        const existingPerson = currentGenealogyData.persons.find(
           (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
         );
         if (existingPerson) {
@@ -435,13 +481,17 @@ const {language, translations} = Astro.props;
       if (!parentName.trim()) return null;
 
       if (parentName.trim().length > 100) {
-        return t.parentNameLength.replace("{parent}", fieldName);
+        const message =
+          t.parentNameLength || "{parent} name must be 100 characters or less";
+        return message.replace("{parent}", fieldName);
       }
 
       // Check for circular relationship
       const currentName = nameInput.value.trim();
       if (parentName.trim().toLowerCase() === currentName.toLowerCase()) {
-        return t.parentSameName.replace("{parent}", fieldName);
+        const message =
+          t.parentSameName || "{parent} cannot be the same as the person";
+        return message.replace("{parent}", fieldName);
       }
 
       return null;
@@ -508,6 +558,9 @@ const {language, translations} = Astro.props;
 
     // --- Dialog functions ---
     function openEditDialog(person) {
+      // Refresh translations in case language changed
+      refreshTranslations();
+
       isNewPerson = !person.name;
       originalNameInput.value = person.name || "";
       nameInput.value = person.name || "";
@@ -533,14 +586,6 @@ const {language, translations} = Astro.props;
     function closeEditDialog() {
       dialog.style.display = "none";
       clearErrors();
-    }
-
-    function emitDataChanged() {
-      // Emit a custom event to notify that the data has changed
-      const event = new CustomEvent("genealogy-data-changed", {
-        detail: {genealogyData},
-      });
-      document.dispatchEvent(event);
     }
 
     // --- Dialog event listeners ---
@@ -589,10 +634,13 @@ const {language, translations} = Astro.props;
           info: infoInput.value.trim() || null,
         };
 
-        genealogyData.updatePerson(originalNameInput.value, updatedPerson);
+        // 🎯 Centralized state management with direct import
+        // VS Code will auto-complete method names and show signatures!
+        appState.updatePerson(originalNameInput.value, updatedPerson);
 
         closeEditDialog();
-        emitDataChanged();
+        // Don't emit data changed event - the state management will handle notifications
+        // emitDataChanged();
       } catch (error) {
         console.error("Error saving person:", error);
         showError(t.errorSaving);
@@ -602,12 +650,17 @@ const {language, translations} = Astro.props;
     // Remove button removes the person from genealogy data
     removeButton.addEventListener("click", async () => {
       const personName = originalNameInput.value;
-      const confirmMessage = t.confirmRemove.replace("{name}", personName);
+      const confirmMessage = (
+        t.confirmRemove ||
+        "Are you sure you want to remove {name}? This action cannot be undone."
+      ).replace("{name}", personName);
       if (confirm(confirmMessage)) {
         try {
-          genealogyData.removePerson(personName);
+          // 🎯 Direct method call - clean and simple!
+          appState.removePerson(personName);
           closeEditDialog();
-          emitDataChanged();
+          // Don't emit data changed event - the state management will handle notifications
+          // emitDataChanged();
         } catch (error) {
           console.error("Error removing person:", error);
           showError(t.errorRemoving);

@@ -18,6 +18,13 @@ export const de: Translations = {
   manageTrees: "Bäume Verwalten",
   loading: "Laden...",
 
+  // Toolbar tooltips
+  addPersonTooltip: "Eine neue Person zum aktuellen Baum hinzufügen",
+  clearAllTooltip: "Alle Personen aus dem aktuellen Baum entfernen",
+  manageTreesTooltip:
+    "Familienbäume erstellen, wechseln, löschen oder zusammenführen",
+  manageFilesTooltip: "Familienbaumdateien hochladen oder herunterladen",
+
   // Mode Toggle
   goToForestMode: "Zum Wald-Modus",
   goToOneTreeMode: "Zum Ein-Baum-Modus",
