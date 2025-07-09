@@ -776,7 +776,7 @@ const {language, translations} = Astro.props;
 
 <script is:inline type='module' define:vars={{translations}}>
   // Tree Management Dialog functionality
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
 
   async function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-manager-dialog");
@@ -798,8 +798,8 @@ const {language, translations} = Astro.props;
     let unsubscribe = null; // For state subscription
 
     // Subscribe to state changes to detect when Family Example tree is modified
-    if (appState) {
-      unsubscribe = appState.subscribe(async (state) => {
+    if (appData) {
+      unsubscribe = appData.subscribe(async (state) => {
         // Always update reset state when state changes
         await checkFamilyExampleResetState();
 
@@ -812,13 +812,13 @@ const {language, translations} = Astro.props;
 
     // Check if Family Example tree needs reset (only called when dialog opens)
     async function checkFamilyExampleResetState() {
-      if (!appState) {
+      if (!appData) {
         familyExampleNeedsReset = false;
         return;
       }
 
       try {
-        const familyExampleData = appState.getTreeData("Family Example");
+        const familyExampleData = appData.getTreeData("Family Example");
 
         if (!familyExampleData) {
           familyExampleNeedsReset = false;
@@ -844,7 +844,7 @@ const {language, translations} = Astro.props;
         }
 
         // Get the original Family Example data for comparison
-        const originalData = appState.getOriginalFamilyExampleData();
+        const originalData = appData.getOriginalFamilyExampleData();
         console.log("- Original data available:", !!originalData);
         console.log("- Original data:", originalData);
 
@@ -931,7 +931,7 @@ const {language, translations} = Astro.props;
 
     function updateMergeDisplay() {
       const currentTree =
-        appState?.getState().currentTreeName || currentTranslations.currentTree;
+        appData?.getState().currentTreeName || currentTranslations.currentTree;
 
       if (selectedOther) {
         // Show merge mode
@@ -995,10 +995,10 @@ const {language, translations} = Astro.props;
     function updateCurrentTreeDisplay() {
       // This function is kept for compatibility, but the main tree display
       // is updated via the state subscription mechanism
-      if (appState) {
+      if (appData) {
         console.log(
           "Current tree after update:",
-          appState.getState().currentTreeName
+          appData.getState().currentTreeName
         );
       }
     }
@@ -1104,7 +1104,7 @@ const {language, translations} = Astro.props;
             )
           ) {
             try {
-              const success = await appState.deleteTree(treeName);
+              const success = await appData.deleteTree(treeName);
               if (success) {
                 // Clear merge selection if deleting the selected merge tree
                 if (selectedOther === treeName) {
@@ -1143,7 +1143,7 @@ const {language, translations} = Astro.props;
 
           if (confirm(currentTranslations.confirmResetFamilyExample)) {
             try {
-              const success = await appState.resetFamilyExample();
+              const success = await appData.resetFamilyExample();
               if (success) {
                 // Update dialog displays first
                 await updateTreeList();
@@ -1207,7 +1207,7 @@ const {language, translations} = Astro.props;
         treeNameSpan.addEventListener("click", async (event) => {
           event.stopPropagation();
           try {
-            const success = await appState.switchToTree(treeName);
+            const success = await appData.switchToTree(treeName);
             if (success) {
               await updateTreeList();
               updateCurrentTreeDisplay();
@@ -1260,12 +1260,12 @@ const {language, translations} = Astro.props;
     }
 
     async function updateTreeList() {
-      if (!treeList || !appState) return;
+      if (!treeList || !appData) return;
 
       // Recheck Family Example reset state since tree data may have changed
       await checkFamilyExampleResetState();
 
-      const state = appState.getState();
+      const state = appData.getState();
       const trees = state.availableTrees;
       const currentTree = state.currentTreeName;
 
@@ -1292,7 +1292,7 @@ const {language, translations} = Astro.props;
     }
 
     async function createNewTree() {
-      if (!newTreeInput || !appState) return;
+      if (!newTreeInput || !appData) return;
 
       const treeName = newTreeInput.value.trim();
       if (!treeName) {
@@ -1310,12 +1310,12 @@ const {language, translations} = Astro.props;
           );
 
           // Get the current tree data
-          const state = appState.getState();
+          const state = appData.getState();
           const currentTreeData = {persons: state.genealogyData.persons};
           const currentTreeName = state.currentTreeName;
 
           // Get the other tree data
-          const otherTreeData = appState.getTreeData(selectedOther);
+          const otherTreeData = appData.getTreeData(selectedOther);
 
           if (!currentTreeData || !otherTreeData) {
             throw new Error("Could not retrieve tree data for merging");
@@ -1339,7 +1339,7 @@ const {language, translations} = Astro.props;
           console.log("Merge statistics:", mergeStats);
 
           // Create the new tree with merged data
-          success = await appState.createNewTree(
+          success = await appData.createNewTree(
             treeName,
             false,
             currentTree.persons
@@ -1357,7 +1357,7 @@ const {language, translations} = Astro.props;
         } else {
           // Normal mode: create tree with optional copy
           const copyData = copyCheckbox?.checked || false;
-          success = await appState.createNewTree(treeName, copyData);
+          success = await appData.createNewTree(treeName, copyData);
         }
 
         if (success) {
@@ -1367,7 +1367,7 @@ const {language, translations} = Astro.props;
           await updateTreeList();
 
           // Switch to the new tree
-          await appState.switchToTree(treeName);
+          await appData.switchToTree(treeName);
           await updateTreeList();
           updateCurrentTreeDisplay();
 

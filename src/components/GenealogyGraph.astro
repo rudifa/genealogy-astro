@@ -248,36 +248,36 @@ const {data, language, translations} = Astro.props;
     currentForestData: currentForestData, // Expose for legacy compatibility
     getSelectedTreeName: () => {
       // Use centralized state if available, fallback to local
-      return window.appState
-        ? window.appState.getState().currentTreeName
+      return window.appData
+        ? window.appData.getState().currentTreeName
         : currentTreeName;
     },
     getCurrentTreeData: () => {
       // Use centralized state if available, fallback to local
-      if (window.appState) {
-        const state = window.appState.getState();
+      if (window.appData) {
+        const state = window.appData.getState();
         return {persons: state.genealogyData.persons};
       }
       return {persons: currentTreeData.persons};
     },
     getTreeData: (treeName) => {
       // Use centralized state if available, fallback to local
-      if (window.appState) {
-        return window.appState.getTreeData(treeName);
+      if (window.appData) {
+        return window.appData.getTreeData(treeName);
       }
       return currentForestData.getTreeData(treeName);
     },
     getAvailableTrees: () => {
       // Use centralized state if available, fallback to local
-      if (window.appState) {
-        return window.appState.getState().availableTrees;
+      if (window.appData) {
+        return window.appData.getState().availableTrees;
       }
       return getAvailableTrees();
     },
     getOriginalFamilyExampleData: () => {
       // Use centralized state if available, fallback to local
-      if (window.appState) {
-        return window.appState.getOriginalFamilyExampleData();
+      if (window.appData) {
+        return window.appData.getOriginalFamilyExampleData();
       }
       // Return the original data processed through GenealogyTreeData
       // to match how it would be initialized (with auto-created parent placeholders)
@@ -466,8 +466,8 @@ const {data, language, translations} = Astro.props;
 
   // Listen for tree management updates to ensure display is synchronized
   function initializeStateSubscription() {
-    if (window.appState) {
-      const unsubscribe = window.appState.subscribe((state) => {
+    if (window.appData) {
+      const unsubscribe = window.appData.subscribe((state) => {
         // Update local variables from state
         const newTreeName = state.currentTreeName;
         const newTreeData = {persons: state.genealogyData.persons};
@@ -511,9 +511,9 @@ const {data, language, translations} = Astro.props;
         unsubscribe();
       });
     } else {
-      // If appState isn't ready yet, log error and continue without state subscription
+      // If appData isn't ready yet, log error and continue without state subscription
       console.warn(
-        "GenealogyGraph: appState not available, state subscription skipped"
+        "GenealogyGraph: appData not available, state subscription skipped"
       );
     }
   }

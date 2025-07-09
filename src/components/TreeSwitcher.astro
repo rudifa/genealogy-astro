@@ -101,18 +101,18 @@ const {currentTree, language, translations} = Astro.props;
 
 <script is:inline type='module'>
   // 🎯 Direct import - VS Code can navigate to definition!
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
 
   // Initialize immediately since DOM is already ready in inline scripts
   const treeSelect = document.getElementById("tree-select");
   let unsubscribe = null;
 
   function updateTreeOptions() {
-    if (!treeSelect || !appState) return;
+    if (!treeSelect || !appData) return;
 
     try {
       // 🎯 Direct method call with VS Code auto-completion!
-      const state = appState.getState();
+      const state = appData.getState();
       const availableTrees = state.availableTrees;
       const currentTree = state.currentTreeName;
 
@@ -141,8 +141,8 @@ const {currentTree, language, translations} = Astro.props;
 
   // Subscribe to state changes
   function initializeStateSubscription() {
-    // 🎯 Direct subscription - appState is imported, no need for null check!
-    unsubscribe = appState.subscribe((state) => {
+    // 🎯 Direct subscription - appData is imported, no need for null check!
+    unsubscribe = appData.subscribe((state) => {
       updateTreeOptions();
     });
     console.log("TreeSwitcher subscribed to state changes");
@@ -158,13 +158,13 @@ const {currentTree, language, translations} = Astro.props;
 
       try {
         // 🎯 Clean direct access to current state
-        const currentTree = appState.getState().currentTreeName;
+        const currentTree = appData.getState().currentTreeName;
 
         if (selectedTree !== currentTree) {
           console.log(`Switching from "${currentTree}" to "${selectedTree}"`);
 
           // 🎯 Direct method call - VS Code shows method signature!
-          const success = await appState.switchToTree(selectedTree);
+          const success = await appData.switchToTree(selectedTree);
 
           if (success) {
             console.log(`Successfully switched to tree: ${selectedTree}`);

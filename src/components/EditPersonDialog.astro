@@ -331,7 +331,7 @@ const {language, translations} = Astro.props;
 
 <script type='module' is:inline>
   // 🎯 Direct import - VS Code can navigate to definition!
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
 
   export function initializeEditDialog(initialGenealogyTreeData) {
     // Keep a reference to the current genealogy data that can be updated
@@ -462,8 +462,8 @@ const {language, translations} = Astro.props;
         // Get current genealogy data from state
         let currentGenealogyData = genealogyData;
         // 🎯 Direct method call - VS Code shows available methods!
-        if (appState) {
-          const state = appState.getState();
+        if (appData) {
+          const state = appData.getState();
           currentGenealogyData = state.genealogyData;
         }
 
@@ -636,7 +636,7 @@ const {language, translations} = Astro.props;
 
         // 🎯 Centralized state management with direct import
         // VS Code will auto-complete method names and show signatures!
-        appState.updatePerson(originalNameInput.value, updatedPerson);
+        appData.updatePerson(originalNameInput.value, updatedPerson);
 
         closeEditDialog();
         // Don't emit data changed event - the state management will handle notifications
@@ -657,7 +657,7 @@ const {language, translations} = Astro.props;
       if (confirm(confirmMessage)) {
         try {
           // 🎯 Direct method call - clean and simple!
-          appState.removePerson(personName);
+          appData.removePerson(personName);
           closeEditDialog();
           // Don't emit data changed event - the state management will handle notifications
           // emitDataChanged();

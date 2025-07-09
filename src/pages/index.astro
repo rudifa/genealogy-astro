@@ -42,6 +42,7 @@ const t = getTranslations(currentLanguage);
   // Use translations from the i18n system
   window.genealogyTranslations = JSON.parse(translationsData);
   window.currentLanguage = "en";
+  window.genealogyDataJson = genealogyDataJson;
 
   window.updatePageLanguage = function (language) {
     const t =
@@ -87,32 +88,37 @@ const t = getTranslations(currentLanguage);
     }
   };
 
+  // Initial language detection
+  window.detectAndSetLanguage();
+</script>
+
+<script type='module'>
+  import {appData} from "/utility/AppData.js";
+  window.appData = appData;
+
   // --- State Initialization (Step 1) ---
   // Initialize state when genealogy data is available
   async function initializeAppState() {
     try {
-      // Import the state module
-      const {appState} = await import("/utility/State.js");
-
-      // Parse the genealogy data
-      const genealogyData = JSON.parse(genealogyDataJson);
+      // Parse the genealogy data from the global variable set by the inline script
+      const genealogyData = JSON.parse(window.genealogyDataJson);
 
       // Pass the current language's translations (default to English)
       const currentTranslations =
         window.genealogyTranslations[window.currentLanguage] ||
         window.genealogyTranslations.en;
 
-      // Initialize appState and expose to window
+      // Initialize appData and expose to window
       // IMPORTANT: Create a deep clone of genealogyData to prevent mutation of the original data
       const genealogyDataClone = JSON.parse(JSON.stringify(genealogyData));
-      appState.initialize(genealogyDataClone, currentTranslations);
-      window.appState = appState;
+      appData.initialize(genealogyDataClone, currentTranslations);
+      window.appData = appData;
 
       console.log(
-        "✅ appState initialized successfully and is available as window.appState"
+        "✅ appData initialized successfully and is available as window.appData"
       );
     } catch (error) {
-      console.error("❌ Failed to initialize appState:", error);
+      console.error("❌ Failed to initialize appData:", error);
     }
   }
 

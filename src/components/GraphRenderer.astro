@@ -47,7 +47,7 @@ const {language, translations} = Astro.props;
 <script is:inline type='module' define:vars={{translations}}>
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
   // 🎯 Direct import for state management
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
 
   // Graph Renderer functionality
   function initializeGraphRenderer() {
@@ -123,8 +123,8 @@ const {language, translations} = Astro.props;
         // Get genealogy data from centralized state instead of window.genealogyData
         let genealogyData = null;
         // 🎯 Direct access to state - clean and simple!
-        if (appState) {
-          const state = appState.getState();
+        if (appData) {
+          const state = appData.getState();
           genealogyData = state.genealogyData;
         } else {
           // Fallback to old approach if state not available
@@ -226,8 +226,8 @@ const {language, translations} = Astro.props;
             // Get genealogy data from centralized state
             let genealogyData = null;
             // 🎯 Direct state access for person lookup
-            if (appState) {
-              const state = appState.getState();
+            if (appData) {
+              const state = appData.getState();
               genealogyData = state.genealogyData;
             } else {
               // Fallback to old approach if state not available
@@ -290,7 +290,7 @@ const {language, translations} = Astro.props;
       // Expose renderGraph to global scope for external calls
       window.renderGraph = renderGraph;
 
-      // Subscribe to state changes for automatic re-rendering via appState
+      // Subscribe to state changes for automatic re-rendering via appData
       function initializeStateSubscription() {
         // 🎯 Direct subscription - no need for polling!
         let lastTreeName = null;
@@ -313,7 +313,7 @@ const {language, translations} = Astro.props;
           );
         }
 
-        const unsubscribe = appState.subscribe((state) => {
+        const unsubscribe = appData.subscribe((state) => {
           // Check for tree, count, and content changes
           const currentTreeName = state.currentTreeName;
           const currentPersonsCount = state.genealogyData?.persons?.length || 0;

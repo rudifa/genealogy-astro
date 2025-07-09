@@ -276,7 +276,7 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
   // Toolbar functionality
   function initializeToolbar() {
     console.log("Toolbar: Starting initialization");
@@ -465,7 +465,7 @@ const {language, translations} = Astro.props;
             // Check if rendering is in progress
             if (window.genealogyIsRendering) return;
 
-            const state = appState.getState();
+            const state = appData.getState();
 
             if (!state.genealogyData) {
               console.warn("No genealogy data available");
@@ -502,8 +502,8 @@ const {language, translations} = Astro.props;
               : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
 
             if (confirm(confirmMessage)) {
-              // Use appState to clear all persons - this will notify all subscribers
-              appState.clearAllPersons();
+              // Use appData to clear all persons - this will notify all subscribers
+              appData.clearAllPersons();
 
               // Show success notification
               if (window.showNotification) {

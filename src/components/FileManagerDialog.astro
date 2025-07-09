@@ -559,7 +559,7 @@ const {language, translations} = Astro.props;
 
 <script is:inline type='module' define:vars={{translations}}>
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
-  import {appState} from "/utility/State.js";
+  import {appData} from "/utility/AppData.js";
 
   // File Manager functionality
   function initializeFileManager() {
@@ -776,7 +776,7 @@ const {language, translations} = Astro.props;
     // Download functions
     function downloadCurrentTree() {
       try {
-        const currentState = appState.getState();
+        const currentState = appData.getState();
         const currentTreeName = currentState.currentTreeName || "current-tree";
         const currentTreeData = currentState.genealogyData?.persons
           ? {persons: currentState.genealogyData.persons}
@@ -839,7 +839,7 @@ const {language, translations} = Astro.props;
 
     function downloadAllTrees() {
       try {
-        const currentState = appState.getState();
+        const currentState = appData.getState();
         const allTrees = {};
         const availableTrees = currentState.availableTrees || [];
         const currentTreeName = currentState.currentTreeName || "";
@@ -856,7 +856,7 @@ const {language, translations} = Astro.props;
 
         // Get data for all trees
         for (const treeName of availableTrees) {
-          const treeData = appState.getTreeData(treeName);
+          const treeData = appData.getTreeData(treeName);
           if (treeData) {
             allTrees[treeName] = treeData;
           }
@@ -1177,7 +1177,7 @@ const {language, translations} = Astro.props;
           return;
         }
 
-        const currentState = appState.getState();
+        const currentState = appData.getState();
         if (currentState.availableTrees.includes(customTreeName)) {
           if (window.showNotification) {
             window.showNotification(
@@ -1190,20 +1190,20 @@ const {language, translations} = Astro.props;
         }
 
         console.log(
-          "FileManager: Creating new tree via appState:",
+          "FileManager: Creating new tree via appData:",
           customTreeName
         );
-        const createSuccess = appState.createTreeWithData(
+        const createSuccess = appData.createTreeWithData(
           customTreeName,
           treeData.persons || []
         );
 
         if (createSuccess) {
           console.log(
-            "FileManager: Switching to new tree via appState:",
+            "FileManager: Switching to new tree via appData:",
             customTreeName
           );
-          const switchSuccess = appState.switchToTree(customTreeName);
+          const switchSuccess = appData.switchToTree(customTreeName);
 
           if (switchSuccess) {
             console.log("FileManager: Tree creation and switch successful");
@@ -1227,15 +1227,15 @@ const {language, translations} = Astro.props;
           return;
         }
       } else if (uploadMode === "replace") {
-        console.log("FileManager: Replacing current tree data via appState");
-        const success = appState.replaceCurrentTreeData(treeData.persons || []);
+        console.log("FileManager: Replacing current tree data via appData");
+        const success = appData.replaceCurrentTreeData(treeData.persons || []);
 
         if (success) {
-          const currentState = appState.getState();
+          const currentState = appData.getState();
           console.log("FileManager: Tree replacement successful");
           if (window.showNotification) {
             window.showNotification(
-              currentTranslations.treeReplaced?.replace(
+              currentTranslations.treeReplacedByAppData?.replace(
                 "{treeName}",
                 currentState.currentTreeName
               ) ||
@@ -1246,19 +1246,23 @@ const {language, translations} = Astro.props;
         } else {
           console.error("FileManager: Failed to replace tree data");
           if (window.showNotification) {
-            window.showNotification("Failed to replace tree data", "error");
+            window.showNotification(
+              currentTranslations.failedToReplaceTreeByAppData ||
+                "Failed to replace tree data",
+              "error"
+            );
           }
           return;
         }
       } else {
         // merge
-        console.log("FileManager: Merging data into current tree via appState");
-        const success = appState.mergeDataIntoCurrentTree(
+        console.log("FileManager: Merging data into current tree via appData");
+        const success = appData.mergeDataIntoCurrentTree(
           treeData.persons || []
         );
 
         if (success) {
-          const currentState = appState.getState();
+          const currentState = appData.getState();
           console.log("FileManager: Tree merge successful");
           if (window.showNotification) {
             window.showNotification(
@@ -1283,8 +1287,8 @@ const {language, translations} = Astro.props;
         "FileManager: Upload processing completed via centralized state"
       );
 
-      // Note: No need for manual event dispatching - appState.notify() handles all subscriptions
-      // All components that subscribe to appState will automatically update
+      // Note: No need for manual event dispatching - appData.notify() handles all subscriptions
+      // All components that subscribe to appData will automatically update
     }
 
     async function processAllTreesUpload(
@@ -1298,22 +1302,22 @@ const {language, translations} = Astro.props;
       let successCount = 0;
 
       for (const [treeName, treeData] of Object.entries(importedTrees)) {
-        const currentState = appState.getState();
+        const currentState = appData.getState();
         if (currentState.availableTrees.includes(treeName)) {
           if (uploadMode === "merge") {
             // Switch to existing tree and merge data
-            const switchSuccess = appState.switchToTree(treeName);
+            const switchSuccess = appData.switchToTree(treeName);
             if (switchSuccess) {
-              const mergeSuccess = appState.mergeDataIntoCurrentTree(
+              const mergeSuccess = appData.mergeDataIntoCurrentTree(
                 treeData.persons || []
               );
               if (mergeSuccess) successCount++;
             }
           } else if (uploadMode === "replace") {
             // Switch to existing tree and replace data
-            const switchSuccess = appState.switchToTree(treeName);
+            const switchSuccess = appData.switchToTree(treeName);
             if (switchSuccess) {
-              const replaceSuccess = appState.replaceCurrentTreeData(
+              const replaceSuccess = appData.replaceCurrentTreeData(
                 treeData.persons || []
               );
               if (replaceSuccess) successCount++;
@@ -1322,7 +1326,7 @@ const {language, translations} = Astro.props;
           // Skip if new-tree mode and tree exists
         } else {
           // Create new tree with data
-          const createSuccess = appState.createTreeWithData(
+          const createSuccess = appData.createTreeWithData(
             treeName,
             treeData.persons || []
           );
@@ -1331,12 +1335,12 @@ const {language, translations} = Astro.props;
       }
 
       // Switch to imported selected tree if it exists and was imported
-      const finalState = appState.getState();
+      const finalState = appData.getState();
       if (
         importedSelectedTree &&
         finalState.availableTrees.includes(importedSelectedTree)
       ) {
-        appState.switchToTree(importedSelectedTree);
+        appData.switchToTree(importedSelectedTree);
       }
 
       const treeCount = Object.keys(importedTrees).length;
@@ -1354,8 +1358,8 @@ const {language, translations} = Astro.props;
         );
       }
 
-      // Note: No need for manual event dispatching - appState.notify() handles all subscriptions
-      // All components that subscribe to appState will automatically update
+      // Note: No need for manual event dispatching - appData.notify() handles all subscriptions
+      // All components that subscribe to appData will automatically update
     }
 
     // Event listeners
@@ -1467,3 +1471,31 @@ const {language, translations} = Astro.props;
   // Initialize immediately since DOM is already ready in inline scripts
   initializeFileManager();
 </script>
+
+<!--
+  FileManagerDialog.astro
+
+  This component manages the file import/export dialog for the genealogy app.
+  It allows users to download the current tree, download all trees, upload new tree data,
+  and view file information.
+
+  Key features:
+  - Download current tree as JSON
+  - Download all trees as a single JSON file
+  - Upload tree data in JSON format with options to merge, replace, or create new tree
+  - Drag-and-drop file upload support
+  - File information display (name, size, type, person count, export date)
+
+  Integration:
+  - Integrates with appData for state management and tree operations
+  - Uses translations for multi-language support
+
+  Usage:
+  - To open the dialog: window.fileManagerDialog.show();
+  - To close the dialog: window.fileManagerDialog.hide();
+
+  Note:
+  - All state management and tree operations are now handled via appData (see /utility/AppData.js)
+  - Any previous references to appData have been updated to appData for clarity and consistency.
+  - Use appData.getState(), appData.getTreeData(), etc. for all tree and person operations.
+-->
