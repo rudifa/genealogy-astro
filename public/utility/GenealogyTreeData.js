@@ -135,9 +135,11 @@ export class GenealogyTreeData {
    * Creates a directed graph with family relationships and clickable nodes
    * @returns {string} DOT format string for graph visualization
    */
-   genealogyDotString() {
+   genealogyDotString(title) {
+    const graphTitle = title === undefined ? "Genealogy Tree" : title;
     const dotLines = [
-      "strict digraph G {",
+      `strict digraph G {`,
+      `  graph [label="${graphTitle}\\n ", labelloc="t", fontsize="18", fontname="Arial"];`,
       '  node [shape=box, style="filled", fillcolor="#E9F4FF"];',
       "  edge [dir=none];",
     ];
