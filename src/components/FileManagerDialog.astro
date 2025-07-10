@@ -555,6 +555,12 @@ const {language, translations} = Astro.props;
       width: 100%;
     }
   }
+
+  .disabled {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+  }
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
@@ -724,7 +730,17 @@ const {language, translations} = Astro.props;
       if (fileInfoSection) fileInfoSection.style.display = "none";
       if (fileUploadInput) fileUploadInput.value = "";
       if (newTreeName) newTreeName.value = "";
-
+      // Enable select file button again
+      if (selectFileButton) {
+        selectFileButton.disabled = false;
+        selectFileButton.classList.remove("disabled");
+      }
+      // Re-enable drop zone
+      if (uploadDropZone) {
+        uploadDropZone.classList.remove("disabled");
+        uploadDropZone.style.pointerEvents = "auto";
+        uploadDropZone.style.opacity = "1";
+      }
       // Disable the confirm upload button when no file is selected
       if (confirmUploadBtn) confirmUploadBtn.disabled = true;
 
@@ -909,6 +925,20 @@ const {language, translations} = Astro.props;
     // Upload functions
     function handleFileSelect(file) {
       selectedFile = file;
+
+      // Disable select file button after selection
+      if (selectFileButton) {
+        selectFileButton.disabled = true;
+        selectFileButton.classList.add("disabled");
+      }
+      // Also visually disable the drop zone
+      if (uploadDropZone) {
+        uploadDropZone.classList.add("disabled");
+        uploadDropZone.style.pointerEvents = "none";
+        uploadDropZone.style.opacity = "0.5";
+      }
+      // Enable confirm upload button
+      if (confirmUploadBtn) confirmUploadBtn.disabled = false;
 
       // Validate file
       if (!file.name.endsWith(".json")) {
