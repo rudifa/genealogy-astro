@@ -1406,22 +1406,29 @@ const {language, translations} = Astro.props;
     }
 
     if (selectFileButton) {
-      selectFileButton.addEventListener("click", () => {
+      selectFileButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        // console.debug("[DEBUG] Select File button clicked");
         fileUploadInput.click();
       });
     }
 
     if (fileUploadInput) {
       fileUploadInput.addEventListener("change", (e) => {
+        // console.log("[DEBUG] File input change event");
         const file = e.target.files[0];
         if (file) {
+          //   console.log("[DEBUG] File selected:", file.name);
           handleFileSelect(file);
+        } else {
+          //   console.log("[DEBUG] No file selected (possibly cancel)");
         }
       });
     }
 
     if (uploadDropZone) {
       uploadDropZone.addEventListener("click", () => {
+        // console.log("[DEBUG] Drop zone clicked");
         fileUploadInput.click();
       });
 
