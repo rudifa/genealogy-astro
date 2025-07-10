@@ -190,4 +190,8 @@ export const de: Translations = {
   treeReplaced: 'Baum "{treeName}" erfolgreich ersetzt',
   treeMerged: 'Daten erfolgreich in "{treeName}" zusammengeführt',
   allTreesImported: "{count} Bäume erfolgreich importiert",
+
+  // Print
+  printGraph: "Graph drucken",
+  printGraphTooltip: "Das aktuelle Genealogie-Diagramm drucken",
 };
