@@ -13,7 +13,11 @@ const {language, translations} = Astro.props;
 // script of the GenealogyGraph component.
 ---
 
-<div id='edit-dialog' class='dialog-overlay' style='display: none;'>
+<div
+  id='edit-dialog'
+  class='dialog-overlay'
+  style='display: none;'
+  data-testid='edit-dialog'>
   <div class='dialog-content'>
     <div class='dialog-header'>
       <h2>{translations.editPerson}</h2>
@@ -55,6 +59,7 @@ const {language, translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
+            data-testid='mother-input'
           />
           <div class='field-error' id='mother-error'></div>
         </div>
@@ -67,6 +72,7 @@ const {language, translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
+            data-testid='father-input'
           />
           <div class='field-error' id='father-error'></div>
         </div>
@@ -79,15 +85,25 @@ const {language, translations} = Astro.props;
             maxlength='200'
             autocomplete='off'
             data-1p-ignore
-            placeholder='e.g., Birth year, profession, location...'
+            data-testid='info-input'
+            placeholder='
+            e.g.,
+            Birth
+            year,
+            profession,
+            location...'
           />
           <div class='field-error' id='info-error'></div>
         </div>
         <div class='dialog-buttons'>
-          <button type='submit' id='save-button'>{translations.save}</button>
-          <button type='button' id='remove-button'>{translations.remove}</button
+          <button type='submit' id='save-button' data-testid='save-button'
+            >{translations.save}</button
           >
-          <button type='button' id='cancel-button'>{translations.cancel}</button
+          <button type='button' id='remove-button' data-testid='remove-button'
+            >{translations.remove}</button
+          >
+          <button type='button' id='cancel-button' data-testid='cancel-button'
+            >{translations.cancel}</button
           >
         </div>
       </form>

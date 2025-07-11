@@ -26,3 +26,30 @@
 ## Screenshot
 
 ![Example family tree](img/example-family-tree.png)
+
+## Implementation Details
+
+- The revised implementation uses a global appState object (based on a State module).
+- appState provides subscribe/notify event handling.
+- appState exposes action functions for Astro component scripts to update the data model.
+- Components subscribe to state changes, call actions, and access data via appState.
+
+This pattern is commonly known as the Observer pattern (for the subscribe/notify mechanism) combined with a centralized state management approach. In frontend development, this is often referred to as a "state container" or "store" pattern. Popular libraries like Redux, Zustand, or Vuex use similar concepts.
+
+In summary, the revised implementation uses a global state container with observer/event subscription, sometimes called a "reactive store" or "observable state management."
+
+This implementation is conceptually similar to how SwiftUI manages state and UI updates, though there are differences in language and framework specifics:
+
+- Both use a centralized state management approach:
+  - In this app, appState acts as a global store with subscribe/notify (observer pattern).
+  - In SwiftUI, @State, @ObservedObject, and @EnvironmentObject provide reactive state containers.
+
+- Both enable components (views) to subscribe to state changes and automatically update when the state changes.
+
+- Both encourage unidirectional data flow:
+  - Actions/methods update the state, which then notifies subscribers (components/views) to re-render.
+
+Key differences:
+
+- SwiftUI’s reactivity and view updates are built into the language and framework, with property wrappers and automatic view invalidation.
+- This implementation is manual, using JavaScript/TypeScript and custom observer logic.

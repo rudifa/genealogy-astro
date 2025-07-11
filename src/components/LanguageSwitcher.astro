@@ -9,11 +9,17 @@ export interface Props {
 const {currentLanguage, translations} = Astro.props;
 ---
 
-<div class='language-switcher'>
-  <select id='language-select' class='language-select'>
+<div class='language-switcher' data-testid='language-switcher'>
+  <select
+    id='language-select'
+    class='language-select'
+    data-testid='language-select'>
     {
       supportedLanguages.map((lang) => (
-        <option value={lang.code} selected={lang.code === currentLanguage}>
+        <option
+          value={lang.code}
+          selected={lang.code === currentLanguage}
+          data-testid={`lang-${lang.code}`}>
           {lang.flag} {lang.nativeName}
         </option>
       ))
