@@ -360,7 +360,7 @@ const {data, language, translations} = Astro.props;
   currentTreeData = loadDataFromStorage();
 
   // UI state management
-  let isRendering = false;
+
   let currentTranslations = window.genealogyTranslations?.en || {
     addPerson: "Add Person",
     clearAll: "Clear All",
@@ -413,8 +413,6 @@ const {data, language, translations} = Astro.props;
 
   // Loading state management
   function setLoadingState(loading) {
-    isRendering = loading;
-
     // Also notify toolbar if available
     if (window.toolbarSetLoadingState) {
       window.toolbarSetLoadingState(loading);

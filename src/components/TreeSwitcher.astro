@@ -7,7 +7,7 @@ export interface Props {
   translations: Translations;
 }
 
-const {currentTree, language, translations} = Astro.props;
+const {currentTree} = Astro.props;
 ---
 
 <div class='tree-switcher'>
@@ -141,8 +141,8 @@ const {currentTree, language, translations} = Astro.props;
 
   // Subscribe to state changes
   function initializeStateSubscription() {
-    // 🎯 Direct subscription - appData is imported, no need for null check!
-    unsubscribe = appData.subscribe((state) => {
+    // 🎯 Direct subscription - appState is imported, no need for null check!
+    unsubscribe = appData.subscribe(() => {
       updateTreeOptions();
     });
     console.log("TreeSwitcher subscribed to state changes");
@@ -184,7 +184,7 @@ const {currentTree, language, translations} = Astro.props;
   }
 
   // Listen for language changes to update any translatable content
-  window.addEventListener("languageChanged", function (event) {
+  window.addEventListener("languageChanged", function () {
     // Currently no translatable content in tree switcher, but ready for future
     console.log("TreeSwitcher received language change");
   });
