@@ -13,6 +13,7 @@
 - **Responsive Design:** Works on desktop, laptop, tablet, and mobile.
 - **Live Demo:** Published on Vercel at [genealogy-astro.vercel.app](https://genealogy-astro.vercel.app/)
 - **File Download/Upload:** Save your trees to your computer or tablet for backup or sharing, and load them back anytime.
+- **Print Tree:** Print the displayed family tree graph.
 
 ## Missing features
 
@@ -21,3 +22,7 @@
 ## Possible features
 
 - add photo/image to a person
+
+## Screenshot
+
+![Example family tree](img/example-family-tree.png)
