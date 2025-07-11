@@ -22,3 +22,8 @@ node_modules
 
 # Astro generated files
 /.astro/
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+/cypress/downloads/

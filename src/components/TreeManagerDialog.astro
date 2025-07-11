@@ -9,7 +9,11 @@ interface Props {
 const {language, translations} = Astro.props;
 ---
 
-<div id='tree-manager-dialog' class='dialog-overlay' style='display: none;'>
+<div
+  id='tree-manager-dialog'
+  data-testid='tree-manager-dialog'
+  class='dialog-overlay'
+  style='display: none;'>
   <div class='dialog-content'>
     <div class='dialog-header'>
       <h3></h3>

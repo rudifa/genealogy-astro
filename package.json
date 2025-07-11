@@ -44,13 +44,21 @@
         "test": "node --test 'test/**/*.test.js'",
         "test:forest-data": "node test/GenealogyForestData.test.js",
         "test:tree-data": "node test/GenealogyTreeData.test.js",
-        "test:manual": "echo 'Manual tests are in the manual/ directory. Run them individually with node manual/<filename>.js'"
+        "test:manual": "echo 'Manual tests are in the manual/ directory. Run them individually with node manual/<filename>.js'",
+        "test:e2e": "cypress run",
+        "test:e2e:open": "cypress open",
+        "test:e2e:headless": "cypress run --headless",
+        "test:e2e:dev": "start-server-and-test dev http://localhost:4321 'cypress open'",
+        "test:e2e:ci": "start-server-and-test dev http://localhost:4321 'cypress run --headless'"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.4",
         "astro": "^5.11.0"
     },
     "devDependencies": {
+        "@cypress/vite-dev-server": "^6.0.3",
+        "cypress": "^14.5.1",
+        "start-server-and-test": "^2.0.12",
         "typescript": "^5.8.3"
     },
     "browserslist": [

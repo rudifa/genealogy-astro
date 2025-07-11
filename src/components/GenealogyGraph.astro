@@ -17,7 +17,7 @@ interface Props {
 const {data, language, translations} = Astro.props;
 ---
 
-<div class='screen'>
+<div class='screen' data-testid='genealogy-graph'>
   <Toolbar language={language} translations={translations} />
   <GraphRenderer language={language} translations={translations} />
   <Notification language={language} translations={translations} />
@@ -33,7 +33,7 @@ const {data, language, translations} = Astro.props;
     width: 100%;
     flex: 1;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
 </style>
 

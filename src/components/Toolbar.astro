@@ -11,20 +11,24 @@ interface Props {
 const {language, translations} = Astro.props;
 ---
 
-<div class='toolbar'>
+<div class='toolbar' data-testid='toolbar'>
   <LanguageSwitcher currentLanguage={language} translations={translations} />
   <TreeSwitcher
     currentTree='Family Example'
     language={language}
     translations={translations}
   />
-  <button id='add-button' type='button' title='Add a new person to current tree'
-    >{translations.addPerson}</button
+  <button
+    id='add-button'
+    type='button'
+    title='Add a new person to current tree'
+    data-testid='add-person-button'>{translations.addPerson}</button
   >
   <button
     id='clear-button'
     type='button'
-    title='Remove all persons from current tree'>{translations.clearAll}</button
+    title='Remove all persons from current tree'
+    data-testid='clear-all-button'>{translations.clearAll}</button
   >
   <button
     id='print-button'
@@ -38,21 +42,23 @@ const {language, translations} = Astro.props;
     id='mode-toggle-button'
     type='button'
     title='Go to Forest Mode'
-    class='mode-toggle'>...</button
+    class='mode-toggle'
+    data-testid='mode-toggle-button'>...</button
   >
   <div class='mode-separator'></div>
 
   <button
+    <button
     id='manage-trees-button'
     type='button'
     title='Create, switch, delete or merge family trees'
-    >{translations.manageTrees}</button
+    data-testid='tree-manager'>{translations.manageTrees}</button
   >
   <button
     id='manage-files-button'
     type='button'
     title='Upload or download family tree data files'
-    >{translations.manageFiles}</button
+    data-testid='file-manager'>{translations.manageFiles}</button
   >
   <div id='loading-indicator' class='loading-indicator' style='display: none;'>
     <div class='spinner'></div>
