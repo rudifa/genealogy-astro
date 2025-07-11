@@ -12,7 +12,7 @@ const {language, translations} = Astro.props;
 <div id='tree-manager-dialog' class='dialog-overlay' style='display: none;'>
   <div class='dialog-content'>
     <div class='dialog-header'>
-      <h3>{translations.manageFamilyTrees}</h3>
+      <h3></h3>
       <button id='close-tree-dialog' class='close-button' type='button'
         >×</button
       >
@@ -20,38 +20,33 @@ const {language, translations} = Astro.props;
 
     <div class='dialog-body'>
       <div class='tree-list-section'>
-        <label>{translations.availableTrees}</label>
+        <label></label>
         <div id='tree-list' class='tree-list'>
           <!-- Trees will be populated by JavaScript -->
         </div>
       </div>
 
       <div class='new-tree-section'>
-        <label for='tree-manager-tree-name' id='create-tree-label'
-          >{translations.createNewTree}</label
-        >
+        <label for='tree-manager-tree-name' id='create-tree-label'></label>
         <div class='new-tree-inputs'>
           <input
             type='text'
             id='tree-manager-tree-name'
-            placeholder={translations.enterTreeName}
+            placeholder=''
             maxlength='50'
           />
           <label class='checkbox-label' id='copy-checkbox-container'>
             <input type='checkbox' id='copy-current-tree' />
-            {translations.copyCurrentTreeData}
+            <!-- translation will be set by JS -->
           </label>
-          <button id='create-tree-button' type='button'
-            >{translations.create}</button
-          >
+          <button id='create-tree-button' type='button'></button>
         </div>
       </div>
     </div>
 
     <div class='dialog-footer'>
       <button id='dialog-cancel' type='button' class='secondary-button'
-        >{translations.cancel}</button
-      >
+      ></button>
     </div>
   </div>
 </div>
@@ -811,7 +806,7 @@ const {language, translations} = Astro.props;
     }
 
     // Check if Family Example tree needs reset (only called when dialog opens)
-    async function checkFamilyExampleResetState() {
+    function checkFamilyExampleResetState() {
       if (!appData) {
         familyExampleNeedsReset = false;
         return;
@@ -878,10 +873,25 @@ const {language, translations} = Astro.props;
       }
     }
 
-    // Update dialog content with new translations
-    async function updateDialogTranslations(newTranslations) {
-      currentTranslations = newTranslations;
+    // Use global language and translations, not Astro prop
+    function getCurrentTranslations() {
+      const lang = window.currentLanguage || "en";
+      return (
+        window.genealogyTranslations?.[lang] ||
+        window.genealogyTranslations?.en ||
+        translations
+      );
+    }
 
+    // Update dialog content with new translations
+    function updateDialogTranslations() {
+      if (!dialog) return;
+      currentTranslations = getCurrentTranslations();
+
+      console.log(
+        "🟠 TreeManagerDialog: updateDialogTranslations currentTranslations",
+        currentTranslations
+      );
       // Update static text elements
       const title = dialog?.querySelector(".dialog-header h3");
       if (title) title.textContent = currentTranslations.manageFamilyTrees;
@@ -917,16 +927,12 @@ const {language, translations} = Astro.props;
       if (cancelButton) cancelButton.textContent = currentTranslations.cancel;
 
       // Update tree list tooltips if it's open
-      await updateTreeList();
+      updateTreeList();
     }
 
     // Listen for language changes
     window.addEventListener("languageChanged", function (event) {
-      console.log(
-        "TreeManagerDialog: Language changed to",
-        event.detail.language
-      );
-      updateDialogTranslations(event.detail.translations);
+      updateDialogTranslations();
     });
 
     function updateMergeDisplay() {
@@ -965,7 +971,7 @@ const {language, translations} = Astro.props;
     async function showDialog() {
       if (dialog) {
         console.log(
-          "TreeManagerDialog: Opening dialog, checking reset state..."
+          "🟠 TreeManagerDialog: Opening dialog, checking reset state..."
         );
         // Check reset state only when dialog opens
         await checkFamilyExampleResetState();
@@ -973,6 +979,9 @@ const {language, translations} = Astro.props;
           "TreeManagerDialog: Reset state after check:",
           familyExampleNeedsReset
         );
+
+        // Ensure dialog translations are set on initial load
+        updateDialogTranslations();
 
         await updateTreeList();
         updateCurrentTreeDisplay();
@@ -1259,11 +1268,11 @@ const {language, translations} = Astro.props;
       return treeItem;
     }
 
-    async function updateTreeList() {
+    function updateTreeList() {
       if (!treeList || !appData) return;
 
       // Recheck Family Example reset state since tree data may have changed
-      await checkFamilyExampleResetState();
+      checkFamilyExampleResetState();
 
       const state = appData.getState();
       const trees = state.availableTrees;
