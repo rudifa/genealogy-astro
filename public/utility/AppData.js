@@ -7,7 +7,7 @@ import { GenealogyForestData } from "./GenealogyForestData.js";
 export class AppData {
   constructor() {
     // Initialize state and listeners as in the current object
-    this.listeners = new Set();
+    this.callbacks = new Set();
     this.state = {
       forestData: null,
       genealogyData: null,
@@ -20,17 +20,27 @@ export class AppData {
     };
   }
 
-  // --- Subscription ---
-  subscribe(listener) {
-    this.listeners.add(listener);
-    listener(this.state);
-    return () => this.listeners.delete(listener);
+  /**
+   * Subscribe a callback to state changes.
+   * The callback will be called immediately with the current state,
+   * and again whenever the state changes.
+   * @param {function} callback - Function to call with the state object
+   * @returns {function} Unsubscribe function
+   */
+  subscribe(callback) {
+    this.callbacks.add(callback);
+    callback(this.state);
+    return () => this.callbacks.delete(callback);
   }
 
-  // --- Private notify method ---
+  /**
+   * Notify all subscribed callbacks of a state change.
+   * Calls each callback with the current state.
+   * @private
+   */
   notify() {
-    for (const listener of this.listeners) {
-      listener(this.state);
+    for (const callback of this.callbacks) {
+      callback(this.state);
     }
   }
 
