@@ -175,6 +175,10 @@ export interface Translations {
   treeReplaced: string;
   treeMerged: string;
   allTreesImported: string;
+
+  // Print Graph
+  printGraph: string;
+  printGraphTooltip: string;
 }
 
 export const translations: Record<Language, Translations> = {

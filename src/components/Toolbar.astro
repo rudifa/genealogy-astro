@@ -26,6 +26,12 @@ const {language, translations} = Astro.props;
     type='button'
     title='Remove all persons from current tree'>{translations.clearAll}</button
   >
+  <button
+    id='print-button'
+    type='button'
+    title='Print the current genealogy graph'
+    >{translations.printGraph || "Print Graph"}</button
+  >
 
   <div class='mode-separator'></div>
   <button
@@ -130,6 +136,19 @@ const {language, translations} = Astro.props;
   #clear-button:hover:not(:disabled) {
     background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
     border-color: #bd2130;
+  }
+
+  #print-button {
+    background: linear-gradient(135deg, #bfa046 0%, #8c7a2a 100%) !important;
+    color: white !important;
+    border-color: #bfa046 !important;
+    font-weight: 600;
+  }
+  #print-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8c7a2a 0%, #6c5a1e 100%) !important;
+    border-color: #8c7a2a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(191, 160, 70, 0.18);
   }
 
   #manage-trees-button {
@@ -355,6 +374,7 @@ const {language, translations} = Astro.props;
       // Update button text
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
+      const printButton = document.getElementById("print-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
       const manageFilesButton = document.getElementById("manage-files-button");
       const loadingIndicator = document.querySelector(
@@ -368,6 +388,13 @@ const {language, translations} = Astro.props;
       if (clearButton) {
         clearButton.textContent = currentTranslations.clearAll;
         clearButton.title = currentTranslations.clearAllTooltip;
+      }
+      if (printButton) {
+        printButton.textContent =
+          currentTranslations.printGraph || "Print Graph";
+        printButton.title =
+          currentTranslations.printGraphTooltip ||
+          "Print the current genealogy graph";
       }
       if (manageTreesButton) {
         manageTreesButton.textContent = currentTranslations.manageTrees;
@@ -421,6 +448,7 @@ const {language, translations} = Astro.props;
 
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
+      const printButton = document.getElementById("print-button");
       const modeToggleButton = document.getElementById("mode-toggle-button");
       const manageTreesButton = document.getElementById("manage-trees-button");
       const manageFilesButton = document.getElementById("manage-files-button");
@@ -520,6 +548,41 @@ const {language, translations} = Astro.props;
               window.showNotification(
                 currentTranslations.errorClearingData ||
                   "Error clearing genealogy data",
+                "error"
+              );
+            }
+          }
+        });
+      }
+
+      // Print button event listener
+      if (printButton) {
+        printButton.addEventListener("click", async () => {
+          try {
+            // Find the SVG element rendered by GraphRenderer
+            const svg = document.querySelector(".genealogy-graph svg");
+            if (!svg) {
+              if (window.showNotification) {
+                window.showNotification(
+                  currentTranslations.errorRenderingGraph ||
+                    "No graph to print",
+                  "error"
+                );
+              }
+              return;
+            }
+            // Dynamically import PrintGraph utility
+            const module = await import("/utility/PrintGraph.js");
+            module.printGraph(
+              svg.outerHTML,
+              currentTranslations.printGraphTitle || "Genealogy Graph"
+            );
+          } catch (error) {
+            console.error("Error printing graph:", error);
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorPrintingGraph ||
+                  "Error printing graph",
                 "error"
               );
             }

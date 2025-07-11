@@ -98,9 +98,9 @@ const {language, translations} = Astro.props;
       console.log("GraphRenderer: Setting up graph functionality");
 
       // --- Function to convert genealogy data to SVG ---
-      async function dotStringToSvg(data) {
-        // Convert genealogy data to DOT string
-        const dotString = data.genealogyDotString();
+      async function dotStringToSvg(data, treeName) {
+        // Convert genealogy data to DOT string, passing treeName as title
+        const dotString = data.genealogyDotString(treeName);
 
         try {
           // Convert DOT string to SVG string using Graphviz
@@ -122,10 +122,14 @@ const {language, translations} = Astro.props;
 
         // Get genealogy data from centralized state instead of window.genealogyData
         let genealogyData = null;
+        let treeName = "Genealogy Tree";
         // 🎯 Direct access to state - clean and simple!
         if (appData) {
           const state = appData.getState();
           genealogyData = state.genealogyData;
+          if (state && state.currentTreeName) {
+            treeName = state.currentTreeName;
+          }
         } else {
           // Fallback to old approach if state not available
           genealogyData = window.genealogyData;
@@ -164,7 +168,7 @@ const {language, translations} = Astro.props;
             "GraphRenderer: Converting DOT to SVG for data:",
             genealogyData
           );
-          const newSvgString = await dotStringToSvg(genealogyData);
+          const newSvgString = await dotStringToSvg(genealogyData, treeName);
           console.log(
             "GraphRenderer: Received SVG string length:",
             newSvgString?.length

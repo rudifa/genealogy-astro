@@ -191,4 +191,8 @@ export const fr: Translations = {
   treeReplaced: 'Arbre "{treeName}" remplacé avec succès',
   treeMerged: 'Données fusionnées dans "{treeName}" avec succès',
   allTreesImported: "{count} arbres importés avec succès",
+
+  // Print
+  printGraph: "Imprimer le graphique",
+  printGraphTooltip: "Imprimer le graphique généalogique actuel",
 };
