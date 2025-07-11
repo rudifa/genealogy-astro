@@ -12,7 +12,8 @@ export class GenealogyTreeData {
    * @param {Array} initialData.persons - Array of person objects with name, mother?, father? properties
    */
   constructor(initialData) {
-    this.persons = initialData.persons || [];
+    // Create a deep clone of the persons array to prevent mutation of the original data
+    this.persons = initialData.persons ? JSON.parse(JSON.stringify(initialData.persons)) : [];
     this.updatePersonsFromNames();
   }
 

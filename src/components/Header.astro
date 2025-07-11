@@ -112,6 +112,24 @@ const {language, translations} = Astro.props;
     }
   }
 
+  // Initialize with stored language if available
+  function initializeHeaderLanguage() {
+    const storedLang = localStorage.getItem("genealogy-language");
+    if (storedLang && storedLang !== "en" && window.genealogyTranslations) {
+      const newTranslations = window.genealogyTranslations[storedLang];
+      if (newTranslations) {
+        console.log("Header: Updating to stored language:", storedLang);
+        updateHeaderTranslations(newTranslations);
+      }
+    }
+  }
+
+  // Check for stored language and update if needed
+  // Use a small delay to ensure translations are loaded
+  setTimeout(() => {
+    initializeHeaderLanguage();
+  }, 50);
+
   // Listen for language changes
   window.addEventListener("languageChanged", function (event) {
     const translations = event.detail.translations;

@@ -112,14 +112,6 @@ const {language, translations} = Astro.props;
     };
   }
 
-  // Initialize notification system when DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeNotification);
-
-  // Also initialize immediately if DOM is already ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeNotification);
-  } else {
-    // DOM is already ready
-    initializeNotification();
-  }
+  // Initialize immediately since DOM is already ready in inline scripts
+  initializeNotification();
 </script>

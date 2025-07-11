@@ -101,41 +101,40 @@ const {currentLanguage, translations} = Astro.props;
 </style>
 
 <script is:inline>
-  document.addEventListener("DOMContentLoaded", function () {
-    const languageSelect = document.getElementById("language-select");
+  // Initialize immediately since DOM is already ready in inline scripts
+  const languageSelect = document.getElementById("language-select");
 
-    if (languageSelect) {
-      // Set initial value based on current language
-      const currentLang = window.currentLanguage || "en";
-      languageSelect.value = currentLang;
+  if (languageSelect) {
+    // Set initial value based on current language
+    const currentLang = window.currentLanguage || "en";
+    languageSelect.value = currentLang;
 
-      languageSelect.addEventListener("change", function (event) {
-        const selectedLanguage = event.target.value;
+    languageSelect.addEventListener("change", function (event) {
+      const selectedLanguage = event.target.value;
 
-        // Update the global language
-        window.currentLanguage = selectedLanguage;
+      // Update the global language
+      window.currentLanguage = selectedLanguage;
 
-        // Store language preference in localStorage
-        localStorage.setItem("genealogy-language", selectedLanguage);
+      // Store language preference in localStorage
+      localStorage.setItem("genealogy-language", selectedLanguage);
 
-        // Update the page language
-        if (window.updatePageLanguage) {
-          window.updatePageLanguage(selectedLanguage);
-        }
-
-        // Update URL
-        const url = new URL(window.location.href);
-        url.searchParams.set("lang", selectedLanguage);
-        window.history.replaceState({}, "", url.toString());
-      });
-    }
-
-    // Listen for language changes to update the dropdown
-    window.addEventListener("languageChanged", function (event) {
-      const language = event.detail.language;
-      if (languageSelect && languageSelect.value !== language) {
-        languageSelect.value = language;
+      // Update the page language
+      if (window.updatePageLanguage) {
+        window.updatePageLanguage(selectedLanguage);
       }
+
+      // Update URL
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", selectedLanguage);
+      window.history.replaceState({}, "", url.toString());
     });
+  }
+
+  // Listen for language changes to update the dropdown
+  window.addEventListener("languageChanged", function (event) {
+    const language = event.detail.language;
+    if (languageSelect && languageSelect.value !== language) {
+      languageSelect.value = language;
+    }
   });
 </script>

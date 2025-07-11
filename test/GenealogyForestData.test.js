@@ -259,7 +259,7 @@ describe('GenealogyForestData', () => {
     });
 
     it('should reset to default state', () => {
-      currentForestData.resetToDefault();
+      currentForestData.resetForestToDefault();
 
       const trees = currentForestData.getAvailableTrees();
       assert.deepStrictEqual(trees, ["Test Tree"]);

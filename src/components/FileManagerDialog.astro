@@ -555,10 +555,17 @@ const {language, translations} = Astro.props;
       width: 100%;
     }
   }
+
+  .disabled {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+  }
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
+  import {appData} from "/utility/AppData.js";
 
   // File Manager functionality
   function initializeFileManager() {
@@ -723,7 +730,17 @@ const {language, translations} = Astro.props;
       if (fileInfoSection) fileInfoSection.style.display = "none";
       if (fileUploadInput) fileUploadInput.value = "";
       if (newTreeName) newTreeName.value = "";
-
+      // Enable select file button again
+      if (selectFileButton) {
+        selectFileButton.disabled = false;
+        selectFileButton.classList.remove("disabled");
+      }
+      // Re-enable drop zone
+      if (uploadDropZone) {
+        uploadDropZone.classList.remove("disabled");
+        uploadDropZone.style.pointerEvents = "auto";
+        uploadDropZone.style.opacity = "1";
+      }
       // Disable the confirm upload button when no file is selected
       if (confirmUploadBtn) confirmUploadBtn.disabled = true;
 
@@ -775,12 +792,13 @@ const {language, translations} = Astro.props;
     // Download functions
     function downloadCurrentTree() {
       try {
-        const treeManager = window.genealogyTreeManager;
-        const currentTreeName =
-          treeManager?.getSelectedTreeName() || "current-tree";
-        const currentTreeData = treeManager?.getCurrentTreeData();
+        const currentState = appData.getState();
+        const currentTreeName = currentState.currentTreeName || "current-tree";
+        const currentTreeData = currentState.genealogyData?.persons
+          ? {persons: currentState.genealogyData.persons}
+          : null;
 
-        if (!currentTreeData) {
+        if (!currentTreeData || !currentTreeData.persons.length) {
           if (window.showNotification) {
             window.showNotification(
               currentTranslations.noTreeDataToDownload ||
@@ -837,10 +855,10 @@ const {language, translations} = Astro.props;
 
     function downloadAllTrees() {
       try {
-        const treeManager = window.genealogyTreeManager;
+        const currentState = appData.getState();
         const allTrees = {};
-        const availableTrees = treeManager?.getAvailableTrees() || [];
-        const currentTreeName = treeManager?.getSelectedTreeName() || "";
+        const availableTrees = currentState.availableTrees || [];
+        const currentTreeName = currentState.currentTreeName || "";
 
         if (availableTrees.length === 0) {
           if (window.showNotification) {
@@ -854,7 +872,7 @@ const {language, translations} = Astro.props;
 
         // Get data for all trees
         for (const treeName of availableTrees) {
-          const treeData = treeManager?.getTreeData(treeName);
+          const treeData = appData.getTreeData(treeName);
           if (treeData) {
             allTrees[treeName] = treeData;
           }
@@ -907,6 +925,20 @@ const {language, translations} = Astro.props;
     // Upload functions
     function handleFileSelect(file) {
       selectedFile = file;
+
+      // Disable select file button after selection
+      if (selectFileButton) {
+        selectFileButton.disabled = true;
+        selectFileButton.classList.add("disabled");
+      }
+      // Also visually disable the drop zone
+      if (uploadDropZone) {
+        uploadDropZone.classList.add("disabled");
+        uploadDropZone.style.pointerEvents = "none";
+        uploadDropZone.style.opacity = "0.5";
+      }
+      // Enable confirm upload button
+      if (confirmUploadBtn) confirmUploadBtn.disabled = false;
 
       // Validate file
       if (!file.name.endsWith(".json")) {
@@ -1175,8 +1207,8 @@ const {language, translations} = Astro.props;
           return;
         }
 
-        const availableTrees = treeManager.getAvailableTrees();
-        if (availableTrees.includes(customTreeName)) {
+        const currentState = appData.getState();
+        if (currentState.availableTrees.includes(customTreeName)) {
           if (window.showNotification) {
             window.showNotification(
               currentTranslations.treeNameExists ||
@@ -1187,156 +1219,106 @@ const {language, translations} = Astro.props;
           return;
         }
 
-        console.log("FileManager: Creating new tree:", customTreeName);
-        await treeManager.createNewTree(customTreeName, false);
-
-        // Switch to the new tree first
-        console.log("FileManager: Switching to new tree:", customTreeName);
-        await treeManager.switchToTree(customTreeName);
-
-        // Add a small delay to ensure the switch is complete
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Now load the imported data into the new tree
-        console.log("FileManager: Setting genealogyData with imported data");
-        window.genealogyData = new GenealogyTreeData(treeData);
         console.log(
-          "FileManager: New genealogyData persons count:",
-          window.genealogyData.persons?.length || 0
+          "FileManager: Creating new tree via appData:",
+          customTreeName
+        );
+        const createSuccess = appData.createTreeWithData(
+          customTreeName,
+          treeData.persons || []
         );
 
-        // Verify the data is correctly set before saving
-        console.log("FileManager: Verifying data before save:");
-        console.log("FileManager: window.genealogyData:", window.genealogyData);
-        console.log(
-          "FileManager: Persons array:",
-          window.genealogyData.persons
-        );
-
-        // Save the data to storage (now it will save to the correct tree)
-        if (window.saveDataToStorage) {
-          console.log("FileManager: Saving data to storage for new tree");
-          // Force save with explicit data to ensure we're saving the right thing
-          const dataToSave = {
-            persons: window.genealogyData.persons || [],
-          };
-          console.log("FileManager: Explicit data to save:", dataToSave);
+        if (createSuccess) {
           console.log(
-            "FileManager: Persons count in explicit data:",
-            dataToSave.persons.length
+            "FileManager: Switching to new tree via appData:",
+            customTreeName
           );
+          const switchSuccess = appData.switchToTree(customTreeName);
 
-          // Update the storage manager directly to ensure we save the right data
-          if (window.genealogyStorageManager) {
-            window.genealogyStorageManager.saveTreeData(
-              customTreeName,
-              dataToSave
-            );
-            console.log("FileManager: Data saved directly via storage manager");
+          if (switchSuccess) {
+            console.log("FileManager: Tree creation and switch successful");
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.newTreeCreated?.replace(
+                  "{treeName}",
+                  customTreeName
+                ) || `New tree "${customTreeName}" created successfully`,
+                "success"
+              );
+            }
           } else {
-            window.saveDataToStorage(customTreeName);
+            console.error("FileManager: Failed to switch to new tree");
           }
-        }
-
-        if (window.showNotification) {
-          window.showNotification(
-            currentTranslations.newTreeCreated?.replace(
-              "{treeName}",
-              customTreeName
-            ) || `New tree "${customTreeName}" created successfully`,
-            "success"
-          );
+        } else {
+          console.error("FileManager: Failed to create new tree");
+          if (window.showNotification) {
+            window.showNotification("Failed to create new tree", "error");
+          }
+          return;
         }
       } else if (uploadMode === "replace") {
-        const currentTreeName = treeManager.getSelectedTreeName();
-        console.log("FileManager: Replacing current tree:", currentTreeName);
-        window.genealogyData = new GenealogyTreeData(treeData);
-        console.log(
-          "FileManager: New genealogyData persons count:",
-          window.genealogyData.persons?.length || 0
-        );
+        console.log("FileManager: Replacing current tree data via appData");
+        const success = appData.replaceCurrentTreeData(treeData.persons || []);
 
-        // Save the data to storage
-        if (window.saveDataToStorage) {
-          console.log("FileManager: Saving data to storage");
-          window.saveDataToStorage(currentTreeName);
-        }
-
-        if (window.showNotification) {
-          window.showNotification(
-            currentTranslations.treeReplaced?.replace(
-              "{treeName}",
-              currentTreeName
-            ) || `Tree "${currentTreeName}" replaced successfully`,
-            "success"
-          );
+        if (success) {
+          const currentState = appData.getState();
+          console.log("FileManager: Tree replacement successful");
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.treeReplacedByAppData?.replace(
+                "{treeName}",
+                currentState.currentTreeName
+              ) ||
+                `Tree "${currentState.currentTreeName}" replaced successfully`,
+              "success"
+            );
+          }
+        } else {
+          console.error("FileManager: Failed to replace tree data");
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.failedToReplaceTreeByAppData ||
+                "Failed to replace tree data",
+              "error"
+            );
+          }
+          return;
         }
       } else {
         // merge
-        const currentTreeData = treeManager.getCurrentTreeData();
-        console.log("FileManager: Merging with current tree data");
-        console.log(
-          "FileManager: Current tree persons:",
-          currentTreeData?.persons?.length || 0
-        );
-        console.log(
-          "FileManager: Imported persons:",
-          treeData?.persons?.length || 0
+        console.log("FileManager: Merging data into current tree via appData");
+        const success = appData.mergeDataIntoCurrentTree(
+          treeData.persons || []
         );
 
-        const mergedData = mergeTreeData(currentTreeData, treeData);
-        console.log(
-          "FileManager: Merged persons:",
-          mergedData?.persons?.length || 0
-        );
-
-        window.genealogyData = new GenealogyTreeData(mergedData);
-
-        // Save the data to storage
-        if (window.saveDataToStorage) {
-          console.log("FileManager: Saving data to storage");
-          const currentTreeName = treeManager.getSelectedTreeName();
-          window.saveDataToStorage(currentTreeName);
-        }
-
-        const currentTreeName = treeManager.getSelectedTreeName();
-        if (window.showNotification) {
-          window.showNotification(
-            currentTranslations.treeMerged?.replace(
-              "{treeName}",
-              currentTreeName
-            ) || `Data merged into "${currentTreeName}" successfully`,
-            "success"
-          );
+        if (success) {
+          const currentState = appData.getState();
+          console.log("FileManager: Tree merge successful");
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.treeMerged?.replace(
+                "{treeName}",
+                currentState.currentTreeName
+              ) ||
+                `Data merged into "${currentState.currentTreeName}" successfully`,
+              "success"
+            );
+          }
+        } else {
+          console.error("FileManager: Failed to merge tree data");
+          if (window.showNotification) {
+            window.showNotification("Failed to merge tree data", "error");
+          }
+          return;
         }
       }
 
       console.log(
-        "FileManager: Final genealogyData persons count:",
-        window.genealogyData.persons?.length || 0
+        "FileManager: Upload processing completed via centralized state"
       );
 
-      // Small delay to ensure data is properly set before triggering events
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Trigger data update events
-      console.log("FileManager: Dispatching events");
-      document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
-      document.dispatchEvent(
-        new CustomEvent("genealogy-tree-changed", {
-          detail: {treeName: treeManager.getSelectedTreeName()},
-        })
-      );
-
-      // Notify TreeSwitcher to update its dropdown
-      document.dispatchEvent(
-        new CustomEvent("tree-manager-update", {
-          detail: {
-            action: "tree-created",
-            treeName: treeManager.getSelectedTreeName(),
-          },
-        })
-      );
+      // Note: No need for manual event dispatching - appData.notify() handles all subscriptions
+      // All components that subscribe to appData will automatically update
     }
 
     async function processAllTreesUpload(
@@ -1347,110 +1329,67 @@ const {language, translations} = Astro.props;
     ) {
       const importedTrees = data.trees || {};
       const importedSelectedTree = data.selectedTree;
+      let successCount = 0;
 
       for (const [treeName, treeData] of Object.entries(importedTrees)) {
-        const availableTrees = treeManager.getAvailableTrees();
-        if (availableTrees.includes(treeName)) {
+        const currentState = appData.getState();
+        if (currentState.availableTrees.includes(treeName)) {
           if (uploadMode === "merge") {
-            const existingData = treeManager.getTreeData(treeName);
-            const mergedData = mergeTreeData(existingData, treeData);
-
-            // Switch to this tree first
-            await treeManager.switchToTree(treeName);
-
-            // Now load the merged data
-            window.genealogyData = new GenealogyTreeData(mergedData);
-
-            // Save the data to storage (now it will save to the correct tree)
-            if (window.saveDataToStorage) {
-              window.saveDataToStorage(treeName);
+            // Switch to existing tree and merge data
+            const switchSuccess = appData.switchToTree(treeName);
+            if (switchSuccess) {
+              const mergeSuccess = appData.mergeDataIntoCurrentTree(
+                treeData.persons || []
+              );
+              if (mergeSuccess) successCount++;
             }
           } else if (uploadMode === "replace") {
-            // Switch to the tree first
-            await treeManager.switchToTree(treeName);
-
-            // Now load the replacement data
-            window.genealogyData = new GenealogyTreeData(treeData);
-
-            // Save the data to storage (now it will save to the correct tree)
-            if (window.saveDataToStorage) {
-              window.saveDataToStorage(treeName);
+            // Switch to existing tree and replace data
+            const switchSuccess = appData.switchToTree(treeName);
+            if (switchSuccess) {
+              const replaceSuccess = appData.replaceCurrentTreeData(
+                treeData.persons || []
+              );
+              if (replaceSuccess) successCount++;
             }
           }
           // Skip if new-tree mode and tree exists
         } else {
-          await treeManager.createNewTree(treeName, false);
-
-          // Switch to the new tree first
-          await treeManager.switchToTree(treeName);
-
-          // Now load the data into the new tree
-          window.genealogyData = new GenealogyTreeData(treeData);
-
-          // Save the data to storage (now it will save to the correct tree)
-          if (window.saveDataToStorage) {
-            window.saveDataToStorage(treeName);
-          }
+          // Create new tree with data
+          const createSuccess = appData.createTreeWithData(
+            treeName,
+            treeData.persons || []
+          );
+          if (createSuccess) successCount++;
         }
       }
 
       // Switch to imported selected tree if it exists and was imported
-      const availableTrees = treeManager.getAvailableTrees();
+      const finalState = appData.getState();
       if (
         importedSelectedTree &&
-        availableTrees.includes(importedSelectedTree)
+        finalState.availableTrees.includes(importedSelectedTree)
       ) {
-        await treeManager.switchToTree(importedSelectedTree);
-      } else {
-        // Refresh current tree - stay on current tree
-        const currentTreeData = treeManager.getCurrentTreeData();
-        window.genealogyData = new GenealogyTreeData(currentTreeData);
+        appData.switchToTree(importedSelectedTree);
       }
 
       const treeCount = Object.keys(importedTrees).length;
+      console.log(
+        `FileManager: Successfully processed ${successCount}/${treeCount} trees`
+      );
+
       if (window.showNotification) {
         window.showNotification(
-          currentTranslations.allTreesImported?.replace("{count}", treeCount) ||
-            `${treeCount} trees imported successfully`,
+          currentTranslations.allTreesImported?.replace(
+            "{count}",
+            successCount
+          ) || `${successCount} trees imported successfully`,
           "success"
         );
       }
 
-      // Small delay to ensure data is properly set before triggering events
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
-      // Trigger data update events
-      document.dispatchEvent(new CustomEvent("genealogy-data-changed"));
-      document.dispatchEvent(
-        new CustomEvent("genealogy-tree-changed", {
-          detail: {treeName: treeManager.getSelectedTreeName()},
-        })
-      );
-
-      // Notify TreeSwitcher to update its dropdown
-      document.dispatchEvent(
-        new CustomEvent("tree-manager-update", {
-          detail: {
-            action: "trees-imported",
-            treeName: treeManager.getSelectedTreeName(),
-          },
-        })
-      );
-    }
-
-    function mergeTreeData(existingData, newData) {
-      const mergedPersons = [...(existingData.persons || [])];
-      const existingNames = new Set(mergedPersons.map((p) => p.name));
-
-      // Add new persons that don't exist
-      for (const person of newData.persons || []) {
-        if (!existingNames.has(person.name)) {
-          mergedPersons.push(person);
-          existingNames.add(person.name);
-        }
-      }
-
-      return {persons: mergedPersons};
+      // Note: No need for manual event dispatching - appData.notify() handles all subscriptions
+      // All components that subscribe to appData will automatically update
     }
 
     // Event listeners
@@ -1467,22 +1406,29 @@ const {language, translations} = Astro.props;
     }
 
     if (selectFileButton) {
-      selectFileButton.addEventListener("click", () => {
+      selectFileButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        // console.debug("[DEBUG] Select File button clicked");
         fileUploadInput.click();
       });
     }
 
     if (fileUploadInput) {
       fileUploadInput.addEventListener("change", (e) => {
+        // console.log("[DEBUG] File input change event");
         const file = e.target.files[0];
         if (file) {
+          //   console.log("[DEBUG] File selected:", file.name);
           handleFileSelect(file);
+        } else {
+          //   console.log("[DEBUG] No file selected (possibly cancel)");
         }
       });
     }
 
     if (uploadDropZone) {
       uploadDropZone.addEventListener("click", () => {
+        // console.log("[DEBUG] Drop zone clicked");
         fileUploadInput.click();
       });
 
@@ -1547,10 +1493,8 @@ const {language, translations} = Astro.props;
       hide: hideFileManager,
     };
 
-    // Initialize with correct language after setup
-    setTimeout(() => {
-      initializeCorrectLanguage();
-    }, 100);
+    // Initialize with correct language immediately - no delay needed with direct imports
+    initializeCorrectLanguage();
 
     console.log("FileManager: Initialization complete");
 
@@ -1561,6 +1505,34 @@ const {language, translations} = Astro.props;
     };
   }
 
-  // Initialize when DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeFileManager);
+  // Initialize immediately since DOM is already ready in inline scripts
+  initializeFileManager();
 </script>
+
+<!--
+  FileManagerDialog.astro
+
+  This component manages the file import/export dialog for the genealogy app.
+  It allows users to download the current tree, download all trees, upload new tree data,
+  and view file information.
+
+  Key features:
+  - Download current tree as JSON
+  - Download all trees as a single JSON file
+  - Upload tree data in JSON format with options to merge, replace, or create new tree
+  - Drag-and-drop file upload support
+  - File information display (name, size, type, person count, export date)
+
+  Integration:
+  - Integrates with appData for state management and tree operations
+  - Uses translations for multi-language support
+
+  Usage:
+  - To open the dialog: window.fileManagerDialog.show();
+  - To close the dialog: window.fileManagerDialog.hide();
+
+  Note:
+  - All state management and tree operations are now handled via appData (see /utility/AppData.js)
+  - Any previous references to appData have been updated to appData for clarity and consistency.
+  - Use appData.getState(), appData.getTreeData(), etc. for all tree and person operations.
+-->

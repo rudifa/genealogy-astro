@@ -18,8 +18,14 @@ const {language, translations} = Astro.props;
     language={language}
     translations={translations}
   />
-  <button id='add-button' type='button'>{translations.addPerson}</button>
-  <button id='clear-button' type='button'>{translations.clearAll}</button>
+  <button id='add-button' type='button' title='Add a new person to current tree'
+    >{translations.addPerson}</button
+  >
+  <button
+    id='clear-button'
+    type='button'
+    title='Remove all persons from current tree'>{translations.clearAll}</button
+  >
 
   <div class='mode-separator'></div>
   <button
@@ -30,10 +36,16 @@ const {language, translations} = Astro.props;
   >
   <div class='mode-separator'></div>
 
-  <button id='manage-trees-button' type='button'
+  <button
+    id='manage-trees-button'
+    type='button'
+    title='Create, switch, delete or merge family trees'
     >{translations.manageTrees}</button
   >
-  <button id='manage-files-button' type='button'
+  <button
+    id='manage-files-button'
+    type='button'
+    title='Upload or download family tree data files'
     >{translations.manageFiles}</button
   >
   <div id='loading-indicator' class='loading-indicator' style='display: none;'>
@@ -263,7 +275,8 @@ const {language, translations} = Astro.props;
   }
 </style>
 
-<script is:inline define:vars={{translations}}>
+<script is:inline type='module' define:vars={{translations}}>
+  import {appData} from "/utility/AppData.js";
   // Toolbar functionality
   function initializeToolbar() {
     console.log("Toolbar: Starting initialization");
@@ -277,6 +290,18 @@ const {language, translations} = Astro.props;
 
     // Mode management
     let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
+
+    // Detect current language from localStorage and update translations if needed
+    function initializeLanguage() {
+      const storedLang = localStorage.getItem("genealogy-language");
+      if (storedLang && storedLang !== "en" && window.genealogyTranslations) {
+        const newTranslations = window.genealogyTranslations[storedLang];
+        if (newTranslations) {
+          console.log("Toolbar: Updating to stored language:", storedLang);
+          updateToolbarTranslations(newTranslations);
+        }
+      }
+    }
 
     function updateModeDisplay() {
       const toolbar = document.querySelector(".toolbar");
@@ -336,12 +361,22 @@ const {language, translations} = Astro.props;
         "#loading-indicator span"
       );
 
-      if (addButton) addButton.textContent = currentTranslations.addPerson;
-      if (clearButton) clearButton.textContent = currentTranslations.clearAll;
-      if (manageTreesButton)
+      if (addButton) {
+        addButton.textContent = currentTranslations.addPerson;
+        addButton.title = currentTranslations.addPersonTooltip;
+      }
+      if (clearButton) {
+        clearButton.textContent = currentTranslations.clearAll;
+        clearButton.title = currentTranslations.clearAllTooltip;
+      }
+      if (manageTreesButton) {
         manageTreesButton.textContent = currentTranslations.manageTrees;
-      if (manageFilesButton)
+        manageTreesButton.title = currentTranslations.manageTreesTooltip;
+      }
+      if (manageFilesButton) {
         manageFilesButton.textContent = currentTranslations.manageFiles;
+        manageFilesButton.title = currentTranslations.manageFilesTooltip;
+      }
       if (loadingIndicator)
         loadingIndicator.textContent = currentTranslations.loading;
 
@@ -430,13 +465,14 @@ const {language, translations} = Astro.props;
             // Check if rendering is in progress
             if (window.genealogyIsRendering) return;
 
-            const genealogyData = window.genealogyData;
-            if (!genealogyData) {
+            const state = appData.getState();
+
+            if (!state.genealogyData) {
               console.warn("No genealogy data available");
               return;
             }
 
-            const personCount = genealogyData.persons.length;
+            const personCount = state.genealogyData.persons.length;
             if (personCount === 0) {
               if (window.showNotification) {
                 window.showNotification(
@@ -466,16 +502,16 @@ const {language, translations} = Astro.props;
               : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
 
             if (confirm(confirmMessage)) {
-              genealogyData.clear();
+              // Use appData to clear all persons - this will notify all subscribers
+              appData.clearAllPersons();
 
-              // Save to localStorage after clearing
-              if (window.saveDataToStorage) {
-                window.saveDataToStorage();
-              }
-
-              // Trigger graph re-render
-              if (window.renderGraph) {
-                await window.renderGraph();
+              // Show success notification
+              if (window.showNotification) {
+                window.showNotification(
+                  latestTranslations.clearedAllPersons ||
+                    `Cleared all ${personCount} ${personCount === 1 ? "person" : "people"}`,
+                  "success"
+                );
               }
             }
           } catch (error) {
@@ -593,55 +629,14 @@ const {language, translations} = Astro.props;
       });
     }
 
-    // Initialize events when genealogy system is ready
-    function waitForGenealogySystem() {
-      console.log("Toolbar: Waiting for genealogy system to be ready");
+    // Initialize events directly since we're using centralized state
+    initializeToolbarEvents();
 
-      // Listen for the genealogy-system-ready event (with once: true to prevent multiple calls)
-      document.addEventListener(
-        "genealogy-system-ready",
-        function () {
-          console.log("Toolbar: Received genealogy-system-ready event");
-          initializeToolbarEvents();
-        },
-        {once: true}
-      );
-
-      // Also check if it's already ready (in case event was missed)
-      if (window.genealogyData) {
-        console.log("Toolbar: Genealogy system already ready");
-        initializeToolbarEvents();
-        return;
-      }
-
-      // Fallback polling with timeout (but only if event hasn't fired)
-      let pollCount = 0;
-      const maxPolls = 150; // 30 seconds at 200ms intervals
-      let hasInitialized = false;
-
-      const checkInterval = setInterval(() => {
-        pollCount++;
-
-        if (hasInitialized) {
-          clearInterval(checkInterval);
-          return;
-        }
-
-        if (window.genealogyData) {
-          clearInterval(checkInterval);
-          hasInitialized = true;
-          console.log("Toolbar: Genealogy system ready via polling");
-          initializeToolbarEvents();
-        } else if (pollCount >= maxPolls) {
-          clearInterval(checkInterval);
-          console.warn(
-            "Toolbar: Timeout waiting for genealogy system initialization"
-          );
-        }
-      }, 200);
-    }
-
-    waitForGenealogySystem();
+    // Check for stored language and update if needed
+    // Use a small delay to ensure translations are loaded
+    setTimeout(() => {
+      initializeLanguage();
+    }, 50);
 
     return {
       updateTranslations: updateToolbarTranslations,
@@ -649,6 +644,6 @@ const {language, translations} = Astro.props;
     };
   }
 
-  // Initialize toolbar when DOM is ready
-  document.addEventListener("DOMContentLoaded", initializeToolbar);
+  // Initialize immediately since DOM is already ready in inline scripts
+  initializeToolbar();
 </script>
