@@ -2,12 +2,12 @@ import type {Translations} from "../index";
 
 export const fr: Translations = {
   // Page content
-  pageTitle: "Explorateur d'Arbre Généalogique",
+  pageTitle: "Explorateur d'Arbre Familial",
   pageDescription:
     "Application interactive de visualisation et de gestion d'arbre généalogique.",
 
   // Header
-  appTitle: "Explorateur d'Arbre Généalogique",
+  appTitle: "Explorateur d'Arbre Familial",
   appSubtitle:
     "Visualisez et gérez votre généalogie familiale avec un graphique interactif. Cliquez sur une personne pour modifier ses détails ou ajouter de nouveaux membres de la famille.",
 
