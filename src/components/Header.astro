@@ -126,9 +126,9 @@ const {language, translations} = Astro.props;
 
   // Check for stored language and update if needed
   // Use a small delay to ensure translations are loaded
-  setTimeout(() => {
-    initializeHeaderLanguage();
-  }, 50);
+  //   setTimeout(() => {
+  initializeHeaderLanguage();
+  //   }, 50);
 
   // Listen for language changes
   window.addEventListener("languageChanged", function (event) {
