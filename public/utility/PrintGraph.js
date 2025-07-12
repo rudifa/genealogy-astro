@@ -14,40 +14,41 @@ export function printGraph(svgContent, pageTitle = "Genealogy Graph") {
 
   const doc = iframe.contentWindow.document;
   doc.open();
-  doc.write(`
-      <html>
-        <head>
-          <title>${pageTitle}</title>
-          <style>
-            @media print {
-              @page {
-                size: A4 landscape;
-                margin: 1cm;
-              }
-              body {
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100%;
-              }
-              svg {
-                max-width: 100%;
-                max-height: 100vh;
-                width: auto;
-                height: auto;
-                display: block;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          ${svgContent}
-        </body>
-      </html>
-    `);
   doc.close();
+
+  // Set the HTML content directly on the documentElement
+  const htmlContent = `
+    <head>
+      <title>${pageTitle}</title>
+      <style>
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 1cm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+          }
+          svg {
+            max-width: 100%;
+            max-height: 100vh;
+            width: auto;
+            height: auto;
+            display: block;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${svgContent}
+    </body>
+  `;
+  doc.documentElement.innerHTML = htmlContent;
 
   iframe.contentWindow.focus();
   iframe.contentWindow.print();
