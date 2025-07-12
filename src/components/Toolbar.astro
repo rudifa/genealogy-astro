@@ -703,9 +703,9 @@ const {language, translations} = Astro.props;
 
     // Check for stored language and update if needed
     // Use a small delay to ensure translations are loaded
-    setTimeout(() => {
-      initializeLanguage();
-    }, 50);
+    // setTimeout(() => {
+    initializeLanguage();
+    // }, 50);
 
     return {
       updateTranslations: updateToolbarTranslations,
