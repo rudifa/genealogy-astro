@@ -34,7 +34,6 @@
     },
     "scripts": {
         "astro": "astro",
-        "build:ts": "tsc",
         "build": "astro check && astro build && tsc",
         "check": "astro check",
         "clean": "rm -rf dist .astro",
@@ -49,9 +48,8 @@
         "test:e2e:dev": "start-server-and-test dev http://localhost:4321 'cypress open'",
         "test:e2e:headless": "cypress run --headless",
         "test:e2e:open": "cypress open",
-        "test:forest-data": "node test/GenealogyForestData.test.js",
-        "test:manual": "echo 'Manual tests are in the manual/ directory. Run them individually with node manual/<filename>.js'",
-        "test:tree-data": "node test/GenealogyTreeData.test.js"
+        "vitest": "vitest run",
+        "vitest:watch": "vitest"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.4",
@@ -61,7 +59,8 @@
         "@cypress/vite-dev-server": "^6.0.3",
         "cypress": "^14.5.1",
         "start-server-and-test": "^2.0.12",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.4"
     },
     "browserslist": [
         "> 1%",

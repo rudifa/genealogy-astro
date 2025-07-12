@@ -1,8 +1,6 @@
-import { describe, it, beforeEach } from 'node:test';
-import assert from 'node:assert';
+import { describe, it, beforeEach, expect } from 'vitest';
 import { AppLanguages } from '../public/utility/AppLanguage.js';
-import { translations, getTranslations, supportedLanguages } from '../dist/i18n/index.js';
-// const translations = { en, fr, de };
+import { translations, getTranslations, supportedLanguages } from '../src/i18n/index.ts';
 
 describe('AppLanguages', () => {
   let appLanguages;
@@ -12,38 +10,38 @@ describe('AppLanguages', () => {
   });
 
   it('should initialize with the correct language and translations', () => {
-    assert.strictEqual(appLanguages.getCurrentLanguage(), 'en');
-    assert.deepStrictEqual(appLanguages.getTranslations(), translations.en);
+    expect(appLanguages.getCurrentLanguage()).toBe('en');
+    expect(appLanguages.getTranslations()).toEqual(translations.en);
   });
 
   it('should change language and translations when setLanguage is called', () => {
     appLanguages.setLanguage('fr', translations);
-    assert.strictEqual(appLanguages.getCurrentLanguage(), 'fr');
-    assert.deepStrictEqual(appLanguages.getTranslations(), translations.fr);
+    expect(appLanguages.getCurrentLanguage()).toBe('fr');
+    expect(appLanguages.getTranslations()).toEqual(translations.fr);
   });
 
   it('should change to German and get correct translation', () => {
     appLanguages.setLanguage('de', translations);
-    assert.strictEqual(appLanguages.getCurrentLanguage(), 'de');
-    assert.deepStrictEqual(appLanguages.getTranslations(), translations.de);
-    assert.strictEqual(appLanguages.getTranslations().addPerson, 'Person Hinzufügen');
+    expect(appLanguages.getCurrentLanguage()).toBe('de');
+    expect(appLanguages.getTranslations()).toEqual(translations.de);
+    expect(appLanguages.getTranslations().addPerson).toBe('Person Hinzufügen');
   });
 
   it('should not change language if translations are invalid', () => {
     appLanguages.setLanguage('it', null);
-    assert.strictEqual(appLanguages.getCurrentLanguage(), 'en');
-    assert.deepStrictEqual(appLanguages.getTranslations(), translations.en);
+    expect(appLanguages.getCurrentLanguage()).toBe('en');
+    expect(appLanguages.getTranslations()).toEqual(translations.en);
   });
 
   it('should notify observers when language changes', () => {
     let notified = false;
     appLanguages.subscribe((lang, currentTranslations) => {
       notified = true;
-      assert.strictEqual(lang, 'fr');
-      assert.deepStrictEqual(currentTranslations, translations.fr);
+      expect(lang).toBe('fr');
+      expect(currentTranslations).toEqual(translations.fr);
     });
     appLanguages.setLanguage('fr', translations);
-    assert.strictEqual(notified, true);
+    expect(notified).toBe(true);
   });
 
   it('should allow unsubscribing observers', () => {
@@ -52,10 +50,10 @@ describe('AppLanguages', () => {
       callCount++;
     });
     appLanguages.setLanguage('fr', translations);
-    assert.strictEqual(callCount, 1);
+    expect(callCount).toBe(1);
 
     unsubscribe();
     appLanguages.setLanguage('en', translations);
-    assert.strictEqual(callCount, 1); // Should not have increased
+    expect(callCount).toBe(1); // Should not have increased
   });
 });
