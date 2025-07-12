@@ -6,7 +6,7 @@ interface Props {
   translations: Translations;
 }
 
-const {language, translations} = Astro.props;
+const {translations} = Astro.props;
 ---
 
 <div
@@ -798,13 +798,13 @@ const {language, translations} = Astro.props;
 
     // Subscribe to state changes to detect when Family Example tree is modified
     if (appData) {
-      unsubscribe = appData.subscribe(async (state) => {
+      unsubscribe = appData.subscribe(async () => {
         // Always update reset state when state changes
-        await checkFamilyExampleResetState();
+        checkFamilyExampleResetState();
 
         // Update tree list if dialog is visible
         if (dialog && dialog.style.display !== "none") {
-          await updateTreeList();
+          updateTreeList();
         }
       });
     }
@@ -935,7 +935,7 @@ const {language, translations} = Astro.props;
     }
 
     // Listen for language changes
-    window.addEventListener("languageChanged", function (event) {
+    window.addEventListener("languageChanged", function () {
       updateDialogTranslations();
     });
 
@@ -978,7 +978,7 @@ const {language, translations} = Astro.props;
           "🟠 TreeManagerDialog: Opening dialog, checking reset state..."
         );
         // Check reset state only when dialog opens
-        await checkFamilyExampleResetState();
+        checkFamilyExampleResetState();
         console.log(
           "TreeManagerDialog: Reset state after check:",
           familyExampleNeedsReset
@@ -987,7 +987,7 @@ const {language, translations} = Astro.props;
         // Ensure dialog translations are set on initial load
         updateDialogTranslations();
 
-        await updateTreeList();
+        updateTreeList();
         updateCurrentTreeDisplay();
         updateMergeDisplay();
         dialog.style.display = "flex";
@@ -1126,7 +1126,7 @@ const {language, translations} = Astro.props;
                 }
 
                 // Update dialog displays first
-                await updateTreeList();
+                updateTreeList();
                 updateCurrentTreeDisplay();
 
                 // No delay needed - reactive state updates handle synchronization
@@ -1159,7 +1159,7 @@ const {language, translations} = Astro.props;
               const success = await appData.resetFamilyExample();
               if (success) {
                 // Update dialog displays first
-                await updateTreeList();
+                updateTreeList();
                 updateCurrentTreeDisplay();
 
                 // No delay needed - reactive state updates handle synchronization
@@ -1203,7 +1203,7 @@ const {language, translations} = Astro.props;
             }
 
             // Update the tree list to reflect the new selection state
-            await updateTreeList();
+            updateTreeList();
 
             // Update the create tree display
             updateMergeDisplay();
@@ -1222,7 +1222,7 @@ const {language, translations} = Astro.props;
           try {
             const success = await appData.switchToTree(treeName);
             if (success) {
-              await updateTreeList();
+              updateTreeList();
               updateCurrentTreeDisplay();
               hideDialog();
             } else {
@@ -1325,7 +1325,6 @@ const {language, translations} = Astro.props;
           // Get the current tree data
           const state = appData.getState();
           const currentTreeData = {persons: state.genealogyData.persons};
-          const currentTreeName = state.currentTreeName;
 
           // Get the other tree data
           const otherTreeData = appData.getTreeData(selectedOther);
@@ -1377,11 +1376,11 @@ const {language, translations} = Astro.props;
           newTreeInput.value = "";
           if (copyCheckbox) copyCheckbox.checked = false;
           updateCreateButtonState(); // Update button state after clearing input
-          await updateTreeList();
+          updateTreeList();
 
           // Switch to the new tree
           await appData.switchToTree(treeName);
-          await updateTreeList();
+          updateTreeList();
           updateCurrentTreeDisplay();
 
           // Close dialog after successful creation and switch
@@ -1412,7 +1411,7 @@ const {language, translations} = Astro.props;
     }
 
     if (newTreeInput) {
-      const inputHandler = function (event) {
+      const inputHandler = function () {
         updateCreateButtonState();
       };
 

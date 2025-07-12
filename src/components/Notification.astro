@@ -6,7 +6,7 @@ interface Props {
   translations: Translations;
 }
 
-const {language, translations} = Astro.props;
+const {translations} = Astro.props;
 ---
 
 <div id='notification' class='notification' style='display: none;'></div>
@@ -57,7 +57,7 @@ const {language, translations} = Astro.props;
     window.notificationInitialized = true;
 
     // Store current translations (will be updated by language changes)
-    let currentTranslations = translations;
+    // let currentTranslations = translations;
 
     // Get notification element
     const notificationElement = document.getElementById("notification");

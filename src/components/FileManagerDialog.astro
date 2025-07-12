@@ -6,7 +6,7 @@ interface Props {
   translations: Translations;
 }
 
-const {language, translations} = Astro.props;
+const {translations} = Astro.props;
 ---
 
 <!-- File Manager Dialog (initially hidden) -->
@@ -564,7 +564,6 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
   import {appData} from "/utility/AppData.js";
 
   // File Manager functionality
@@ -607,7 +606,7 @@ const {language, translations} = Astro.props;
     const fileUploadInput = document.getElementById("file-upload-input");
     const uploadDropZone = document.getElementById("upload-drop-zone");
     const selectFileButton = document.getElementById("select-file-button");
-    const uploadOptions = document.querySelector(".upload-options");
+    // const uploadOptions = document.querySelector(".upload-options"); // never used
     const newTreeNameInput = document.getElementById(
       "file-manager-tree-name-input"
     );
@@ -1177,12 +1176,7 @@ const {language, translations} = Astro.props;
       }
     }
 
-    async function processSingleTreeUpload(
-      data,
-      uploadMode,
-      treeManager,
-      genealogyData
-    ) {
+    async function processSingleTreeUpload(data, uploadMode) {
       const importedTreeName = data.treeName || "Imported Tree";
       const treeData = data.data;
 
@@ -1321,12 +1315,7 @@ const {language, translations} = Astro.props;
       // All components that subscribe to appData will automatically update
     }
 
-    async function processAllTreesUpload(
-      data,
-      uploadMode,
-      treeManager,
-      genealogyData
-    ) {
+    async function processAllTreesUpload(data, uploadMode) {
       const importedTrees = data.trees || {};
       const importedSelectedTree = data.selectedTree;
       let successCount = 0;
