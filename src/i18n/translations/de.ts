@@ -2,12 +2,12 @@ import type {Translations} from "../index";
 
 export const de: Translations = {
   // Page content
-  pageTitle: "Familienstamm-Explorer",
+  pageTitle: " ",
   pageDescription:
-    "Interaktive Familienstamm-Visualisierung und Genealogie-Verwaltungsanwendung.",
+    "Interaktive Stammbaum-Visualisierung und Genealogie-Verwaltungsanwendung.",
 
   // Header
-  appTitle: "Familienstamm-Explorer",
+  appTitle: "Stammbaum Explorer",
   appSubtitle:
     "Visualisieren und verwalten Sie Ihre Familiengenealgie mit einem interaktiven Graphen. Klicken Sie auf eine Person, um ihre Details zu bearbeiten oder neue Familienmitglieder hinzuzufügen.",
 
@@ -99,7 +99,7 @@ export const de: Translations = {
   selectLanguage: "Sprache Auswählen",
 
   // Tree Management Dialog
-  manageFamilyTrees: "Familienstammbäume Verwalten",
+  manageFamilyTrees: "Stammbaumbäume Verwalten",
   availableTrees: "Verfügbare Bäume:",
   createNewTree: "Neuen Baum Erstellen:",
   createNewTreeMerging:
