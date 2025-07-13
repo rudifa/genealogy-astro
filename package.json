@@ -1,7 +1,7 @@
 {
     "name": "genealogy-astro",
     "type": "module",
-    "version": "1.4.4",
+    "version": "1.4.6",
     "description": "Interactive family tree visualization and management application built with Astro",
     "author": {
         "name": "Rudi Farkas",
