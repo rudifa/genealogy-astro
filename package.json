@@ -34,7 +34,8 @@
     },
     "scripts": {
         "astro": "astro",
-        "build": "astro check && astro build",
+        "build:ts": "tsc",
+        "build": "astro check && astro build && tsc",
         "check": "astro check",
         "clean": "rm -rf dist .astro",
         "dev": "astro dev --host",
