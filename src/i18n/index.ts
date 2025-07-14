@@ -1,6 +1,7 @@
 import {en, fr, de} from "./translations";
+import ja from "./translations/ja";
 
-export type Language = "en" | "fr" | "de";
+export type Language = "en" | "fr" | "de" | "ja";
 
 export interface Translations {
   // Page content
@@ -185,6 +186,7 @@ export const translations: Record<Language, Translations> = {
   en,
   fr,
   de,
+  ja,
 };
 
 export function getTranslations(lang: Language): Translations {
@@ -200,4 +202,5 @@ export const supportedLanguages: {
   {code: "en", name: "English", nativeName: "English", flag: "🇬🇧"},
   {code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷"},
   {code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪"},
+  {code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵"},
 ];
