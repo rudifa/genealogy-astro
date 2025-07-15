@@ -42,7 +42,6 @@ const {translations} = Astro.props;
     color: #6c757d;
     font-style: italic;
   }
-
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
@@ -145,9 +144,12 @@ const {translations} = Astro.props;
         if (!graphContainer || isRendering || !genealogyData) {
           // Only warn if it's actually a problem (not just a race condition)
           if (!graphContainer || !genealogyData) {
-            console.warn("GraphRenderer: Missing dependencies for rendering");
-            console.warn("GraphRenderer: graphContainer:", !!graphContainer);
-            console.warn("GraphRenderer: genealogyData:", !!genealogyData);
+            console.warn(
+              "GraphRenderer: Missing dependencies graphContainer:",
+              !!graphContainer,
+              ", genealogyData:",
+              !!genealogyData
+            );
           } else if (isRendering) {
             console.log(
               "GraphRenderer: Already rendering, skipping duplicate call"
@@ -179,9 +181,9 @@ const {translations} = Astro.props;
           graphContainer.innerHTML = newSvgString;
           // Attach hover effects to person nodes immediately after SVG render
           addPersonNodeHoverEffects();
-          console.log(
-            "GraphRenderer: addPersonNodeHoverEffects called after SVG render"
-          );
+          //   console.log(
+          //     "GraphRenderer: addPersonNodeHoverEffects called after SVG render"
+          //   );
 
           // Show success notification for significant changes
           if (genealogyData.persons.length === 0 && showNotification) {
@@ -191,7 +193,7 @@ const {translations} = Astro.props;
             );
           }
 
-          console.log("GraphRenderer: Graph rendered successfully");
+          //   console.log("GraphRenderer: Graph rendered successfully");
         } catch (error) {
           console.error("GraphRenderer: Error rendering graph:", error);
           if (graphPlaceholder) {
@@ -294,7 +296,7 @@ const {translations} = Astro.props;
         if (!svg) return;
         svg.querySelectorAll("a").forEach((link) => {
           link.addEventListener("mouseover", () => {
-            console.log("Hovered:", link); // Debug log
+            // console.log("Hovered:", link); // Debug log
             const polygon = link.querySelector("polygon");
             if (polygon) {
               polygon.setAttribute("stroke", "#007acc");
