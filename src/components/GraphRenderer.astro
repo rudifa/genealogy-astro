@@ -144,9 +144,12 @@ const {translations} = Astro.props;
         if (!graphContainer || isRendering || !genealogyData) {
           // Only warn if it's actually a problem (not just a race condition)
           if (!graphContainer || !genealogyData) {
-            console.warn("GraphRenderer: Missing dependencies for rendering");
-            console.warn("GraphRenderer: graphContainer:", !!graphContainer);
-            console.warn("GraphRenderer: genealogyData:", !!genealogyData);
+            console.warn(
+              "GraphRenderer: Missing dependencies graphContainer:",
+              !!graphContainer,
+              ", genealogyData:",
+              !!genealogyData
+            );
           } else if (isRendering) {
             console.log(
               "GraphRenderer: Already rendering, skipping duplicate call"
@@ -176,6 +179,11 @@ const {translations} = Astro.props;
 
           // Insert the new SVG string into the graph container
           graphContainer.innerHTML = newSvgString;
+          // Attach hover effects to person nodes immediately after SVG render
+          addPersonNodeHoverEffects();
+          //   console.log(
+          //     "GraphRenderer: addPersonNodeHoverEffects called after SVG render"
+          //   );
 
           // Show success notification for significant changes
           if (genealogyData.persons.length === 0 && showNotification) {
@@ -185,7 +193,7 @@ const {translations} = Astro.props;
             );
           }
 
-          console.log("GraphRenderer: Graph rendered successfully");
+          //   console.log("GraphRenderer: Graph rendered successfully");
         } catch (error) {
           console.error("GraphRenderer: Error rendering graph:", error);
           if (graphPlaceholder) {
@@ -282,6 +290,44 @@ const {translations} = Astro.props;
         }
       }
 
+      // --- Add JS-based hover effect for SVG person nodes ---
+      function addPersonNodeHoverEffects() {
+        const svg = graphContainer.querySelector("svg");
+        if (!svg) return;
+        svg.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("mouseover", () => {
+            // console.log("Hovered:", link); // Debug log
+            const polygon = link.querySelector("polygon");
+            if (polygon) {
+              polygon.setAttribute("stroke", "#007acc");
+              polygon.setAttribute("stroke-width", "1.5");
+              polygon.setAttribute("fill", "#e9f4ff"); // Optional: highlight fill
+            }
+            link.querySelectorAll("text").forEach((text) => {
+              text.setAttribute("fill", "#007acc");
+              text.setAttribute("font-weight", "bold");
+            });
+          });
+          link.addEventListener("mouseout", () => {
+            const polygon = link.querySelector("polygon");
+            if (polygon) {
+              polygon.setAttribute("stroke", "black");
+              polygon.setAttribute("stroke-width", "1");
+              polygon.setAttribute("fill", "#e9f4ff"); // Reset fill
+            }
+            link.querySelectorAll("text").forEach((text) => {
+              text.setAttribute("fill", "black");
+              text.setAttribute("font-weight", "normal");
+            });
+          });
+        });
+      }
+
+      // After rendering the graph, apply hover effects
+      function afterGraphRender() {
+        addPersonNodeHoverEffects();
+      }
+
       // Set up event listeners
       graphContainer.addEventListener("click", handleGraphClick);
 
@@ -364,6 +410,7 @@ const {translations} = Astro.props;
 
       // Initial render when system is ready
       renderGraph();
+      afterGraphRender();
     }
 
     // Setup graph functionality directly - no longer wait for event

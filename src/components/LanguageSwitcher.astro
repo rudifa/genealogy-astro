@@ -111,8 +111,9 @@ const {currentLanguage} = Astro.props;
   const languageSelect = document.getElementById("language-select");
 
   if (languageSelect) {
-    // Set initial value based on current language
-    const currentLang = window.currentLanguage || "en";
+    // Set initial value based on localStorage, Astro.props, or default
+    const storedLang = localStorage.getItem("genealogy-language");
+    const currentLang = storedLang || window.currentLanguage || "en";
     languageSelect.value = currentLang;
 
     languageSelect.addEventListener("change", function (event) {
