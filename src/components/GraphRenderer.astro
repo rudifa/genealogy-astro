@@ -42,6 +42,7 @@ const {translations} = Astro.props;
     color: #6c757d;
     font-style: italic;
   }
+
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
@@ -176,6 +177,11 @@ const {translations} = Astro.props;
 
           // Insert the new SVG string into the graph container
           graphContainer.innerHTML = newSvgString;
+          // Attach hover effects to person nodes immediately after SVG render
+          addPersonNodeHoverEffects();
+          console.log(
+            "GraphRenderer: addPersonNodeHoverEffects called after SVG render"
+          );
 
           // Show success notification for significant changes
           if (genealogyData.persons.length === 0 && showNotification) {
@@ -282,6 +288,44 @@ const {translations} = Astro.props;
         }
       }
 
+      // --- Add JS-based hover effect for SVG person nodes ---
+      function addPersonNodeHoverEffects() {
+        const svg = graphContainer.querySelector("svg");
+        if (!svg) return;
+        svg.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("mouseover", () => {
+            console.log("Hovered:", link); // Debug log
+            const polygon = link.querySelector("polygon");
+            if (polygon) {
+              polygon.setAttribute("stroke", "#007acc");
+              polygon.setAttribute("stroke-width", "1.5");
+              polygon.setAttribute("fill", "#e9f4ff"); // Optional: highlight fill
+            }
+            link.querySelectorAll("text").forEach((text) => {
+              text.setAttribute("fill", "#007acc");
+              text.setAttribute("font-weight", "bold");
+            });
+          });
+          link.addEventListener("mouseout", () => {
+            const polygon = link.querySelector("polygon");
+            if (polygon) {
+              polygon.setAttribute("stroke", "black");
+              polygon.setAttribute("stroke-width", "1");
+              polygon.setAttribute("fill", "#e9f4ff"); // Reset fill
+            }
+            link.querySelectorAll("text").forEach((text) => {
+              text.setAttribute("fill", "black");
+              text.setAttribute("font-weight", "normal");
+            });
+          });
+        });
+      }
+
+      // After rendering the graph, apply hover effects
+      function afterGraphRender() {
+        addPersonNodeHoverEffects();
+      }
+
       // Set up event listeners
       graphContainer.addEventListener("click", handleGraphClick);
 
@@ -364,6 +408,7 @@ const {translations} = Astro.props;
 
       // Initial render when system is ready
       renderGraph();
+      afterGraphRender();
     }
 
     // Setup graph functionality directly - no longer wait for event
