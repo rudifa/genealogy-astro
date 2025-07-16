@@ -1,5 +1,6 @@
 import { GenealogyTreeData } from "./GenealogyTreeData.js";
 import { GenealogyForestData } from "./GenealogyForestData.js";
+import  {sampleTree} from "./data/sample_tree.json";
 
 // AppData.js
 // Step 1: Class skeleton for AppData, matching the current appData API
