@@ -10,10 +10,14 @@ export async function loadSampleTree() {
 }
 
 export async function appDataEnsureExists() {
+  let created = false;
   if (!window.appData) {
     window.appData = new AppData("en");
+    created = true;
   }
-  const initialTreeData = await loadSampleTree();
-  window.appData.initialize(initialTreeData);
+  if (created) {
+    const initialTreeData = await loadSampleTree();
+    window.appData.initialize(initialTreeData);
+  }
   return window.appData;
 }

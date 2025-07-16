@@ -23,7 +23,7 @@ export class GenealogyForestData {
    * @param {Array} defaultTreeData.persons - Array of person objects
    * @param {boolean} verbose - Whether to log success messages (default: true)
    */
-  constructor(storageKey, defaultTreeName, defaultTreeData, verbose = true) {
+  constructor(storageKey, defaultTreeName, defaultTreeData, verbose = false) {
     this.#storageKey = storageKey;
     this.#defaultTreeName = defaultTreeName;
     this.#defaultTreeData = defaultTreeData;
