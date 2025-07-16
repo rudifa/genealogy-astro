@@ -70,17 +70,6 @@ export class AppData {
     this.notify();
   }
 
-  openEditDialog(person) {
-    this.state.personToEdit = person;
-    this.state.isEditDialogOpen = true;
-    this.notify();
-  }
-
-  closeEditDialog() {
-    this.state.isEditDialogOpen = false;
-    this.state.personToEdit = null;
-    this.notify();
-  }
 
   updatePerson(originalName, updatedPerson) {
     if (!this.state.genealogyData) return;
