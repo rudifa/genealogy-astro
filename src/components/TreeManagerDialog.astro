@@ -775,7 +775,8 @@ const {translations} = Astro.props;
 
 <script is:inline type='module' define:vars={{translations}}>
   // Tree Management Dialog functionality
-  import {appData} from "/utility/AppData.js";
+  //   import {appData} from "/utility/AppData.js";
+  let appData = null;
 
   async function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-manager-dialog");
@@ -798,6 +799,7 @@ const {translations} = Astro.props;
 
     // Subscribe to state changes to detect when Family Example tree is modified
     if (window.appData) {
+      appData = window.appData;
       unsubscribe = window.appData.subscribe(async () => {
         // Always update reset state when state changes
         checkFamilyExampleResetState();
@@ -807,8 +809,11 @@ const {translations} = Astro.props;
           updateTreeList();
         }
       });
+      console.log("TreeManager: Subscribed to state changes");
     } else {
-      console.error("window.appData not available, skipping subscription");
+      console.error(
+        "TreeManager: window.appData not available, skipping subscription"
+      );
     }
 
     // Check if Family Example tree needs reset (only called when dialog opens)

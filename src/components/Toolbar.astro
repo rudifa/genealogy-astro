@@ -301,7 +301,9 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {appData} from "/utility/AppData.js";
+  //   import {appData} from "/utility/AppData.js";
+  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+  let appData = appDataEnsureExists();
   // Toolbar functionality
   function initializeToolbar() {
     console.log("Toolbar: Starting initialization");
@@ -499,7 +501,7 @@ const {language, translations} = Astro.props;
             // Check if rendering is in progress
             if (window.genealogyIsRendering) return;
 
-            const state = appData.getState();
+            const state = window.appData.getState();
 
             if (!state.genealogyData) {
               console.warn("No genealogy data available");
@@ -537,7 +539,7 @@ const {language, translations} = Astro.props;
 
             if (confirm(confirmMessage)) {
               // Use appData to clear all persons - this will notify all subscribers
-              appData.clearAllPersons();
+              window.appData.clearAllPersons();
 
               // Show success notification
               if (window.showNotification) {

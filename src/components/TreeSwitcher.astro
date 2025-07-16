@@ -101,9 +101,9 @@ const {currentTree} = Astro.props;
 
 <script is:inline type='module'>
   // 🎯 Direct import - VS Code can navigate to definition!
-  import {appData} from "/utility/AppData.js";
+  //   import {appData} from "/utility/AppData.js";
   import {appDataEnsureExists} from "/utility/AppDataLoader.js";
-  appDataEnsureExists();
+  const appData = appDataEnsureExists();
   //   console.log("✅ appDataEnsureExists called, appData should be initialized");
   console.log("✅ appData is available as window.appData", window.appData);
   // Initialize immediately since DOM is already ready in inline scripts

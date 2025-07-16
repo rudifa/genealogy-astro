@@ -17,5 +17,5 @@ export function appDataEnsureExists() {
   } else {
     console.log("☘️ appDataEnsureExists: window.appData exists");
   }
-  return window.appData; // return the existing or newly created appData instance, for information
+  return window.appData; // return the existing or newly created appData instance
 }
