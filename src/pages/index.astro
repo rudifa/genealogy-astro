@@ -93,8 +93,13 @@ const t = getTranslations(currentLanguage);
 </script>
 
 <script is:inline type='module'>
-  import {appData} from "/utility/AppData.js";
-  window.appData = appData;
+  //   import {appData} from "/utility/AppData.js";
+  //   window.appData = appData;
+
+  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+   appDataEnsureExists();
+  //   console.log("✅ appDataEnsureExists called, appData should be initialized");
+  console.log("✅ appData is available as window.appData", window.appData);
 
   // --- State Initialization (Step 1) ---
   // Initialize state when genealogy data is available

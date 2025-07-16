@@ -1,23 +1,18 @@
 // AppDataLoader.js
 // Loads the sample tree JSON and ensures window.appData exists and is initialized
-import { AppData } from "./AppData.js";
+import {AppData} from "./AppData.js";
+import {getSampleFamily} from "./SampleFamily.js";
 
-export async function loadSampleTree() {
-  const response = await fetch('/utility/data/sample_tree.json');
-  if (!response.ok) throw new Error('Failed to load sample_tree.json');
-  return await response.json(); // parsed object
-  // or: return await response.text(); // as string
-}
-
-export async function appDataEnsureExists() {
-  let created = false;
+export function appDataEnsureExists() {
   if (!window.appData) {
     window.appData = new AppData("en");
-    created = true;
+
+    window.appData.initialize(getSampleFamily(), null); // null translations
+    console.log(
+      "appDataEnsureExists: window.appData created and initialized with sample tree data"
+    );
+  } else {
+    console.log("appDataEnsureExists: window.appData exists");
   }
-  if (created) {
-    const initialTreeData = await loadSampleTree();
-    window.appData.initialize(initialTreeData);
-  }
-  return window.appData;
+  return window.appData; // return the existing or newly created appData instance, for information
 }
