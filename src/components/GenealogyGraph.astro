@@ -44,7 +44,7 @@ const {data, language, translations} = Astro.props;
 >
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
   import {GenealogyForestData} from "/utility/GenealogyForestData.js";
-  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
   const appData = appDataEnsureExists();
 
   // genealogyDataJson is provided by Astro's define:vars

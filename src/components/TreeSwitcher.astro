@@ -100,7 +100,7 @@ const {currentTree} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
   const appData = appDataEnsureExists();
 
   // Initialize immediately since DOM is already ready in inline scripts

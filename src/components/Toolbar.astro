@@ -302,7 +302,7 @@ const {language, translations} = Astro.props;
 
 <script is:inline type='module' define:vars={{translations}}>
   //   import {appData} from "/utility/AppData.js";
-  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
   let appData = appDataEnsureExists();
   // Toolbar functionality
   function initializeToolbar() {

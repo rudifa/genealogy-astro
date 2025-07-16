@@ -564,7 +564,7 @@ const {translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {appDataEnsureExists} from "/utility/AppDataLoader.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
   const appData = appDataEnsureExists();
 
   // File Manager functionality
