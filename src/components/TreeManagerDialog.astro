@@ -797,8 +797,8 @@ const {translations} = Astro.props;
     let unsubscribe = null; // For state subscription
 
     // Subscribe to state changes to detect when Family Example tree is modified
-    if (appData) {
-      unsubscribe = appData.subscribe(async () => {
+    if (window.appData) {
+      unsubscribe = window.appData.subscribe(async () => {
         // Always update reset state when state changes
         checkFamilyExampleResetState();
 
@@ -807,6 +807,8 @@ const {translations} = Astro.props;
           updateTreeList();
         }
       });
+    } else {
+      console.error("window.appData not available, skipping subscription");
     }
 
     // Check if Family Example tree needs reset (only called when dialog opens)

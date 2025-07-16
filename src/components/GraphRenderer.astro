@@ -128,13 +128,16 @@ const {translations} = Astro.props;
         let genealogyData = null;
         let treeName = "Genealogy Tree";
         // 🎯 Direct access to state - clean and simple!
-        if (appData) {
-          const state = appData.getState();
+        if (window.appData) {
+          const state = window.appData.getState();
           genealogyData = state.genealogyData;
           if (state && state.currentTreeName) {
             treeName = state.currentTreeName;
           }
         } else {
+          console.error(
+            "GraphRenderer: window.appData not available, falling back to old approach"
+          );
           // Fallback to old approach if state not available
           genealogyData = window.genealogyData;
         }
@@ -367,41 +370,46 @@ const {translations} = Astro.props;
           );
         }
 
-        const unsubscribe = appData.subscribe((state) => {
-          // Check for tree, count, and content changes
-          const currentTreeName = state.currentTreeName;
-          const currentPersonsCount = state.genealogyData?.persons?.length || 0;
-          const currentDataHash = getDataHash(
-            state.genealogyData?.persons || []
-          );
-
-          if (
-            currentTreeName !== lastTreeName ||
-            currentPersonsCount !== lastPersonsCount ||
-            currentDataHash !== lastDataHash
-          ) {
-            console.log(
-              `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
+        if (window.appData && window.appData.getState) {
+          const unsubscribe = appData.subscribe((state) => {
+            // Check for tree, count, and content changes
+            const currentTreeName = state.currentTreeName;
+            const currentPersonsCount =
+              state.genealogyData?.persons?.length || 0;
+            const currentDataHash = getDataHash(
+              state.genealogyData?.persons || []
             );
 
-            // Log data changes for debugging
             if (
-              currentDataHash !== lastDataHash &&
-              currentPersonsCount === lastPersonsCount
+              currentTreeName !== lastTreeName ||
+              currentPersonsCount !== lastPersonsCount ||
+              currentDataHash !== lastDataHash
             ) {
               console.log(
-                "GraphRenderer: Person data content changed (same count)"
+                `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
               );
+
+              // Log data changes for debugging
+              if (
+                currentDataHash !== lastDataHash &&
+                currentPersonsCount === lastPersonsCount
+              ) {
+                console.log(
+                  "GraphRenderer: Person data content changed (same count)"
+                );
+              }
+
+              lastTreeName = currentTreeName;
+              lastPersonsCount = currentPersonsCount;
+              lastDataHash = currentDataHash;
+              renderGraph();
             }
+          });
 
-            lastTreeName = currentTreeName;
-            lastPersonsCount = currentPersonsCount;
-            lastDataHash = currentDataHash;
-            renderGraph();
-          }
-        });
-
-        console.log("GraphRenderer subscribed to state changes");
+          console.log("GraphRenderer subscribed to state changes");
+        } else {
+          console.error("GraphRenderer: No window.appData available");
+        }
 
         // Store unsubscribe function for cleanup
         window.addEventListener("beforeunload", function () {

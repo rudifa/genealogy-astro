@@ -514,7 +514,7 @@ const {data, language, translations} = Astro.props;
       });
     } else {
       // If appData isn't ready yet, log error and continue without state subscription
-      console.warn(
+      console.error(
         "GenealogyGraph: appData not available, state subscription skipped"
       );
     }

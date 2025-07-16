@@ -144,11 +144,14 @@ const {currentTree} = Astro.props;
 
   // Subscribe to state changes
   function initializeStateSubscription() {
-    // 🎯 Direct subscription - appState is imported, no need for null check!
-    unsubscribe = appData.subscribe(() => {
-      updateTreeOptions();
-    });
-    console.log("TreeSwitcher subscribed to state changes");
+    if (window.appData) {
+      unsubscribe = window.appData.subscribe(() => {
+        updateTreeOptions();
+      });
+      console.log("TreeSwitcher subscribed to state changes");
+    } else {
+      console.error("window.appData not available, skipping subscription");
+    }
   }
 
   // Initialize subscription
