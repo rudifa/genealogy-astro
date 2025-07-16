@@ -1,5 +1,5 @@
-import { GenealogyTreeData } from "./GenealogyTreeData.js";
-import { GenealogyForestData } from "./GenealogyForestData.js";
+import {GenealogyTreeData} from "./GenealogyTreeData.js";
+import {GenealogyForestData} from "./GenealogyForestData.js";
 
 // AppData.js
 // Step 1: Class skeleton for AppData, matching the current appData API
@@ -11,7 +11,7 @@ export class AppData {
     this.state = {
       forestData: null,
       genealogyData: null,
-      currentTreeName: 'Family Example',
+      currentTreeName: "Family Example",
       availableTrees: [],
       isLoading: true,
       isEditDialogOpen: false,
@@ -61,23 +61,15 @@ export class AppData {
   }
 
   setLanguage(lang, translations) {
-    if (translations && typeof translations === 'object' && translations[lang]) {
+    if (
+      translations &&
+      typeof translations === "object" &&
+      translations[lang]
+    ) {
       this.state.translations = translations[lang];
     } else {
       this.state.translations = translations || this.state.translations;
     }
-    this.notify();
-  }
-
-  openEditDialog(person) {
-    this.state.personToEdit = person;
-    this.state.isEditDialogOpen = true;
-    this.notify();
-  }
-
-  closeEditDialog() {
-    this.state.isEditDialogOpen = false;
-    this.state.personToEdit = null;
     this.notify();
   }
 
@@ -86,7 +78,7 @@ export class AppData {
     this.state.genealogyData.updatePerson(originalName, updatedPerson);
     this.state.forestData.saveTreeData(
       this.state.currentTreeName,
-      { persons: this.state.genealogyData.persons },
+      {persons: this.state.genealogyData.persons},
       true
     );
     this.notify();
@@ -97,7 +89,7 @@ export class AppData {
     this.state.genealogyData.removePerson(personName);
     this.state.forestData.saveTreeData(
       this.state.currentTreeName,
-      { persons: this.state.genealogyData.persons },
+      {persons: this.state.genealogyData.persons},
       true
     );
     this.notify();
@@ -108,7 +100,7 @@ export class AppData {
     this.state.genealogyData.clear();
     this.state.forestData.saveTreeData(
       this.state.currentTreeName,
-      { persons: this.state.genealogyData.persons },
+      {persons: this.state.genealogyData.persons},
       true
     );
     this.notify();
@@ -131,11 +123,15 @@ export class AppData {
     if (!this.state.forestData) return false;
     let success = false;
     if (customData) {
-      success = this.state.forestData.createNewTree(treeName, { persons: customData });
+      success = this.state.forestData.createNewTree(treeName, {
+        persons: customData,
+      });
     } else if (copyCurrentData) {
-      success = this.state.forestData.createNewTree(treeName, { persons: this.state.genealogyData.persons });
+      success = this.state.forestData.createNewTree(treeName, {
+        persons: this.state.genealogyData.persons,
+      });
     } else {
-      success = this.state.forestData.createNewTree(treeName, { persons: [] });
+      success = this.state.forestData.createNewTree(treeName, {persons: []});
     }
     if (success) {
       this.state.availableTrees = this.state.forestData.getAvailableTrees();
@@ -146,18 +142,28 @@ export class AppData {
 
   replaceCurrentTreeData(personsData) {
     if (!this.state.genealogyData || !this.state.forestData) return false;
-    this.state.genealogyData = new GenealogyTreeData({ persons: personsData });
-    this.state.forestData.saveTreeData(this.state.currentTreeName, { persons: personsData }, true);
+    this.state.genealogyData = new GenealogyTreeData({persons: personsData});
+    this.state.forestData.saveTreeData(
+      this.state.currentTreeName,
+      {persons: personsData},
+      true
+    );
     this.notify();
     return true;
   }
 
   replaceTreeData(treeName, personsData) {
     if (!this.state.forestData) return false;
-    const success = this.state.forestData.saveTreeData(treeName, { persons: personsData }, true);
+    const success = this.state.forestData.saveTreeData(
+      treeName,
+      {persons: personsData},
+      true
+    );
     if (success) {
       if (treeName === this.state.currentTreeName) {
-        this.state.genealogyData = new GenealogyTreeData({ persons: personsData });
+        this.state.genealogyData = new GenealogyTreeData({
+          persons: personsData,
+        });
       }
       this.notify();
     }
@@ -167,7 +173,7 @@ export class AppData {
   mergeDataIntoCurrentTree(newPersonsData) {
     if (!this.state.genealogyData) return false;
     const currentPersons = this.state.genealogyData.persons || [];
-    const existingNames = new Set(currentPersons.map(p => p.name));
+    const existingNames = new Set(currentPersons.map((p) => p.name));
     const mergedPersons = [...currentPersons];
     for (const person of newPersonsData) {
       if (!existingNames.has(person.name)) {
@@ -175,15 +181,21 @@ export class AppData {
         existingNames.add(person.name);
       }
     }
-    this.state.genealogyData = new GenealogyTreeData({ persons: mergedPersons });
-    this.state.forestData.saveTreeData(this.state.currentTreeName, { persons: mergedPersons }, true);
+    this.state.genealogyData = new GenealogyTreeData({persons: mergedPersons});
+    this.state.forestData.saveTreeData(
+      this.state.currentTreeName,
+      {persons: mergedPersons},
+      true
+    );
     this.notify();
     return true;
   }
 
   createTreeWithData(treeName, personsData) {
     if (!this.state.forestData) return false;
-    const success = this.state.forestData.createNewTree(treeName, { persons: personsData });
+    const success = this.state.forestData.createNewTree(treeName, {
+      persons: personsData,
+    });
     if (success) {
       this.state.availableTrees = this.state.forestData.getAvailableTrees();
       this.notify();
@@ -195,7 +207,7 @@ export class AppData {
     if (this.state.forestData.deleteTree(treeName)) {
       this.state.availableTrees = this.state.forestData.getAvailableTrees();
       if (treeName === this.state.currentTreeName) {
-        this.switchToTree('Family Example');
+        this.switchToTree("Family Example");
       }
       this.notify();
       return true;
@@ -207,7 +219,7 @@ export class AppData {
     if (this.state.forestData.resetFamilyExample) {
       const success = this.state.forestData.resetFamilyExample();
       if (success) {
-        if (this.state.currentTreeName === 'Family Example') {
+        if (this.state.currentTreeName === "Family Example") {
           const activeData = this.state.forestData.getActiveTreeData();
           this.state.genealogyData = new GenealogyTreeData(activeData);
         }
@@ -225,12 +237,16 @@ export class AppData {
   }
 
   getOriginalFamilyExampleData() {
-    if (!this.state.forestData || !this.state.forestData.getOriginalFamilyExampleData) return null;
+    if (
+      !this.state.forestData ||
+      !this.state.forestData.getOriginalFamilyExampleData
+    )
+      return null;
     return this.state.forestData.getOriginalFamilyExampleData();
   }
 
   getState() {
-    return { ...this.state };
+    return {...this.state};
   }
 }
 
