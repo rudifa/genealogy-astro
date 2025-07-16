@@ -7,12 +7,15 @@ export function appDataEnsureExists() {
   if (!window.appData) {
     window.appData = new AppData("en");
 
-    window.appData.initialize(getSampleFamily(), null); // null translations
+    const sampleFamily = getSampleFamily();
+    console.log("sampleFamily:", sampleFamily);
+
+    window.appData.initialize(sampleFamily, null); // null translations
     console.log(
-      "appDataEnsureExists: window.appData created and initialized with sample tree data"
+      "🦋 appDataEnsureExists: window.appData created and initialized with sample tree data"
     );
   } else {
-    console.log("appDataEnsureExists: window.appData exists");
+    console.log("☘️ appDataEnsureExists: window.appData exists");
   }
   return window.appData; // return the existing or newly created appData instance, for information
 }

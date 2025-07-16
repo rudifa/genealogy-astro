@@ -97,9 +97,16 @@ const t = getTranslations(currentLanguage);
   //   window.appData = appData;
 
   import {appDataEnsureExists} from "/utility/AppDataLoader.js";
-   appDataEnsureExists();
+  appDataEnsureExists();
   //   console.log("✅ appDataEnsureExists called, appData should be initialized");
   console.log("✅ appData is available as window.appData", window.appData);
+  // log details of the appData object
+  //   console.log("appData details:", {
+  //     initialized: window.appData.initialized,
+  //     genealogyData: window.appData.genealogyData,
+  //     translations: window.appData.translations,
+  //   });
+  // Ensure appData is initialized
 
   // --- State Initialization (Step 1) ---
   // Initialize state when genealogy data is available
@@ -131,7 +138,7 @@ const t = getTranslations(currentLanguage);
   window.detectAndSetLanguage();
 
   // Initialize the app state
-  initializeAppState();
+  //   initializeAppState();
 
   // Handle language changes from the language switcher
   window.addEventListener("languageChanged", function (event) {
