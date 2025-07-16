@@ -1,7 +1,7 @@
 {
     "name": "genealogy-astro",
     "type": "module",
-    "version": "1.4.4",
+    "version": "1.4.6",
     "description": "Interactive family tree visualization and management application built with Astro",
     "author": {
         "name": "Rudi Farkas",
@@ -34,7 +34,7 @@
     },
     "scripts": {
         "astro": "astro",
-        "build": "astro check && astro build",
+        "build": "astro check && astro build && tsc",
         "check": "astro check",
         "clean": "rm -rf dist .astro",
         "dev": "astro dev --host",
@@ -42,15 +42,15 @@
         "lint": "astro check",
         "preview": "astro preview",
         "start": "astro dev --host",
-        "test": "node --test 'test/**/*.test.js' && npm run test:e2e",
+        "test": "node --test 'test/**/*.test.js' && vitest run --reporter verbose && npm run test:e2e",
         "test:e2e": "cypress run",
         "test:e2e:ci": "start-server-and-test dev http://localhost:4321 'cypress run --headless'",
         "test:e2e:dev": "start-server-and-test dev http://localhost:4321 'cypress open'",
         "test:e2e:headless": "cypress run --headless",
         "test:e2e:open": "cypress open",
-        "test:forest-data": "node test/GenealogyForestData.test.js",
-        "test:manual": "echo 'Manual tests are in the manual/ directory. Run them individually with node manual/<filename>.js'",
-        "test:tree-data": "node test/GenealogyTreeData.test.js"
+        "test:node": "node --test 'test/**/*.test.js'",
+        "vitest": "vitest run --reporter verbose",
+        "vitest:watch": "vitest"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.4",
@@ -60,7 +60,8 @@
         "@cypress/vite-dev-server": "^6.0.3",
         "cypress": "^14.5.1",
         "start-server-and-test": "^2.0.12",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.4"
     },
     "browserslist": [
         "> 1%",
