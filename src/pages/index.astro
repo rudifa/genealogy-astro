@@ -3,13 +3,9 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
 import Footer from "../components/Footer.astro";
-import jsonData from "@/data/sample_tree.json";
-//import jsonData from "@/data/extended_tree.json";
+
 import type {TreeDataType} from "@/types";
 import {getTranslations, translations, type Language} from "../i18n/index";
-
-const genealogyData: TreeDataType = jsonData;
-const genealogyDataJson = JSON.stringify(genealogyData);
 
 // For now, we'll default to English on the server side
 // The client will handle language detection and updates
@@ -23,11 +19,7 @@ const t = getTranslations(currentLanguage);
   language={currentLanguage}>
   <main class='app-container'>
     <Header language={currentLanguage} translations={t} />
-    <GenealogyGraph
-      data={genealogyData}
-      language={currentLanguage}
-      translations={t}
-    />
+    <GenealogyGraph language={currentLanguage} translations={t} />
     <Footer language={currentLanguage} translations={t} />
   </main>
 </Layout>
@@ -36,13 +28,12 @@ const t = getTranslations(currentLanguage);
   is:inline
   define:vars={{
     translationsData: JSON.stringify(translations),
-    genealogyDataJson,
+    // genealogyDataJson,
   }}
 >
   // Use translations from the i18n system
   window.genealogyTranslations = JSON.parse(translationsData);
   window.currentLanguage = "en";
-  window.genealogyDataJson = genealogyDataJson;
 
   window.updatePageLanguage = function (language) {
     const t =
@@ -93,6 +84,8 @@ const t = getTranslations(currentLanguage);
 </script>
 
 <script is:inline type='module'>
+  import {getSampleFamily} from "../public/utility/SampleFamily.js";
+
   import {appData} from "/utility/AppData.js";
   window.appData = appData;
 
@@ -100,18 +93,13 @@ const t = getTranslations(currentLanguage);
   // Initialize state when genealogy data is available
   async function initializeAppState() {
     try {
-      // Parse the genealogy data from the global variable set by the inline script
-      const genealogyData = JSON.parse(window.genealogyDataJson);
-
       // Pass the current language's translations (default to English)
       const currentTranslations =
         window.genealogyTranslations[window.currentLanguage] ||
         window.genealogyTranslations.en;
 
-      // Initialize appData and expose to window
-      // IMPORTANT: Create a deep clone of genealogyData to prevent mutation of the original data
-      const genealogyDataClone = JSON.parse(JSON.stringify(genealogyData));
-      appData.initialize(genealogyDataClone, currentTranslations);
+      const sampleFamily = getSampleFamily();
+      appData.initialize(sampleFamily, currentTranslations);
       window.appData = appData;
 
       console.log(

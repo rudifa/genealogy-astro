@@ -1,5 +1,4 @@
 ---
-import type {TreeDataType} from "@/types";
 import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
 import FileManagerDialog from "./FileManagerDialog.astro";
@@ -9,12 +8,11 @@ import Toolbar from "./Toolbar.astro";
 import TreeManagerDialog from "./TreeManagerDialog.astro";
 
 interface Props {
-  data: TreeDataType;
   language: Language;
   translations: Translations;
 }
 
-const {data, language, translations} = Astro.props;
+const {language, translations} = Astro.props;
 ---
 
 <div class='screen' data-testid='genealogy-graph'>
@@ -37,15 +35,10 @@ const {data, language, translations} = Astro.props;
   }
 </style>
 
-<script
-  is:inline
-  type='module'
-  define:vars={{genealogyDataJson: JSON.stringify(data)}}
->
+<script is:inline type='module'>
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
   import {GenealogyForestData} from "/utility/GenealogyForestData.js";
-
-  // genealogyDataJson is provided by Astro's define:vars
+  import {getSampleFamily} from "../public/utility/SampleFamily.js";
 
   // Initialize genealogy data with multi-tree localStorage persistence
   const STORAGE_KEY = "genealogy-app-data";
@@ -55,16 +48,11 @@ const {data, language, translations} = Astro.props;
   let currentTreeName = EXAMPLE_TREE_NAME;
   let currentForestData;
 
-  function initialGenealogyTreeData() {
-    // @ts-ignore - genealogyDataJson is provided by Astro's define:vars
-    return JSON.parse(genealogyDataJson);
-  }
-
   // Initialize storage manager
   currentForestData = new GenealogyForestData(
     STORAGE_KEY,
     EXAMPLE_TREE_NAME,
-    initialGenealogyTreeData()
+    getSampleFamily()
   );
 
   function loadDataFromStorage() {
