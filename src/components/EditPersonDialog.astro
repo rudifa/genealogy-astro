@@ -347,7 +347,9 @@ const {translations} = Astro.props;
 
 <script type='module' is:inline>
   // 🎯 Direct import - VS Code can navigate to definition!
-  import {appData} from "/utility/AppData.js";
+  //   import {appData} from "/utility/AppData.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
+  const appData = appDataEnsureExists();
 
   export function initializeEditDialog(initialGenealogyTreeData) {
     // Keep a reference to the current genealogy data that can be updated
