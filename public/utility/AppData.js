@@ -247,4 +247,4 @@ export class AppData {
 }
 
 // For migration, you will later export an instance:
-export const appData = new AppData();
+// export const appData = new AppData();
