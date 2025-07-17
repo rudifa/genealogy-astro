@@ -22,12 +22,12 @@ describe("Family Tree add, edit, delete using the tree manager dialogs", () => {
     cy.get('[data-testid="edit-dialog"]', {timeout: 1000}).should(
       "not.be.visible"
     );
-    cy.get('[data-testid="genealogy-graph"] svg')
+    cy.get('[data-testid="genealogy-graph"] svg', {timeout: 1000})
       .contains("text", "Cyprian")
       .should("exist");
 
     // Edit Person Dialog: add parents and info
-    cy.get('[data-testid="genealogy-graph"] svg')
+    cy.get('[data-testid="genealogy-graph"] svg', {timeout: 1000})
       .contains("text", "Cyprian")
       .parent("a")
       .click(); // Instead of clicking the text node, click the parent <a> element if it exists
