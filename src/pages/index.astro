@@ -4,7 +4,6 @@ import Header from "../components/Header.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
 import Footer from "../components/Footer.astro";
 
-import type {TreeDataType} from "@/types";
 import {getTranslations, translations, type Language} from "../i18n/index";
 
 // For now, we'll default to English on the server side
@@ -28,7 +27,6 @@ const t = getTranslations(currentLanguage);
   is:inline
   define:vars={{
     translationsData: JSON.stringify(translations),
-    // genealogyDataJson,
   }}
 >
   // Use translations from the i18n system
@@ -84,37 +82,11 @@ const t = getTranslations(currentLanguage);
 </script>
 
 <script is:inline type='module'>
-  import {getSampleFamily} from "../public/utility/SampleFamily.js";
-
-  import {appData} from "/utility/AppData.js";
-  window.appData = appData;
-
-  // --- State Initialization (Step 1) ---
-  // Initialize state when genealogy data is available
-  async function initializeAppState() {
-    try {
-      // Pass the current language's translations (default to English)
-      const currentTranslations =
-        window.genealogyTranslations[window.currentLanguage] ||
-        window.genealogyTranslations.en;
-
-      const sampleFamily = getSampleFamily();
-      appData.initialize(sampleFamily, currentTranslations);
-      window.appData = appData;
-
-      console.log(
-        "✅ appData initialized successfully and is available as window.appData"
-      );
-    } catch (error) {
-      console.error("❌ Failed to initialize appData:", error);
-    }
-  }
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
+  appDataEnsureExists(); // appData is unused in this file
 
   // Initial language detection
   window.detectAndSetLanguage();
-
-  // Initialize the app state
-  initializeAppState();
 
   // Handle language changes from the language switcher
   window.addEventListener("languageChanged", function (event) {
