@@ -356,12 +356,12 @@ const {translations} = Astro.props;
           return JSON.stringify(
             persons
               .map((p) => ({
-                name: p.name,
+                name: typeof p.name === "string" ? p.name : "???",
                 mother: p.mother,
                 father: p.father,
                 info: p.info,
               }))
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .sort((a, b) => String(a.name).localeCompare(String(b.name)))
           );
         }
 
