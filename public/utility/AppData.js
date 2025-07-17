@@ -16,7 +16,6 @@ export class AppData {
       isLoading: true,
       isEditDialogOpen: false,
       personToEdit: null,
-      translations: {},
     };
   }
 
@@ -45,7 +44,7 @@ export class AppData {
   }
 
   // --- Actions ---
-  initialize(initialTreeData, initialTranslations) {
+  initialize(initialTreeData) {
     this.state.forestData = new GenealogyForestData(
       "genealogy-app-data",
       "Family Example",
@@ -55,21 +54,18 @@ export class AppData {
     this.state.availableTrees = this.state.forestData.getAvailableTrees();
     const activeData = this.state.forestData.getActiveTreeData();
     this.state.genealogyData = new GenealogyTreeData(activeData);
-    this.state.translations = initialTranslations;
     this.state.isLoading = false;
     this.notify();
   }
 
-  setLanguage(lang, translations) {
-    if (
-      translations &&
-      typeof translations === "object" &&
-      translations[lang]
-    ) {
-      this.state.translations = translations[lang];
-    } else {
-      this.state.translations = translations || this.state.translations;
-    }
+  addPerson(person) {
+    if (!this.state.genealogyData) return;
+    this.state.genealogyData.addPerson(person);
+    this.state.forestData.saveTreeData(
+      this.state.currentTreeName,
+      {persons: this.state.genealogyData.persons},
+      true
+    );
     this.notify();
   }
 
