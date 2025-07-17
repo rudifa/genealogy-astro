@@ -37,6 +37,9 @@
         "build": "astro check && astro build && tsc",
         "check": "astro check",
         "clean": "rm -rf dist .astro",
+        "cytest": "cypress run --headless",
+        "cytest:open": "cypress open",
+        "cytest:single": "cypress run --headless --spec",
         "dev": "astro dev --host",
         "dev:check": "concurrently \"npm run dev\" \"npm run check -- --watch\"",
         "lint": "astro check",
@@ -48,6 +51,7 @@
         "test:e2e:dev": "start-server-and-test dev http://localhost:4321 'cypress open'",
         "test:e2e:headless": "cypress run --headless",
         "test:e2e:open": "cypress open",
+        "test:e2e:spec": "cypress run --headless --spec",
         "test:node": "node --test 'test/**/*.test.js'",
         "vitest": "vitest run --reporter verbose",
         "vitest:watch": "vitest"
