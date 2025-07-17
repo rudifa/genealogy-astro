@@ -47,7 +47,9 @@ const {translations} = Astro.props;
 <script is:inline type='module' define:vars={{translations}}>
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
   // 🎯 Direct import for state management
-  import {appData} from "/utility/AppData.js";
+  //   import {appData} from "/utility/AppData.js";
+  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
+  const appData = appDataEnsureExists();
 
   // Graph Renderer functionality
   function initializeGraphRenderer() {
