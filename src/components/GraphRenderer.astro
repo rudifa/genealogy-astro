@@ -45,6 +45,7 @@ const {translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
+  const verbose = false;
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
   // 🎯 Direct import for state management
   //   import {appData} from "/utility/AppData.js";
@@ -53,11 +54,11 @@ const {translations} = Astro.props;
 
   // Graph Renderer functionality
   function initializeGraphRenderer() {
-    console.log("GraphRenderer: Starting initialization");
+    if (verbose) console.log("GraphRenderer: Starting initialization");
 
     // Prevent multiple initializations with a single flag
     if (window.graphRendererInitialized) {
-      console.log("GraphRenderer: Already initialized, skipping");
+      if (verbose) console.log("GraphRenderer: Already initialized, skipping");
       return;
     }
     window.graphRendererInitialized = true;
@@ -77,13 +78,20 @@ const {translations} = Astro.props;
       return;
     }
 
-    console.log("GraphRenderer: DOM elements found, setting up functionality");
+    if (verbose)
+      console.log(
+        "GraphRenderer: DOM elements found, setting up functionality"
+      );
 
     // Update graph renderer translations
     function updateGraphRendererTranslations(newTranslations) {
       currentTranslations = newTranslations;
 
-      // Update graph placeholder text
+      if (verbose)
+        console.log(
+          "GraphRenderer: Language changed to",
+          event.detail.language
+        );
       const graphPlaceholder = document.querySelector("#graph-placeholder p");
       if (graphPlaceholder)
         graphPlaceholder.textContent = currentTranslations.loadingGraph;
@@ -91,13 +99,17 @@ const {translations} = Astro.props;
 
     // Listen for language changes
     window.addEventListener("languageChanged", function (event) {
-      console.log("GraphRenderer: Language changed to", event.detail.language);
+      if (verbose)
+        console.log(
+          "GraphRenderer: Language changed to",
+          event.detail.language
+        );
       updateGraphRendererTranslations(event.detail.translations);
     });
 
     // Initialize graph renderer events and rendering
     function setupGraphFunctionality() {
-      console.log("GraphRenderer: Setting up graph functionality");
+      if (verbose) console.log("GraphRenderer: Setting up graph functionality");
 
       // --- Function to convert genealogy data to SVG ---
       async function dotStringToSvg(data, treeName) {
@@ -120,7 +132,7 @@ const {translations} = Astro.props;
         const setLoadingState = window.setLoadingState;
         const isRendering = window.genealogyIsRendering;
 
-        console.log("GraphRenderer: renderGraph called");
+        if (verbose) console.log("GraphRenderer: renderGraph called");
 
         // Get genealogy data from centralized state instead of window.genealogyData
         let genealogyData = null;
@@ -137,11 +149,13 @@ const {translations} = Astro.props;
           genealogyData = window.genealogyData;
         }
 
-        console.log("GraphRenderer: genealogyData:", genealogyData);
-        console.log(
-          "GraphRenderer: persons count:",
-          genealogyData?.persons?.length
-        );
+        if (verbose)
+          console.log("GraphRenderer: genealogyData:", genealogyData);
+        if (verbose)
+          console.log(
+            "GraphRenderer: persons count:",
+            genealogyData?.persons?.length
+          );
 
         if (!graphContainer || isRendering || !genealogyData) {
           // Only warn if it's actually a problem (not just a race condition)
@@ -153,9 +167,10 @@ const {translations} = Astro.props;
               !!genealogyData
             );
           } else if (isRendering) {
-            console.log(
-              "GraphRenderer: Already rendering, skipping duplicate call"
-            );
+            if (verbose)
+              console.log(
+                "GraphRenderer: Already rendering, skipping duplicate call"
+              );
           }
           return;
         }
@@ -169,15 +184,17 @@ const {translations} = Astro.props;
             graphPlaceholder.style.display = "none";
           }
 
-          console.log(
-            "GraphRenderer: Converting DOT to SVG for data:",
-            genealogyData
-          );
+          if (verbose)
+            console.log(
+              "GraphRenderer: Converting DOT to SVG for data:",
+              genealogyData
+            );
           const newSvgString = await dotStringToSvg(genealogyData, treeName);
-          console.log(
-            "GraphRenderer: Received SVG string length:",
-            newSvgString?.length
-          );
+          if (verbose)
+            console.log(
+              "GraphRenderer: Received SVG string length:",
+              newSvgString?.length
+            );
 
           // Insert the new SVG string into the graph container
           graphContainer.innerHTML = newSvgString;
@@ -335,7 +352,7 @@ const {translations} = Astro.props;
 
       // Set up global update handler
       window.updateGraph = function () {
-        console.log("GraphRenderer: Update graph requested");
+        if (verbose) console.log("GraphRenderer: Update graph requested");
         renderGraph();
       };
 
@@ -378,18 +395,20 @@ const {translations} = Astro.props;
             currentPersonsCount !== lastPersonsCount ||
             currentDataHash !== lastDataHash
           ) {
-            console.log(
-              `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
-            );
-
-            // Log data changes for debugging
-            if (
-              currentDataHash !== lastDataHash &&
-              currentPersonsCount === lastPersonsCount
-            ) {
+            if (verbose) {
               console.log(
-                "GraphRenderer: Person data content changed (same count)"
+                `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
               );
+
+              // Log data changes for debugging
+              if (
+                currentDataHash !== lastDataHash &&
+                currentPersonsCount === lastPersonsCount
+              ) {
+                console.log(
+                  "GraphRenderer: Person data content changed (same count)"
+                );
+              }
             }
 
             lastTreeName = currentTreeName;
@@ -399,7 +418,7 @@ const {translations} = Astro.props;
           }
         });
 
-        console.log("GraphRenderer subscribed to state changes");
+        if (verbose) console.log("GraphRenderer subscribed to state changes");
 
         // Store unsubscribe function for cleanup
         window.addEventListener("beforeunload", function () {

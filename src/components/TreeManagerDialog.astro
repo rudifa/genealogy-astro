@@ -778,6 +778,7 @@ const {translations} = Astro.props;
   //   import {appData} from "/utility/AppData.js";
   import {AppData} from "/utility/AppData.js";
   const appData = AppData.ensureOneExists();
+  const verbose = false;
 
   async function initializeTreeManagementDialog() {
     const dialog = document.getElementById("tree-manager-dialog");
@@ -830,51 +831,73 @@ const {translations} = Astro.props;
         const currentPersons = familyExampleData.persons || [];
         const currentCount = currentPersons.length;
 
-        console.log("Family Example reset check:");
-        console.log("- Current persons count:", currentCount);
-        console.log(
-          "- Current persons:",
-          currentPersons.map((p) => p.name || "unnamed")
-        );
+        if (verbose) {
+          console.log("Family Example reset check:");
+          console.log("- Current persons count:", currentCount);
+          console.log(
+            "- Current persons:",
+            currentPersons.map((p) => p.name || "unnamed")
+          );
+        }
 
         // Check if it's empty (definitely needs reset)
         if (currentCount === 0) {
-          console.log("- Empty tree detected, needs reset: true");
+          console.info("- Empty tree detected, needs reset: true");
           familyExampleNeedsReset = true;
           return;
         }
 
         // Get the original Family Example data for comparison
         const originalData = appData.getOriginalFamilyExampleData();
-        console.log("- Original data available:", !!originalData);
-        console.log("- Original data:", originalData);
+        if (verbose) {
+          console.log("- Original data available:", !!originalData);
+          console.log("- Original data:", originalData);
+        }
 
         if (originalData && originalData.persons) {
-          console.log("- Original data available for comparison");
-          console.log("- Original persons count:", originalData.persons.length);
-          console.log("- Current persons count:", currentPersons.length);
+          if (verbose) {
+            console.log("- Original data available for comparison");
+            console.log(
+              "- Original persons count:",
+              originalData.persons.length
+            );
+            console.log("- Current persons count:", currentPersons.length);
+          }
 
           // Do a complete JSON comparison for exact match
           const currentJson = JSON.stringify(familyExampleData);
           const originalJson = JSON.stringify(originalData);
           const treesMatch = currentJson === originalJson;
 
-          console.log("- Complete tree structures match:", treesMatch);
-          if (!treesMatch) {
-            console.log("- Current tree JSON:", currentJson);
-            console.log("- Original tree JSON:", originalJson);
+          if (verbose) {
+            console.log("- Complete tree structures match:", treesMatch);
+            if (!treesMatch) {
+              console.log("- Current tree JSON:", currentJson);
+              console.log("- Original tree JSON:", originalJson);
+            }
           }
 
           familyExampleNeedsReset = !treesMatch;
         } else {
           // Fallback: if we can't get original data, assume no reset needed
-          console.log("- No original data available, assuming no reset needed");
+          if (verbose) {
+            console.log(
+              "- No original data available, assuming no reset needed"
+            );
+          }
           familyExampleNeedsReset = false;
         }
 
-        console.log("- Final decision - needs reset:", familyExampleNeedsReset);
+        if (verbose) {
+          console.log(
+            "- Final decision - needs reset:",
+            familyExampleNeedsReset
+          );
+        }
       } catch (error) {
-        console.warn("Error checking Family Example reset state:", error);
+        if (verbose) {
+          console.warn("Error checking Family Example reset state:", error);
+        }
         familyExampleNeedsReset = false; // Default to false on error
       }
     }
