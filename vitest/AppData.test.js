@@ -4,6 +4,27 @@ import {GenealogyForestData} from "../public/utility/GenealogyForestData.js";
 import {GenealogyTreeData} from "../public/utility/GenealogyTreeData.js";
 import {AppData} from "../public/utility/AppData.js";
 
+describe("AppData singleton", () => {
+  it("returns the same instance on multiple ensureOneExists calls", () => {
+    const instance1 = AppData.ensureOneExists();
+    const instance2 = AppData.ensureOneExists();
+    expect(instance1).toBe(instance2);
+  });
+
+  it("throws if constructed directly", () => {
+    // Clean up singleton for this test
+    AppData._instance = null;
+    AppData.ensureOneExists(); // create singleton
+    expect(() => new AppData()).toThrow("Use AppData.ensureOneExists()");
+  });
+
+  it("initializes with sample family data", () => {
+    const instance = AppData.ensureOneExists();
+    expect(instance.state.genealogyData).toBeDefined();
+    expect(instance.state.forestData).toBeDefined();
+    expect(instance.state.currentTreeName).toBe("Family Example");
+  });
+});
 describe("AppData", () => {
   beforeAll(() => {
     global.localStorage = {
@@ -17,7 +38,8 @@ describe("AppData", () => {
   const initialTreeData = {persons: [{name: "Alice"}, {name: "Bob"}]};
 
   beforeEach(() => {
-    appData = new AppData();
+    AppData._instance = null; // Reset singleton before each test
+    appData = AppData.ensureOneExists();
   });
 
   it("initializes state with initialize()", () => {

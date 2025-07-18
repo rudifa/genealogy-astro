@@ -1,11 +1,17 @@
 import {GenealogyTreeData} from "./GenealogyTreeData.js";
 import {GenealogyForestData} from "./GenealogyForestData.js";
+import {getSampleFamily} from "./SampleFamily.js";
 
-// AppData.js
-// Step 1: Class skeleton for AppData, matching the current appData API
-
+/*
+* AppData.js
+* manages the application state for genealogy data,
+* including the current tree and available trees.
+*/
 export class AppData {
   constructor() {
+    if (AppData._instance) {
+      throw new Error("Use AppData.ensureOneExists()");
+    }
     // Initialize state and listeners as in the current object
     this.callbacks = new Set();
     this.state = {
@@ -17,6 +23,39 @@ export class AppData {
       isEditDialogOpen: false,
       personToEdit: null,
     };
+  }
+
+  initialize(initialTreeData) {
+    this.state.forestData = new GenealogyForestData(
+      "genealogy-app-data",
+      "Family Example",
+      initialTreeData
+    );
+    this.state.currentTreeName = this.state.forestData.getSelectedTreeName();
+    this.state.availableTrees = this.state.forestData.getAvailableTrees();
+    const activeData = this.state.forestData.getActiveTreeData();
+    this.state.genealogyData = new GenealogyTreeData(activeData);
+    this.state.isLoading = false;
+    this.notify();
+  }
+
+  static ensureOneExists() {
+    if (!AppData._instance) {
+      AppData._instance = new AppData();
+      AppData._instance.initialize(getSampleFamily());
+      if (typeof window !== 'undefined') {
+        window._appData = AppData._instance; // attach to window for inspection
+      }
+      console.log(
+        "🦋 AppData.ensureOneExists: instance created and initialized with sample family data"
+      );
+    } else {
+      if (typeof window !== 'undefined') {
+        window.appData = AppData._instance;
+      }
+      console.log("☘️ AppData.ensureOneExists: AppData instance exists");
+    }
+    return AppData._instance;
   }
 
   /**
@@ -44,19 +83,6 @@ export class AppData {
   }
 
   // --- Actions ---
-  initialize(initialTreeData) {
-    this.state.forestData = new GenealogyForestData(
-      "genealogy-app-data",
-      "Family Example",
-      initialTreeData
-    );
-    this.state.currentTreeName = this.state.forestData.getSelectedTreeName();
-    this.state.availableTrees = this.state.forestData.getAvailableTrees();
-    const activeData = this.state.forestData.getActiveTreeData();
-    this.state.genealogyData = new GenealogyTreeData(activeData);
-    this.state.isLoading = false;
-    this.notify();
-  }
 
   addPerson(person) {
     if (!this.state.genealogyData) return;
