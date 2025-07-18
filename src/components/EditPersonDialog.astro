@@ -346,8 +346,8 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
-  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
-  const appData = appDataEnsureExists();
+  import {AppData} from "/utility/AppData.js";
+  const appData = AppData.ensureOneExists();
 
   export function initializeEditDialog(initialGenealogyTreeData) {
     // Keep a reference to the current genealogy data that can be updated

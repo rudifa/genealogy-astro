@@ -53,7 +53,7 @@ export class AppData {
       if (typeof window !== 'undefined') {
         window.appData = AppData._instance;
       }
-      console.log("☘️ AppData.ensureOneExists: AppData instance exists");
+      console.log("☘️ AppData.ensureOneExists: instance exists");
     }
     return AppData._instance;
   }

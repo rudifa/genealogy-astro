@@ -102,8 +102,8 @@ const {currentTree} = Astro.props;
 <script is:inline type='module'>
   // 🎯 Direct import - VS Code can navigate to definition!
   //   import {appData} from "/utility/AppData.js";
-  import {appDataEnsureExists} from "/utility/AppDataCreator.js";
-  const appData = appDataEnsureExists();
+  import {AppData} from "/utility/AppData.js";
+  const appData = AppData.ensureOneExists();
 
   // Initialize immediately since DOM is already ready in inline scripts
   const treeSelect = document.getElementById("tree-select");
