@@ -39,6 +39,7 @@ const {language, translations} = Astro.props;
   import {AppData} from "/utility/AppData.js";
   // Use the singleton AppData instance for all tree data management
   const appData = AppData.ensureOneExists();
+  console.log("GenealogyGraph: script loading...");
 
   // UI state management
 
@@ -94,15 +95,14 @@ const {language, translations} = Astro.props;
   }
 
   async function initializeGenealogySystem() {
+    console.log("GenealogyGraph: initializeGenealogySystem...");
     try {
       // --- Initialize the edit dialog ---
       const state = appData.getState();
-      const {openEditDialog, updateGenealogyTreeData} =
-        window.initializeEditDialog({persons: state.genealogyData.persons});
+      const {openEditDialog} = window.initializeEditDialog();
 
       // Make functions available globally for components
       window.currentOpenEditDialog = openEditDialog;
-      window.updateEditDialogData = updateGenealogyTreeData;
       window.genealogyIsRendering = false;
       window.setLoadingState = setLoadingState;
 
@@ -138,10 +138,6 @@ const {language, translations} = Astro.props;
   function initializeStateSubscription() {
     // Always subscribe to appData singleton
     const unsubscribe = appData.subscribe((state) => {
-      // Update edit dialog with new genealogy data
-      if (window.updateEditDialogData) {
-        window.updateEditDialogData({persons: state.genealogyData.persons});
-      }
       // Sync forest data if present
       if (state.forestData) {
         window.genealogyTreeManager = window.genealogyTreeManager || {};

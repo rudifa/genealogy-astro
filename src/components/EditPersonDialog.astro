@@ -350,9 +350,11 @@ const {translations} = Astro.props;
   // Use the singleton AppData instance for all tree data management
   const appData = AppData.ensureOneExists();
 
-  export function initializeEditDialog(initialGenealogyTreeData) {
-    // Keep a reference to the current genealogy data that can be updated
-    let genealogyData = initialGenealogyTreeData;
+  console.log("EditPersonDialog: script loading...");
+
+  function initializeEditDialog() {
+    console.log("EditPersonDialog: initializeEditDialog...");
+
     // Use global translations, with English as fallback
     let t = window.genealogyTranslations?.[window.currentLanguage] ||
       window.genealogyTranslations?.en || {
@@ -372,7 +374,7 @@ const {translations} = Astro.props;
       };
 
     // Debug translations
-    console.log("EditPersonDialog: Loaded translations:", t);
+    console.log("EditPersonDialog: Loaded translations");
     console.log("EditPersonDialog: Current language:", window.currentLanguage);
     console.log(
       "EditPersonDialog: Available translations:",
@@ -462,7 +464,7 @@ const {translations} = Astro.props;
       // Update the translations object
       t = newTranslations;
 
-      console.log("EditPersonDialog: Refreshed translations:", t);
+      console.log("EditPersonDialog: refreshTranslations");
     }
 
     // --- Validation functions ---
@@ -476,15 +478,9 @@ const {translations} = Astro.props;
       }
       // Check for duplicate names (only for new persons or when name changed)
       if (isNewPerson || trimmedName !== originalNameInput.value) {
-        // Get current genealogy data from state
-        let currentGenealogyData = genealogyData;
-        // 🎯 Direct method call - VS Code shows available methods!
-        if (appData) {
-          const state = appData.getState();
-          currentGenealogyData = state.genealogyData;
-        }
-
-        const existingPerson = currentGenealogyData.persons.find(
+        // Always use appData singleton for current genealogy data
+        const state = appData.getState();
+        const existingPerson = state.genealogyData.persons.find(
           (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
         );
         if (existingPerson) {
@@ -575,6 +571,7 @@ const {translations} = Astro.props;
 
     // --- Dialog functions ---
     function openEditDialog(person) {
+      console.log("EditPersonDialog: openEditDialog with person:", person);
       // Refresh translations in case language changed
       refreshTranslations();
 
@@ -685,17 +682,8 @@ const {translations} = Astro.props;
       }
     });
 
-    // Function to update the genealogy data reference
-    function updateGenealogyTreeData(newGenealogyTreeData) {
-      genealogyData = newGenealogyTreeData;
-      console.log(
-        "EditPersonDialog updated with new genealogy data:",
-        genealogyData
-      );
-    }
-
-    // Return the openEditDialog function and update function so they can be called from outside
-    return {openEditDialog, updateGenealogyTreeData};
+    // Return only the openEditDialog function; updateGenealogyTreeData is no longer needed
+    return {openEditDialog};
   }
 
   // Make the function available globally
