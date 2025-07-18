@@ -1133,19 +1133,9 @@ const {translations} = Astro.props;
         const genealogyData = window.genealogyData; // (if still needed for fallback)
 
         if (data.type === "single-tree") {
-          await processSingleTreeUpload(
-            data,
-            uploadMode,
-            treeManager,
-            genealogyData
-          );
+          await processSingleTreeUpload(data, uploadMode);
         } else if (data.type === "all-trees") {
-          await processAllTreesUpload(
-            data,
-            uploadMode,
-            treeManager,
-            genealogyData
-          );
+          await processAllTreesUpload(data, uploadMode);
         } else {
           // Treat as raw tree data (persons array directly)
           console.log("FileManager: Treating as raw tree data");
@@ -1154,12 +1144,7 @@ const {translations} = Astro.props;
             treeName: selectedFile.name.replace(".json", "") || "Imported Tree",
             data: data,
           };
-          await processSingleTreeUpload(
-            wrappedData,
-            uploadMode,
-            treeManager,
-            genealogyData
-          );
+          await processSingleTreeUpload(wrappedData, uploadMode);
         }
 
         hideFileManager();
