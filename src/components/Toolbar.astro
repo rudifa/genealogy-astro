@@ -621,12 +621,11 @@ const {language, translations} = Astro.props;
             if (window.treeManagementDialog) {
               window.treeManagementDialog.show();
             } else {
+
               // Fallback for debugging
-              const trees =
-                window.genealogyTreeManager?.getAvailableTrees?.() || [];
-              const currentTree =
-                window.genealogyTreeManager?.getSelectedTreeName?.() ||
-                "Unknown";
+              const state = appData.getState();
+              const trees = state.availableTrees || [];
+              const currentTree = state.currentTreeName || "Unknown";
 
               const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
                 .map((name) =>

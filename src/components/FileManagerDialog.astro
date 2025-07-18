@@ -1129,12 +1129,8 @@ const {translations} = Astro.props;
 
     async function processUpload(data, uploadMode) {
       try {
-        const treeManager = window.genealogyTreeManager;
-        const genealogyData = window.genealogyData;
-
-        if (!treeManager || !genealogyData) {
-          throw new Error("Required components not available");
-        }
+        // All tree management is handled via appData singleton now.
+        const genealogyData = window.genealogyData; // (if still needed for fallback)
 
         if (data.type === "single-tree") {
           await processSingleTreeUpload(

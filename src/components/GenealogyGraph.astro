@@ -138,11 +138,8 @@ const {language, translations} = Astro.props;
   function initializeStateSubscription() {
     // Always subscribe to appData singleton
     const unsubscribe = appData.subscribe((state) => {
-      // Sync forest data if present
-      if (state.forestData) {
-        window.genealogyTreeManager = window.genealogyTreeManager || {};
-        window.genealogyTreeManager.currentForestData = state.forestData;
-      }
+      // Sync forest data if present (no longer assign to window.genealogyTreeManager)
+      // All tree management is handled via appData singleton now.
     });
 
     console.log("GenealogyGraph subscribed to state changes");
