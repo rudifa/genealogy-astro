@@ -1,10 +1,12 @@
 {
-    "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "outDir": "../../ts-dist/i18n",
-        "rootDir": ".",
+        "target": "ES2020",
         "module": "ES2020",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "outDir": "../../ts-dist",
+        "rootDir": "../",
+        "strict": true
     },
     "include": [
         "./**/*.ts"
