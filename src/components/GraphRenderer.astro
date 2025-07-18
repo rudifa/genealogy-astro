@@ -55,13 +55,6 @@ const {translations} = Astro.props;
   function initializeGraphRenderer() {
     if (verbose) console.log("GraphRenderer: Starting initialization");
 
-    // Prevent multiple initializations with a single flag
-    if (window.graphRendererInitialized) {
-      if (verbose) console.log("GraphRenderer: Already initialized, skipping");
-      return;
-    }
-    window.graphRendererInitialized = true;
-
     // Initialize Graphviz
     const graphvizPromise = Graphviz.load();
 
@@ -133,7 +126,7 @@ const {translations} = Astro.props;
 
         if (verbose) console.log("GraphRenderer: renderGraph called");
 
-        // Get genealogy data from centralized state instead of window.genealogyData
+        // Get genealogy data from centralized state
         let genealogyData = null;
         let treeName = "Genealogy Tree";
         // 🎯 Direct access to state - clean and simple!
@@ -144,8 +137,8 @@ const {translations} = Astro.props;
             treeName = state.currentTreeName;
           }
         } else {
-          // Fallback to old approach if state not available
-          genealogyData = window.genealogyData;
+          // Throw if state not available (should not happen)
+          throw new Error("GraphRenderer: AppData state not available");
         }
 
         if (verbose)
@@ -260,8 +253,8 @@ const {translations} = Astro.props;
               const state = appData.getState();
               genealogyData = state.genealogyData;
             } else {
-              // Fallback to old approach if state not available
-              genealogyData = window.genealogyData;
+              // Throw if state not available (should not happen)
+              throw new Error("GraphRenderer: AppData state not available");
             }
 
             if (!genealogyData) {

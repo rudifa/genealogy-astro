@@ -49,16 +49,6 @@ const {translations} = Astro.props;
   function initializeNotification() {
     console.log("Notification: Starting initialization");
 
-    // Prevent multiple initializations
-    if (window.notificationInitialized) {
-      console.log("Notification: Already initialized, skipping");
-      return;
-    }
-    window.notificationInitialized = true;
-
-    // Store current translations (will be updated by language changes)
-    // let currentTranslations = translations;
-
     // Get notification element
     const notificationElement = document.getElementById("notification");
 

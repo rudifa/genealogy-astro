@@ -309,13 +309,6 @@ const {language, translations} = Astro.props;
   function initializeToolbar() {
     console.log("Toolbar: Starting initialization");
 
-    // Prevent multiple initializations with a single flag
-    if (window.toolbarInitialized) {
-      console.log("Toolbar: Already initialized, skipping");
-      return;
-    }
-    window.toolbarInitialized = true;
-
     // Mode management
     let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
 
@@ -448,13 +441,6 @@ const {language, translations} = Astro.props;
 
     // Initialize toolbar button event listeners
     function initializeToolbarEvents() {
-      // Prevent multiple event listener attachments
-      if (window.toolbarEventsInitialized) {
-        console.log("Toolbar: Events already initialized, skipping");
-        return;
-      }
-      window.toolbarEventsInitialized = true;
-
       const addButton = document.getElementById("add-button");
       const clearButton = document.getElementById("clear-button");
       const printButton = document.getElementById("print-button");
@@ -621,7 +607,6 @@ const {language, translations} = Astro.props;
             if (window.treeManagementDialog) {
               window.treeManagementDialog.show();
             } else {
-
               // Fallback for debugging
               const state = appData.getState();
               const trees = state.availableTrees || [];

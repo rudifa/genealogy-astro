@@ -572,13 +572,6 @@ const {translations} = Astro.props;
   function initializeFileManager() {
     console.log("FileManager: Starting initialization");
 
-    // Prevent multiple initializations
-    if (window.fileManagerInitialized) {
-      console.log("FileManager: Already initialized, skipping");
-      return;
-    }
-    window.fileManagerInitialized = true;
-
     // Store current translations - check for current language state
     let currentTranslations = translations;
 
@@ -1129,9 +1122,6 @@ const {translations} = Astro.props;
 
     async function processUpload(data, uploadMode) {
       try {
-        // All tree management is handled via appData singleton now.
-        const genealogyData = window.genealogyData; // (if still needed for fallback)
-
         if (data.type === "single-tree") {
           await processSingleTreeUpload(data, uploadMode);
         } else if (data.type === "all-trees") {
