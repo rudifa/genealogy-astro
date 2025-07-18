@@ -20,6 +20,8 @@ node_modules
 /dist/
 /bin/
 
+/ts-dist/
+
 # Astro generated files
 /.astro/
 

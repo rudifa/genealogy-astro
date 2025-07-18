@@ -17,6 +17,9 @@
         },
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "outDir": "ts-dist",
+        "noEmit": false,
+        "allowImportingTsExtensions": false
     }
 }
