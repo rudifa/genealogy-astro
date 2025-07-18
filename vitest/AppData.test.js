@@ -1,25 +1,38 @@
 // vitest/AppData.test.js
+
+// Polyfill localStorage for Node.js/Vitest
+if (typeof global.localStorage === "undefined") {
+  global.localStorage = {
+    _data: {},
+    getItem(key) { return this._data[key] || null; },
+    setItem(key, value) { this._data[key] = String(value); },
+    removeItem(key) { delete this._data[key]; },
+    clear() { this._data = {}; }
+  };
+}
 import {describe, it, expect, beforeEach, beforeAll, vi} from "vitest";
 import {GenealogyForestData} from "../public/utility/GenealogyForestData.js";
 import {GenealogyTreeData} from "../public/utility/GenealogyTreeData.js";
 import {AppData} from "../public/utility/AppData.js";
 
+let verbose = false;
+
 describe("AppData singleton", () => {
   it("returns the same instance on multiple ensureOneExists calls", () => {
-    const instance1 = AppData.ensureOneExists();
-    const instance2 = AppData.ensureOneExists();
+    const instance1 = AppData.ensureOneExists(verbose);
+    const instance2 = AppData.ensureOneExists(verbose);
     expect(instance1).toBe(instance2);
   });
 
   it("throws if constructed directly", () => {
     // Clean up singleton for this test
     AppData._instance = null;
-    AppData.ensureOneExists(); // create singleton
+    AppData.ensureOneExists(verbose); // create singleton
     expect(() => new AppData()).toThrow("Use AppData.ensureOneExists()");
   });
 
   it("initializes with sample family data", () => {
-    const instance = AppData.ensureOneExists();
+    const instance = AppData.ensureOneExists(verbose);
     expect(instance.state.genealogyData).toBeDefined();
     expect(instance.state.forestData).toBeDefined();
     expect(instance.state.currentTreeName).toBe("Family Example");
@@ -39,7 +52,7 @@ describe("AppData", () => {
 
   beforeEach(() => {
     AppData._instance = null; // Reset singleton before each test
-    appData = AppData.ensureOneExists();
+    appData = AppData.ensureOneExists(verbose);
   });
 
   it("initializes state with initialize()", () => {

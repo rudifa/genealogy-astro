@@ -39,21 +39,25 @@ export class AppData {
     this.notify();
   }
 
-  static ensureOneExists() {
+  static ensureOneExists(verbose = true) {
     if (!AppData._instance) {
       AppData._instance = new AppData();
       AppData._instance.initialize(getSampleFamily());
-      if (typeof window !== 'undefined') {
+      if (verbose && typeof window !== 'undefined') {
         window._appData = AppData._instance; // attach to window for inspection
       }
-      console.log(
-        "🦋 AppData.ensureOneExists: instance created and initialized with sample family data"
-      );
+      if (verbose) {
+        console.log(
+          "🦋 AppData.ensureOneExists: instance created and initialized with sample family data"
+        );
+      }
     } else {
-      if (typeof window !== 'undefined') {
+      if (verbose && typeof window !== 'undefined') {
         window.appData = AppData._instance;
       }
-      console.log("☘️ AppData.ensureOneExists: instance exists");
+      if (verbose) {
+        console.log("☘️ AppData.ensureOneExists: instance exists");
+      }
     }
     return AppData._instance;
   }
