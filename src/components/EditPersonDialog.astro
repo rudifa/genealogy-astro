@@ -347,6 +347,7 @@ const {translations} = Astro.props;
 
 <script type='module' is:inline>
   import {AppData} from "/utility/AppData.js";
+  // Use the singleton AppData instance for all tree data management
   const appData = AppData.ensureOneExists();
 
   export function initializeEditDialog(initialGenealogyTreeData) {

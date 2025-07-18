@@ -100,8 +100,7 @@ const {currentTree} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  // 🎯 Direct import - VS Code can navigate to definition!
-  //   import {appData} from "/utility/AppData.js";
+  // Use the singleton AppData instance for all tree data management
   import {AppData} from "/utility/AppData.js";
   const appData = AppData.ensureOneExists();
 

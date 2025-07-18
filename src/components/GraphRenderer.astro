@@ -47,8 +47,7 @@ const {translations} = Astro.props;
 <script is:inline type='module' define:vars={{translations}}>
   const verbose = false;
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
-  // 🎯 Direct import for state management
-  //   import {appData} from "/utility/AppData.js";
+  // Use the singleton AppData instance for all tree data management
   import {AppData} from "/utility/AppData.js";
   const appData = AppData.ensureOneExists();
 

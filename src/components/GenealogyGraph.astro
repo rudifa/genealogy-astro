@@ -37,7 +37,7 @@ const {language, translations} = Astro.props;
 
 <script is:inline type='module'>
   import {AppData} from "/utility/AppData.js";
-  // Use the singleton AppData instance for all tree and data management
+  // Use the singleton AppData instance for all tree data management
   const appData = AppData.ensureOneExists();
 
   // UI state management
