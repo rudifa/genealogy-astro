@@ -1,5 +1,4 @@
-import {en, fr, de} from "./translations";
-import ja from "./translations/ja";
+import {en, fr, de, ja} from "./translations/index.js";
 
 export type Language = "en" | "fr" | "de" | "ja";
 

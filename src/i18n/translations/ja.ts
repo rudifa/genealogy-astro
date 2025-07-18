@@ -1,7 +1,7 @@
 // Japanese translations for the genealogy app
 import type {Translations} from "../index";
 
-const ja: Translations = {
+export const ja: Translations = {
   pageTitle: "家系図アプリ",
   pageDescription: "家族のつながりを視覚化し、管理するための家系図アプリです。",
   appTitle: "家系図",
