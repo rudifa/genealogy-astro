@@ -1,10 +1,13 @@
 // vitest/LanguageManager.test.js
 import {describe, it, expect, vi, beforeEach} from "vitest";
 import {AppLanguages} from "../public/utility/AppLanguages.js"; // exported instance
+
 import {
   translations as appTranslations,
   getTranslations as getAppTranslations,
-} from "../src/i18n/index.js";
+} from "../ts-dist/i18n/index.js"; // requires build, branch add-app-languages-8
+
+// console.log("appTranslations:", appTranslations);
 
 let verbose = false;
 
@@ -65,8 +68,10 @@ describe("AppLanguages", () => {
 
   it("keeps language unchanged if new language is unavailable", () => {
     appLanguages.setLanguage("tlh");
+    // console.log("appTranslations:", appTranslations);
     expect(appLanguages.getLanguage()).toBe("en");
     const fallback = appLanguages.getTranslations();
+    // console.log("Fallback translations:", fallback);
     expect(typeof fallback).toBe("object");
     expect(fallback.addPerson).toBeDefined();
   });

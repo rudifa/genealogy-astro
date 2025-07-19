@@ -1,5 +1,10 @@
 ---
 import {supportedLanguages, type Language} from "../i18n/index";
+import {
+  getTranslations,
+  translations as allTranslations,
+  type Language,
+} from "../i18n/index";
 
 export interface Props {
   currentLanguage: Language;
@@ -106,8 +111,19 @@ const {currentLanguage} = Astro.props;
   }
 </style>
 
-<script is:inline>
-  console.log("➡️ LanguageSwitcher: <script is:inline >");
+<script
+  is:inline
+  define:vars={{
+    allTranslationsJSON: JSON.stringify(allTranslations),
+  }}
+>
+  console.log(
+    "➡️ LanguageSwitcher: <script is:inline define:vars={{allTranslationsJSON: JSON.stringify(allTranslations),}}>"
+  );
+
+  let allTranslations = JSON.parse(allTranslationsJSON);
+  console.log("allTranslations keys:", Object.keys(allTranslations));
+  window.allTranslations = allTranslations; // to be used in the second script
 
   // Initialize immediately since DOM is already ready in inline scripts
   const languageSelect = document.getElementById("language-select");
@@ -150,4 +166,28 @@ const {currentLanguage} = Astro.props;
 
 <script is:inline type='module'>
   console.log("➡️ LanguageSwitcher: <script is:inline type='module'>");
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the singleton AppLanguages instance for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+
+  //   appLanguages.setLanguage("en"); // Set default language
+  appLanguages.setTranslations(window.allTranslations);
+  appLanguages.subscribe(() => {
+    console.log(
+      "LanguageSwitcher: AppLanguages:",
+      appLanguages.getLanguage(),
+      appLanguages.getAvailableLanguages()
+    );
+  });
+
+  // NEW: also listen to the change event on the language select
+  const languageSelect = document.getElementById("language-select");
+
+  if (languageSelect) {
+    languageSelect.addEventListener("change", function (event) {
+      console.log("LanguageSwitcher: Language changed to", event.target.value);
+      const selectedLanguage = event.target.value;
+      appLanguages.setLanguage(selectedLanguage);
+    });
+  }
 </script>

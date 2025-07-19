@@ -87,6 +87,20 @@ const t = getTranslations(currentLanguage);
 
 <script is:inline type='module'>
   console.log("➡️ index: <script is:inline type='module'>");
+
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the singleton AppLanguages instance for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+  appLanguages.subscribe(() => {
+    console.log(
+      "index: AppLanguages:",
+      appLanguages.getLanguage(),
+      appLanguages.getAvailableLanguages()
+    );
+  });
+  appLanguages.setTranslations(window.genealogyTranslations);
+  appLanguages.setLanguage(window.currentLanguage);
+
   // Initial language detection
   window.detectAndSetLanguage();
 

@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ja = exports.de = exports.fr = exports.en = void 0;
+var en_1 = require("./en");
+Object.defineProperty(exports, "en", { enumerable: true, get: function () { return en_1.en; } });
+var fr_1 = require("./fr");
+Object.defineProperty(exports, "fr", { enumerable: true, get: function () { return fr_1.fr; } });
+var de_1 = require("./de");
+Object.defineProperty(exports, "de", { enumerable: true, get: function () { return de_1.de; } });
+var ja_1 = require("./ja");
+Object.defineProperty(exports, "ja", { enumerable: true, get: function () { return ja_1.ja; } });

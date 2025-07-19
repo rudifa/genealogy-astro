@@ -2,6 +2,8 @@
 // Simple Observer-based language manager for translations
 // import {translations as appTranslations, getTranslations as getAppTranslations} from "./index";
 
+const verbose = false;
+
 export class AppLanguages {
   constructor() {
     if (AppLanguages._instance) {
@@ -20,14 +22,16 @@ export class AppLanguages {
         window.appLanguages = AppLanguages._instance; // attach to window for inspection
       }
       if (verbose) {
-        console.log("🦋 AppLanguages.ensureOneExists: instance created");
+        console.log(
+          "🌐 AppLanguages.ensureOneExists: instance created (uninitialized)"
+        );
       }
     } else {
       if (verbose && typeof window !== "undefined") {
         window.appLanguages = AppLanguages._instance; // attach to window for inspection
       }
       if (verbose) {
-        console.log("☘️ AppLanguages.ensureOneExists: instance exists");
+        console.log("🌍 AppLanguages.ensureOneExists: instance exists");
       }
     }
     return AppLanguages._instance;
@@ -35,6 +39,16 @@ export class AppLanguages {
 
   setTranslations(translations) {
     this.translations = translations;
+
+
+    if (verbose) {
+      console.log(
+        "🌍 AppLanguages.setTranslations: translations set",
+        !!translations
+      );
+    }
+
+    this.notify();
   }
 
   setLanguage(lang) {
@@ -50,6 +64,10 @@ export class AppLanguages {
     }
   }
   getAvailableLanguages() {
+    if (!this.translations) {
+      return [];
+    }
+    // Return the keys of the translations object as available languages
     return Object.keys(this.translations);
   }
 
@@ -61,6 +79,9 @@ export class AppLanguages {
     // Use getAppTranslations for fallback logic
     if (typeof getAppTranslations === "function") {
       return getAppTranslations(this.currentLanguage);
+    }
+    if (!this.translations) {
+      return {};
     }
     return (
       this.translations[this.currentLanguage] || this.translations["en"] || {}
