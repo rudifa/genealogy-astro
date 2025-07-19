@@ -1,4 +1,4 @@
-import {en, fr, de, ja} from "./translations/index.ts";
+import {en, fr, de, ja} from "./translations/index";
 
 export type Language = "en" | "fr" | "de" | "ja";
 

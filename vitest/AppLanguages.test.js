@@ -5,7 +5,7 @@ import {AppLanguages} from "../public/utility/AppLanguages.js"; // exported inst
 import {
   translations as appTranslations,
   getTranslations as getAppTranslations,
-} from "../ts-dist/i18n/index.js"; // requires build, branch add-app-languages-8
+} from "../public/i18n/index.js"; // requires npm run build:i18n
 
 // console.log("appTranslations:", appTranslations);
 
