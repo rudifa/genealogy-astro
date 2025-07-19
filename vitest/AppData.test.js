@@ -4,10 +4,18 @@
 if (typeof global.localStorage === "undefined") {
   global.localStorage = {
     _data: {},
-    getItem(key) { return this._data[key] || null; },
-    setItem(key, value) { this._data[key] = String(value); },
-    removeItem(key) { delete this._data[key]; },
-    clear() { this._data = {}; }
+    getItem(key) {
+      return this._data[key] || null;
+    },
+    setItem(key, value) {
+      this._data[key] = String(value);
+    },
+    removeItem(key) {
+      delete this._data[key];
+    },
+    clear() {
+      this._data = {};
+    },
   };
 }
 import {describe, it, expect, beforeEach, beforeAll, vi} from "vitest";
@@ -157,5 +165,11 @@ describe("AppData", () => {
     const state = appData.getState();
     expect(state).not.toBe(appData.state);
     expect(state.currentTreeName).toBe("Family Example");
+  });
+
+  it("ensureOneExists returns the same instance on multiple calls", () => {
+    const instance1 = AppData.ensureOneExists(verbose);
+    const instance2 = AppData.ensureOneExists(verbose);
+    expect(instance1).toBe(instance2);
   });
 });
