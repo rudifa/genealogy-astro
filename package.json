@@ -34,9 +34,10 @@
     },
     "scripts": {
         "astro": "astro",
-        "build": "astro check && astro build && tsc",
+        "build": "npm run build:i18n && astro check && astro build",
+        "build:i18n": "node scripts/build-i18n-js.js",
         "check": "astro check",
-        "clean": "rm -rf dist .astro",
+        "clean": "rm -rf dist .astro public/i18n",
         "cytest": "cypress run --headless",
         "cytest:open": "cypress open",
         "cytest:single": "cypress run --headless --spec",
