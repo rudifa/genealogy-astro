@@ -29,6 +29,10 @@ const t = getTranslations(currentLanguage);
     translationsData: JSON.stringify(translations),
   }}
 >
+  console.log(
+    "➡️ index: <script is:inline define:vars={{translationsData: JSON.stringify(translations)}}>"
+  );
+
   // Use translations from the i18n system
   window.genealogyTranslations = JSON.parse(translationsData);
   window.currentLanguage = "en";
@@ -82,6 +86,7 @@ const t = getTranslations(currentLanguage);
 </script>
 
 <script is:inline type='module'>
+  console.log("➡️ index: <script is:inline type='module'>");
   // Initial language detection
   window.detectAndSetLanguage();
 

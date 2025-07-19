@@ -107,6 +107,8 @@ const {currentLanguage} = Astro.props;
 </style>
 
 <script is:inline>
+  console.log("➡️ LanguageSwitcher: <script is:inline >");
+
   // Initialize immediately since DOM is already ready in inline scripts
   const languageSelect = document.getElementById("language-select");
 
@@ -144,4 +146,8 @@ const {currentLanguage} = Astro.props;
       languageSelect.value = language;
     }
   });
+</script>
+
+<script is:inline type='module'>
+  console.log("➡️ LanguageSwitcher: <script is:inline type='module'>");
 </script>
