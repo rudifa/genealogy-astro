@@ -5,11 +5,11 @@ export const de = {
     nativeName: "Deutsch",
     flag: "🇩🇪",
     // Page content
-    pageTitle: " ",
+    pageTitle: "Stammbaum Explorer",
     pageDescription: "Interaktive Stammbaum-Visualisierung und Genealogie-Verwaltungsanwendung.",
     // Header
     appTitle: "Stammbaum Explorer",
-    appSubtitle: "Visualisieren und verwalten Sie Ihre Familiengenealgie mit einem interaktiven Graphen. Klicken Sie auf eine Person, um ihre Details zu bearbeiten oder neue Familienmitglieder hinzuzufügen.",
+    appSubtitle: "Visualisieren und verwalten Sie Ihre Familienstammbaum mit einem interaktiven Graphen. Klicken Sie auf eine Person, um ihre Details zu bearbeiten oder neue Familienmitglieder hinzuzufügen.",
     // Toolbar
     addPerson: "Person Hinzufügen",
     clearAll: "Alles Löschen",
