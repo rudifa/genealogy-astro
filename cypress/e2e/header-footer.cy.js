@@ -42,7 +42,7 @@ describe("Header and Footer", () => {
 
     // Loop through other languages and test UI updates
     languages.slice(1).forEach(({code, title, footer}) => {
-      cy.get("[data-testid='language-select']").select(code);
+      cy.get("[data-cy='language-select']").select(code);
       cy.get("h1.app-title").should("have.text", title);
       cy.get("footer.app-footer").should("include.text", footer);
     });

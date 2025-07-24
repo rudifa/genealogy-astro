@@ -29,14 +29,14 @@ Cypress.Commands.add('clearAppData', () => {
 
 // Command to wait for graph to be rendered
 Cypress.Commands.add('waitForGraph', () => {
-  cy.get('[data-testid="genealogy-graph"]', { timeout: 10000 }).should('be.visible');
+  cy.get('[data-cy="genealogy-graph"]', { timeout: 10000 }).should('be.visible');
   cy.get('svg', { timeout: 5000 }).should('be.visible');
 });
 
 // Command to select language
 Cypress.Commands.add('selectLanguage', (language) => {
-  cy.get('[data-testid="language-switcher"]').click();
-  cy.get(`[data-testid="lang-${language}"]`).click();
+  cy.get('[data-cy="language-switcher"]').click();
+  cy.get(`[data-cy="lang-${language}"]`).click();
 });
 
 // Command to check current UI mode
@@ -59,7 +59,7 @@ Cypress.Commands.add('setUIMode', (mode) => {
 Cypress.Commands.add('ensureForestMode', () => {
   cy.getUIMode().then((currentMode) => {
     if (currentMode !== 'forest') {
-      cy.get('[data-testid="mode-toggle-button"]').click();
+      cy.get('[data-cy="mode-toggle-button"]').click();
       cy.wait(500); // Wait for mode switch to complete
     }
   });
@@ -69,7 +69,7 @@ Cypress.Commands.add('ensureForestMode', () => {
 Cypress.Commands.add('ensureOneTreeMode', () => {
   cy.getUIMode().then((currentMode) => {
     if (currentMode !== 'one-tree') {
-      cy.get('[data-testid="mode-toggle-button"]').click();
+      cy.get('[data-cy="mode-toggle-button"]').click();
       cy.wait(500); // Wait for mode switch to complete
     }
   });

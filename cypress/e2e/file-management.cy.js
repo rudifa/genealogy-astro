@@ -11,13 +11,13 @@ describe("File Management", () => {
   });
 
   it("should have basic toolbar elements", () => {
-    cy.get('[data-testid="toolbar"]').should("be.visible");
-    cy.get('[data-testid="mode-toggle-button"]').should("be.visible");
+    cy.get('[data-cy="toolbar"]').should("be.visible");
+    cy.get('[data-cy="mode-toggle-button"]').should("be.visible");
   });
 
   it("should have toolbar action buttons available in all modes", () => {
-    cy.get('[data-testid="add-person-button"]').should("be.visible");
-    cy.get('[data-testid="clear-all-button"]').should("be.visible");
+    cy.get('[data-cy="add-person-button"]').should("be.visible");
+    cy.get('[data-cy="clear-all-button"]').should("be.visible");
   });
 
   context("One Tree Mode", () => {
@@ -26,14 +26,14 @@ describe("File Management", () => {
     });
 
     it("should hide tree and file manager buttons in one-tree mode", () => {
-      cy.get('[data-testid="toolbar"]').should("have.class", "one-tree-mode");
-      cy.get('[data-testid="tree-manager"]').should("not.be.visible");
-      cy.get('[data-testid="file-manager"]').should("not.be.visible");
+      cy.get('[data-cy="toolbar"]').should("have.class", "one-tree-mode");
+      cy.get('[data-cy="tree-manager"]').should("not.be.visible");
+      cy.get('[data-cy="file-manager"]').should("not.be.visible");
     });
 
     it("should show mode toggle button to switch to forest mode", () => {
-      cy.get('[data-testid="mode-toggle-button"]').should("be.visible");
-      cy.get('[data-testid="mode-toggle-button"]').should("contain", "...");
+      cy.get('[data-cy="mode-toggle-button"]').should("be.visible");
+      cy.get('[data-cy="mode-toggle-button"]').should("contain", "...");
     });
   });
 
@@ -43,13 +43,13 @@ describe("File Management", () => {
     });
 
     it("should show tree and file manager buttons in forest mode", () => {
-      cy.get('[data-testid="toolbar"]').should("not.have.class", "one-tree-mode");
-      cy.get('[data-testid="tree-manager"]').should("be.visible");
-      cy.get('[data-testid="file-manager"]').should("be.visible");
+      cy.get('[data-cy="toolbar"]').should("not.have.class", "one-tree-mode");
+      cy.get('[data-cy="tree-manager"]').should("be.visible");
+      cy.get('[data-cy="file-manager"]').should("be.visible");
     });
 
     it("should open file manager when clicked", () => {
-      cy.get('[data-testid="file-manager"]').click();
+      cy.get('[data-cy="file-manager"]').click();
       // Since dialogs might load async, wait a bit and check for common dialog indicators
       cy.wait(1000);
       // Look for any dialog, modal, or overlay that might appear
@@ -63,7 +63,7 @@ describe("File Management", () => {
   it("should be able to switch between modes", () => {
     // Start in current mode and toggle
     cy.getUIMode().then((initialMode) => {
-      cy.get('[data-testid="mode-toggle-button"]').click();
+      cy.get('[data-cy="mode-toggle-button"]').click();
       cy.wait(500);
 
       cy.getUIMode().then((newMode) => {

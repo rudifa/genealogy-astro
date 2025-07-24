@@ -27,6 +27,9 @@ describe('Language select on page reload', () => {
         .invoke("text")
         .should("match", /^Application Généalogique/);
 
+    cy.get("[data-cy=add-person-button]") // A Toolbar button
+      .invoke("text")
+      .should("eq", "Ajouter Personne");
 
           // Reload the page
           cy.reload();
@@ -34,9 +37,13 @@ describe('Language select on page reload', () => {
           // Language selector should still show 'fr'
           cy.get('[data-cy=language-select]').should('have.value', 'fr');
 
-      //     // The text should still be in French
-      //     cy.get('[data-cy=welcome-text]').should('contain', 'Bienvenue');
-    });
+    // Language selector should still show 'fr'
+    cy.get("[data-cy=language-select]").should("have.value", "fr");
+
+    cy.get("[data-cy=add-person-button]") // A Toolbar button
+      .invoke("text")
+      .should("eq", "Ajouter Personne");
+  });
 });
 // describe('Language selector persistence', () => {
 //     const appUrl = '/';

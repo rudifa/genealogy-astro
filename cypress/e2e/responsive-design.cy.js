@@ -22,8 +22,8 @@ describe('Responsive Design', () => {
       });
 
       it('should have accessible navigation', () => {
-        cy.get('[data-testid="toolbar"]').should('be.visible');
-        cy.get('[data-testid="language-switcher"]').should('be.visible');
+        cy.get('[data-cy="toolbar"]').should('be.visible');
+        cy.get('[data-cy="language-switcher"]').should('be.visible');
       });
 
       it('should render the graph appropriately', () => {
@@ -31,7 +31,7 @@ describe('Responsive Design', () => {
         cy.get('svg').should('be.visible');
 
         // Check that the SVG doesn't overflow its container
-        cy.get('[data-testid="genealogy-graph"]').within(() => {
+        cy.get('[data-cy="genealogy-graph"]').within(() => {
           cy.get('svg').should('be.visible');
         });
       });
@@ -39,7 +39,7 @@ describe('Responsive Design', () => {
       if (viewport.width < 768) {
         it('should adapt toolbar for mobile', () => {
           // On mobile, some elements might be collapsed or differently arranged
-          cy.get('[data-testid="toolbar"]').should('be.visible');
+          cy.get('[data-cy="toolbar"]').should('be.visible');
         });
       }
     });

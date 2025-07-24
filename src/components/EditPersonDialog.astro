@@ -17,7 +17,7 @@ const {translations} = Astro.props;
   id='edit-dialog'
   class='dialog-overlay'
   style='display: none;'
-  data-testid='edit-dialog'>
+  data-cy='edit-dialog'>
   <div class='dialog-content'>
     <div class='dialog-header'>
       <h2>{translations.editPerson}</h2>
@@ -59,7 +59,7 @@ const {translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
-            data-testid='mother-input'
+            data-cy='mother-input'
           />
           <div class='field-error' id='mother-error'></div>
         </div>
@@ -72,7 +72,7 @@ const {translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
-            data-testid='father-input'
+            data-cy='father-input'
           />
           <div class='field-error' id='father-error'></div>
         </div>
@@ -85,7 +85,7 @@ const {translations} = Astro.props;
             maxlength='200'
             autocomplete='off'
             data-1p-ignore
-            data-testid='info-input'
+            data-cy='info-input'
             placeholder='
             e.g.,
             Birth
@@ -96,13 +96,13 @@ const {translations} = Astro.props;
           <div class='field-error' id='info-error'></div>
         </div>
         <div class='dialog-buttons'>
-          <button type='submit' id='save-button' data-testid='save-button'
+          <button type='submit' id='save-button' data-cy='save-button'
             >{translations.save}</button
           >
-          <button type='button' id='remove-button' data-testid='remove-button'
+          <button type='button' id='remove-button' data-cy='remove-button'
             >{translations.remove}</button
           >
-          <button type='button' id='cancel-button' data-testid='cancel-button'
+          <button type='button' id='cancel-button' data-cy='cancel-button'
             >{translations.cancel}</button
           >
         </div>
