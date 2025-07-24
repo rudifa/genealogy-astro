@@ -12,7 +12,7 @@ const {translations} = Astro.props;
 <header class='app-header'>
   <div class='header-content'>
     <div class='title-section'>
-      <h1 class='app-title'>{translations.appTitle}</h1>
+      <h1 class='app-title' data-cy='app-title'>{translations.appTitle}</h1>
       <p class='app-subtitle'>{translations.appSubtitle}</p>
     </div>
   </div>
@@ -98,43 +98,28 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the AppLanguages singleton for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+
+  // Subscribe to language changes to update Header translations
+  appLanguages.subscribe((newTranslations) => {
+    updateHeaderTranslations(newTranslations);
+    console.log("👍 Header: newTranslations:", newTranslations);
+  }, "Header");
+
   // Function to update header translations
-  function updateHeaderTranslations(translations) {
+  function updateHeaderTranslations(newTranslations) {
+    console.log("Header: updateHeaderTranslations:", newTranslations);
     const appTitle = document.querySelector(".header-content .app-title");
     const appSubtitle = document.querySelector(".header-content .app-subtitle");
 
     if (appTitle) {
-      appTitle.textContent = translations.appTitle;
+      appTitle.textContent = newTranslations.appTitle;
     }
 
     if (appSubtitle) {
-      appSubtitle.textContent = translations.appSubtitle;
+      appSubtitle.textContent = newTranslations.appSubtitle;
     }
   }
-
-  // Initialize with stored language if available
-  function initializeHeaderLanguage() {
-    const storedLang = localStorage.getItem("genealogy-language");
-    if (storedLang && storedLang !== "en" && window.genealogyTranslations) {
-      const newTranslations = window.genealogyTranslations[storedLang];
-      if (newTranslations) {
-        console.log("Header: Updating to stored language:", storedLang);
-        updateHeaderTranslations(newTranslations);
-      }
-    }
-  }
-
-  // Check for stored language and update if needed
-  // Use a small delay to ensure translations are loaded
-  //   setTimeout(() => {
-  initializeHeaderLanguage();
-  //   }, 50);
-
-  // Listen for language changes
-  window.addEventListener("languageChanged", function (event) {
-    const translations = event.detail.translations;
-    if (translations) {
-      updateHeaderTranslations(translations);
-    }
-  });
 </script>
