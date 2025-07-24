@@ -43,6 +43,7 @@
         "cytest:single": "cypress run --headless --spec",
         "cytest:dev": "concurrently \"npm run dev\" \"cypress open\"",
         "cytest:prev": "concurrently \"npm run preview\" \"cypress run\"",
+        "dev": "astro dev --host",
         "dev:check": "concurrently \"npm run dev\" \"npm run check -- --watch\"",
         "lint": "astro check",
         "preview": "astro preview",
