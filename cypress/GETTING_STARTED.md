@@ -46,7 +46,7 @@ This will:
 
 1. Create a new `.cy.js` file in `cypress/e2e/`
 2. Use the custom commands provided in `cypress/support/commands.js`
-3. Add appropriate `data-testid` attributes to your components
+3. Add appropriate `data-cy` attributes to your components
 4. Follow the existing test patterns
 
 ## Best Practices Implemented

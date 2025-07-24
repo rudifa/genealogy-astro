@@ -15,7 +15,7 @@ interface Props {
 const {language, translations} = Astro.props;
 ---
 
-<div class='screen' data-testid='genealogy-graph'>
+<div class='screen' data-cy='genealogy-graph'>
   <Toolbar language={language} translations={translations} />
   <GraphRenderer language={language} translations={translations} />
   <Notification language={language} translations={translations} />

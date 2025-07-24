@@ -11,7 +11,7 @@ const {currentTree} = Astro.props;
 ---
 
 <div class='tree-switcher'>
-  <select id='tree-select' class='tree-select' data-testid='tree-select'>
+  <select id='tree-select' class='tree-select' data-cy='tree-select'>
     <option value={currentTree} selected>
       🌳 {currentTree}
     </option>

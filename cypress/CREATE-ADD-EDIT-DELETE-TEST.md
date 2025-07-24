@@ -36,11 +36,11 @@
 #### e. **Selectors Not Robust Enough**
 
 - **Problem:** Cypress selectors for dialog fields and buttons were brittle.
-- **Solution:** Added `data-testid` attributes to all key dialog elements (inputs, buttons) for reliable selection.
+- **Solution:** Added `data-cy` attributes to all key dialog elements (inputs, buttons) for reliable selection.
 
 ### 4. **Best Practices Applied**
 
-- Used `data-testid` for all Cypress selectors.
+- Used `data-cy` for all Cypress selectors.
 - Used `.parent('a').click()` to ensure correct event targeting in SVG.
 - Used `.should($nodes => ...)` for robust, substring-safe assertions.
 - Added waits and value assertions to handle UI update timing issues.
@@ -65,7 +65,7 @@
 
 - **Test Authoring & Debugging**
   - How to use Cypress commands and assertions to interact with and verify your app’s UI.
-  - How to use `data-testid` attributes for robust, reliable selectors.
+  - How to use `data-cy` attributes for robust, reliable selectors.
   - How to handle timing issues and race conditions with `.should()`, `.wait()`, and value assertions.
   - How to debug test failures by inspecting the Cypress UI, browser console, and DOM.
 
@@ -104,13 +104,13 @@ In your case, you want to ensure that **no SVG text node has the exact value "Cy
 ### How the Callback Works
 
 ```javascript
-cy.get('[data-testid="genealogy-graph"] svg text').should(($nodes) => {
+cy.get('[data-cy="genealogy-graph"] svg text').should(($nodes) => {
   const names = $nodes.toArray().map((el) => el.textContent.trim());
   expect(names).not.to.include("Cyprian");
 });
 ```
 
-- `cy.get('[data-testid="genealogy-graph"] svg text')` gets all `<text>` nodes in the SVG.
+- `cy.get('[data-cy="genealogy-graph"] svg text')` gets all `<text>` nodes in the SVG.
 - `.should($nodes => { ... })` passes all those nodes as a jQuery collection to your callback.
 - Inside the callback:
   - `$nodes.toArray()` converts the jQuery collection to a plain array of DOM elements.
