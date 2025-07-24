@@ -1,41 +1,37 @@
 // cypress/e2e/lang-on-page-reload.cy.test.js
 
-describe('Language select on page reload', () => {
-    const appUrl = '/'; // Change if your app's root URL is different
+describe("Language select on page reload", () => {
+  const appUrl = "/";
 
-    it('should display the language selector', () => {
-        cy.visit(appUrl);
-        cy.get('[data-cy=language-select]').should('exist');
-    });
+  it("should display the language selector", () => {
+    cy.visit(appUrl);
+    cy.get("[data-cy=language-select]").should("exist"); // LanguageSwitcher language selector
+    cy.get("[data-cy=language-select]").should("have.value", "en");
+    cy.title().should("eq", "Family Tree Explorer"); // Page title in the browser tab
+  });
 
-    it('should change language and persist after reload', () => {
-      cy.visit(appUrl);
+  it("should persist after reload the language change", () => {
+    cy.visit(appUrl);
 
-      // Select a different language (e.g., 'fr' for French)
-      cy.get("[data-cy=language-select]").select("fr");
+    // Select a different language (e.g., 'fr' for French)
+    cy.get("[data-cy=language-select]").select("fr");
 
-      cy.get("[data-cy=language-select]").should("have.value", "fr");
-      cy.get("[data-cy=app-title]")
-        .invoke("text")
-        .should("match", /^Explorateur/);
-      cy.get("[data-testid=add-person-button]")
-        .invoke("text")
-        .should("eq", "Ajouter Personne");
+    cy.get("[data-cy=language-select]").should("have.value", "fr"); // LanguageSwitcher
 
-      // expect at data-cy='project-title' to start with 'Application Généalogique'
-      cy.get("[data-cy=project-title]")
-        .invoke("text")
-        .should("match", /^Application Généalogique/);
+    cy.get("[data-cy=app-title]") // Header app title
+      .invoke("text")
+      .should("eq", "Explorateur d'Arbre Familial");
 
     cy.get("[data-cy=add-person-button]") // A Toolbar button
       .invoke("text")
       .should("eq", "Ajouter Personne");
 
-          // Reload the page
-          cy.reload();
+    cy.get("[data-cy=project-title]") // Footer project title
+      .invoke("text")
+      .should("match", /^Application Généalogique/);
 
-          // Language selector should still show 'fr'
-          cy.get('[data-cy=language-select]').should('have.value', 'fr');
+    // Reload the page
+    cy.reload();
 
     // Language selector should still show 'fr'
     cy.get("[data-cy=language-select]").should("have.value", "fr");
@@ -45,30 +41,37 @@ describe('Language select on page reload', () => {
       .should("eq", "Ajouter Personne");
   });
 });
-// describe('Language selector persistence', () => {
-//     const appUrl = '/';
 
-//     it('should default to English on first load', () => {
-//         cy.visit(appUrl);
-//         cy.get('[data-cy=language-select]').should('exist').and('have.value', 'en');
-//         cy.get('[data-cy=welcome-text]').should('contain', 'Welcome');
-//     });
+describe("Language selector persistence", () => {
+  const appUrl = "/";
 
-//     it('should persist selected language after reload', () => {
-//         cy.visit(appUrl);
-//         cy.get('[data-cy=language-select]').select('fr');
-//         cy.get('[data-cy=welcome-text]').should('contain', 'Bienvenue');
-//         cy.reload();
-//         cy.get('[data-cy=language-select]').should('have.value', 'fr');
-//         cy.get('[data-cy=welcome-text]').should('contain', 'Bienvenue');
-//     });
+  it("should default to English on first load", () => {
+    cy.visit(appUrl);
+    cy.get("[data-cy=language-select]").should("exist").and("have.value", "en");
+    cy.get("[data-cy=app-title]") // Header app title
+      .invoke("text")
+      .should("eq", "Family Tree Explorer");
+  });
 
-//     it('should switch back to English and persist', () => {
-//         cy.visit(appUrl);
-//         cy.get('[data-cy=language-select]').select('en');
-//         cy.get('[data-cy=welcome-text]').should('contain', 'Welcome');
-//         cy.reload();
-//         cy.get('[data-cy=language-select]').should('have.value', 'en');
-//         cy.get('[data-cy=welcome-text]').should('contain', 'Welcome');
-//     });
-// });
+  it("should follow the url parameter to enforce a different language", () => {
+    cy.visit(`${appUrl}?lang=de`);
+    cy.get("[data-cy=language-select]").should("exist").and("have.value", "de");
+    cy.get("[data-cy=app-title]") // Header app title
+      .invoke("text")
+      .should("eq", "Stammbaum Explorer");
+  });
+
+  it("should switch back to English and persist", () => {
+    cy.visit(appUrl);
+    cy.get("[data-cy=language-select]").select("en");
+    cy.get("[data-cy=language-select]").should("have.value", "en");
+    cy.get("[data-cy=app-title]") // Header app title
+      .invoke("text")
+      .should("eq", "Family Tree Explorer");
+    cy.reload();
+    cy.get("[data-cy=language-select]").should("have.value", "en");
+     cy.get("[data-cy=app-title]") // Header app title
+       .invoke("text")
+       .should("eq", "Family Tree Explorer");
+  });
+});
