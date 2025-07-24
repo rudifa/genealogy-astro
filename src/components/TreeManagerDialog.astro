@@ -1214,6 +1214,7 @@ const {translations} = Astro.props;
         );
         if (success) {
           selectedOther = null;
+          console.log("Trees merged successfully, stats:", mergeStats);
         }
       } else {
         // Normal mode

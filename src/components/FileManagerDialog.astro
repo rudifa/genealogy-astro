@@ -1030,7 +1030,6 @@ const {translations} = Astro.props;
   }
 
   async function processSingleTreeUpload(data, uploadMode) {
-    const importedTreeName = data.treeName || "Imported Tree";
     const treeData = data.data;
     if (uploadMode === "new-tree") {
       const customTreeName = newTreeName.value.trim();
