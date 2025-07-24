@@ -11,7 +11,7 @@ const {currentTree} = Astro.props;
 ---
 
 <div class='tree-switcher'>
-  <select id='tree-select' class='tree-select'>
+  <select id='tree-select' class='tree-select' data-testid='tree-select'>
     <option value={currentTree} selected>
       🌳 {currentTree}
     </option>
@@ -100,8 +100,12 @@ const {currentTree} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  // 🎯 Direct import - VS Code can navigate to definition!
-  import {appData} from "/utility/AppData.js";
+  // This module has no need for the AppLanguages imports
+  // as it does not handle translations directly.
+
+  // Use the AppData singleton for all tree data management
+  import {AppData} from "/utility/AppData.js";
+  const appData = AppData.ensureOneExists();
 
   // Initialize immediately since DOM is already ready in inline scripts
   const treeSelect = document.getElementById("tree-select");
@@ -182,12 +186,6 @@ const {currentTree} = Astro.props;
       }
     });
   }
-
-  // Listen for language changes to update any translatable content
-  window.addEventListener("languageChanged", function () {
-    // Currently no translatable content in tree switcher, but ready for future
-    console.log("TreeSwitcher received language change");
-  });
 
   // Cleanup on page unload
   window.addEventListener("beforeunload", function () {

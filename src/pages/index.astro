@@ -3,13 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import GenealogyGraph from "../components/GenealogyGraph.astro";
 import Footer from "../components/Footer.astro";
-import jsonData from "@/data/sample_tree.json";
-//import jsonData from "@/data/extended_tree.json";
-import type {TreeDataType} from "@/types";
-import {getTranslations, translations, type Language} from "../i18n/index";
 
-const genealogyData: TreeDataType = jsonData;
-const genealogyDataJson = JSON.stringify(genealogyData);
+import {getTranslations, translations, type Language} from "../i18n/index.ts";
 
 // For now, we'll default to English on the server side
 // The client will handle language detection and updates
@@ -23,11 +18,7 @@ const t = getTranslations(currentLanguage);
   language={currentLanguage}>
   <main class='app-container'>
     <Header language={currentLanguage} translations={t} />
-    <GenealogyGraph
-      data={genealogyData}
-      language={currentLanguage}
-      translations={t}
-    />
+    <GenealogyGraph language={currentLanguage} translations={t} />
     <Footer language={currentLanguage} translations={t} />
   </main>
 </Layout>
@@ -36,111 +27,74 @@ const t = getTranslations(currentLanguage);
   is:inline
   define:vars={{
     translationsData: JSON.stringify(translations),
-    genealogyDataJson,
   }}
 >
+  console.log(
+    "➡️ index: <script is:inline define:vars={{translationsData: JSON.stringify(translations)}}>"
+  );
+
   // Use translations from the i18n system
   window.genealogyTranslations = JSON.parse(translationsData);
   window.currentLanguage = "en";
-  window.genealogyDataJson = genealogyDataJson;
 
-  window.updatePageLanguage = function (language) {
-    const t =
-      window.genealogyTranslations[language] || window.genealogyTranslations.en;
+  //   window.updatePageLanguage = updatePageLanguage;
 
-    // Update page title and meta
-    document.title = t.pageTitle;
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute("content", t.pageDescription);
-    }
-    document.documentElement.lang = language;
+  //   function updatePageLanguage(language) {
+  //     console.log("🍅 index: updatePageLanguage:", language);
 
-    // Trigger a custom event to update components
-    window.dispatchEvent(
-      new CustomEvent("languageChanged", {
-        detail: {language: language, translations: t},
-      })
-    );
-  };
+  //     const t =
+  //       window.genealogyTranslations[language] || window.genealogyTranslations.en;
 
-  window.detectAndSetLanguage = function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlLang = urlParams.get("lang");
-    const storedLang = localStorage.getItem("genealogy-language");
+  //     // Update page title and meta
+  //     document.title = t.pageTitle;
+  //     const metaDescription = document.querySelector('meta[name="description"]');
+  //     if (metaDescription) {
+  //       metaDescription.setAttribute("content", t.pageDescription);
+  //     }
+  //     document.documentElement.lang = language;
 
-    let selectedLanguage = "en";
+  //     // Trigger a custom event to update components
+  //     window.dispatchEvent(
+  //       new CustomEvent("languageChanged", {
+  //         detail: {language: language, translations: t},
+  //       })
+  //     );
+  //   }
 
-    if (urlLang && ["en", "fr", "de"].includes(urlLang)) {
-      selectedLanguage = urlLang;
-      localStorage.setItem("genealogy-language", urlLang);
-    } else if (storedLang && ["en", "fr", "de"].includes(storedLang)) {
-      selectedLanguage = storedLang;
-      // Update URL to reflect stored preference
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", selectedLanguage);
-      window.history.replaceState({}, "", url.toString());
-    }
-
-    if (selectedLanguage !== window.currentLanguage) {
-      window.currentLanguage = selectedLanguage;
-      window.updatePageLanguage(window.currentLanguage);
-    }
-  };
-
-  // Initial language detection
-  window.detectAndSetLanguage();
+  //   // Initial language detection
+  //   window.detectAndSetLanguage();
 </script>
 
 <script is:inline type='module'>
-  import {appData} from "/utility/AppData.js";
-  window.appData = appData;
+  console.log("➡️ index: <script is:inline type='module'>");
 
-  // --- State Initialization (Step 1) ---
-  // Initialize state when genealogy data is available
-  async function initializeAppState() {
-    try {
-      // Parse the genealogy data from the global variable set by the inline script
-      const genealogyData = JSON.parse(window.genealogyDataJson);
-
-      // Pass the current language's translations (default to English)
-      const currentTranslations =
-        window.genealogyTranslations[window.currentLanguage] ||
-        window.genealogyTranslations.en;
-
-      // Initialize appData and expose to window
-      // IMPORTANT: Create a deep clone of genealogyData to prevent mutation of the original data
-      const genealogyDataClone = JSON.parse(JSON.stringify(genealogyData));
-      appData.initialize(genealogyDataClone, currentTranslations);
-      window.appData = appData;
-
-      console.log(
-        "✅ appData initialized successfully and is available as window.appData"
-      );
-    } catch (error) {
-      console.error("❌ Failed to initialize appData:", error);
-    }
-  }
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the AppLanguages singleton for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+  appLanguages.subscribe((newTranslations) => {
+    console.log(
+      "👍 index: AppLanguages:",
+      appLanguages.getLanguage(),
+      appLanguages.getAvailableLanguages("index")
+    );
+  });
 
   // Initial language detection
-  window.detectAndSetLanguage();
+  //   window.detectAndSetLanguage();
 
-  // Initialize the app state
-  initializeAppState();
+  //   // Handle language changes from the language switcher
+  //   window.addEventListener("languageChanged", function (event) {
+  //     const language = event.detail.language;
+  //     if (language !== window.currentLanguage) {
+  //       window.currentLanguage = language;
+  //       localStorage.setItem("genealogy-language", language);
 
-  // Handle language changes from the language switcher
-  window.addEventListener("languageChanged", function (event) {
-    const language = event.detail.language;
-    if (language !== window.currentLanguage) {
-      window.currentLanguage = language;
-      localStorage.setItem("genealogy-language", language);
-
-      // Update URL
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", language);
-      window.history.replaceState({}, "", url.toString());
-    }
-  });
+  //       // Update URL
+  //       const url = new URL(window.location.href);
+  //       url.searchParams.set("lang", language);
+  //       window.history.replaceState({}, "", url.toString());
+  //     }
+  //   });
 </script>
 
 <style>

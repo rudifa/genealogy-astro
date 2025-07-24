@@ -1,6 +1,12 @@
 import type {Translations} from "../index";
 
 export const de: Translations = {
+  // General
+  isoCode: "de",
+  languageName: "Deutsch",
+  nativeName: "Deutsch",
+  flag: "🇩🇪",
+
   // Page content
   pageTitle: " ",
   pageDescription:

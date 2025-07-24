@@ -12,7 +12,7 @@ const {translations} = Astro.props;
 <footer class='app-footer'>
   <div class='footer-content'>
     <div class='project-info'>
-      <span class='project-title'>{translations.projectInfo}</span>
+      <span class='project-title' data-cy='project-title'>{translations.projectInfo}</span>
       <div class='author-info'>
         {translations.developedBy}
         <a
@@ -189,6 +189,16 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the AppLanguages singleton for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+
+  // Subscribe to language changes to update footer translations
+  appLanguages.subscribe((newTranslations) => {
+    updateFooterTranslations(newTranslations);
+    console.log("Footer: newTranslations", newTranslations);
+  }, "Footer");
+
   // Function to update footer translations
   function updateFooterTranslations(translations) {
     const projectTitle = document.querySelector(
@@ -214,37 +224,11 @@ const {translations} = Astro.props;
       const svg = sourceLink.querySelector("svg");
       if (svg) {
         sourceLink.innerHTML = "";
-        sourceLink.appendChild(svg);
+        sourceLink.appendChild(svg); // the github icon
         sourceLink.appendChild(
-          document.createTextNode(translations.sourceCode)
+          document.createTextNode(translations.sourceCode) // the translated text
         );
       }
     }
   }
-
-  // Initialize with stored language if available
-  function initializeFooterLanguage() {
-    const storedLang = localStorage.getItem("genealogy-language");
-    if (storedLang && storedLang !== "en" && window.genealogyTranslations) {
-      const newTranslations = window.genealogyTranslations[storedLang];
-      if (newTranslations) {
-        console.log("Footer: Updating to stored language:", storedLang);
-        updateFooterTranslations(newTranslations);
-      }
-    }
-  }
-
-  // Check for stored language and update if needed
-  // Use a small delay to ensure translations are loaded
-  //   setTimeout(() => {
-  initializeFooterLanguage();
-  //   }, 50);
-
-  // Listen for language changes
-  window.addEventListener("languageChanged", function (event) {
-    const translations = event.detail.translations;
-    if (translations) {
-      updateFooterTranslations(translations);
-    }
-  });
 </script>

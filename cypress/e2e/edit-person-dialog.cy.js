@@ -1,4 +1,10 @@
-describe("Family Tree add, edit, delete using the tree manager dialogs", () => {
+// Cypress e2e test for EditPersonDialog
+
+describe("EditPersonDialog e2e", () => {
+  //   beforeEach(() => {
+  //     cy.visit("/"); // Adjust if your app uses a different route
+  //   });
+
   beforeEach(() => {
     cy.clearAppData();
     cy.visit("/");
@@ -22,12 +28,14 @@ describe("Family Tree add, edit, delete using the tree manager dialogs", () => {
     cy.get('[data-testid="edit-dialog"]', {timeout: 1000}).should(
       "not.be.visible"
     );
-    cy.get('[data-testid="genealogy-graph"] svg')
+
+    // Graph: check that Cyprian is in the graph
+    cy.get('[data-testid="genealogy-graph"] svg', {timeout: 1000})
       .contains("text", "Cyprian")
       .should("exist");
 
     // Edit Person Dialog: add parents and info
-    cy.get('[data-testid="genealogy-graph"] svg')
+    cy.get('[data-testid="genealogy-graph"] svg', {timeout: 1000})
       .contains("text", "Cyprian")
       .parent("a")
       .click(); // Instead of clicking the text node, click the parent <a> element if it exists
@@ -63,7 +71,7 @@ describe("Family Tree add, edit, delete using the tree manager dialogs", () => {
       .contains("text", "Cyprress Tester")
       .should("exist");
 
-      // Edit Person Dialog: remove Cyprian
+    // Edit Person Dialog: remove Cyprian
     cy.get('[data-testid="genealogy-graph"] svg')
       .contains("text", "Cyprian")
       .parent("a")
@@ -79,9 +87,50 @@ describe("Family Tree add, edit, delete using the tree manager dialogs", () => {
     );
 
     // Graph: check that Cyprian is removed from the graph (robust exact match)
-    cy.get('[data-testid="genealogy-graph"] svg text').should($nodes => {
-      const names = $nodes.toArray().map(el => el.textContent.trim());
+    cy.get('[data-testid="genealogy-graph"] svg text').should(($nodes) => {
+      const names = $nodes.toArray().map((el) => el.textContent.trim());
       expect(names).not.to.include("Cyprian");
     });
+  });
+
+  it("opens the edit dialog and validates fields", () => {
+    // Open the edit dialog by clicking the first person node in the SVG graph
+    // cy.get('[data-testid="genealogy-graph"] svg text')
+    //   .first()
+    //   .parent('a')
+    //   .click();
+    cy.get('[data-testid="genealogy-graph"] svg a text').first().click();
+    cy.get('[data-testid="edit-dialog"]').should("be.visible");
+
+    // Check initial values
+    cy.get("#person-name").should("have.value", "Chloé Rochat Favre");
+
+    // Validation: empty name
+    cy.get("#person-name").clear().should("have.value", "");
+    cy.wait(50);
+    cy.get("#save-button").should("be.disabled");
+    cy.get("#name-error").should("contain", "required");
+
+    // Validation: long name
+    cy.get("#person-name").type("a".repeat(120));
+    cy.wait(50);
+    cy.get("#save-button").should("be.enabled");
+    cy.get("#person-name").invoke("val").should("have.length", 100);
+
+    // Edit and save
+    cy.get("#person-name").clear().type("New Name");
+    cy.get("#save-button").click();
+    cy.get('[data-testid="edit-dialog"]').should("not.be.visible");
+    cy.contains("New Name"); // Check UI updated
+
+    // Remove person
+    cy.get('[data-testid="genealogy-graph"] svg text')
+      .last()
+      .parent("a")
+      .click();
+    cy.get("#remove-button").click();
+    cy.on("window:confirm", () => true);
+    cy.get('[data-testid="edit-dialog"]').should("not.be.visible");
+    // Optionally assert person is removed from UI
   });
 });

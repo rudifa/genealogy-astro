@@ -1,4 +1,4 @@
-{
+const sampleFamily = {
     "persons": [
         {
             "name": "Chloé Rochat Favre",
@@ -46,4 +46,11 @@
             "info": "Né 1969"
         }
     ]
+}
+
+export function getSampleFamily() {
+    return sampleFamily;
+}
+export function getSampleFamilyAsJson() {
+    return JSON.stringify(sampleFamily, null, 2);
 }

@@ -1,9 +1,14 @@
-import {en, fr, de} from "./translations";
-import ja from "./translations/ja";
+import {en, fr, de, ja} from "./translations/index";
 
 export type Language = "en" | "fr" | "de" | "ja";
 
 export interface Translations {
+  // General
+  isoCode: Language;
+  languageName: string;
+  nativeName: string;
+  flag: string;
+
   // Page content
   pageTitle: string;
   pageDescription: string;

@@ -23,7 +23,7 @@ export class GenealogyForestData {
    * @param {Array} defaultTreeData.persons - Array of person objects
    * @param {boolean} verbose - Whether to log success messages (default: true)
    */
-  constructor(storageKey, defaultTreeName, defaultTreeData, verbose = true) {
+  constructor(storageKey, defaultTreeName, defaultTreeData, verbose = false) {
     this.#storageKey = storageKey;
     this.#defaultTreeName = defaultTreeName;
     this.#defaultTreeData = defaultTreeData;
@@ -50,7 +50,7 @@ export class GenealogyForestData {
         return JSON.parse(storedData);
       }
     } catch (error) {
-      console.warn("Failed to parse stored data:", error);
+      throw new Error("Failed to parse stored data: " + error.message);
     }
     return null;
   }
@@ -75,7 +75,9 @@ export class GenealogyForestData {
       trees: {
         [this.#defaultTreeName]: {
           // IMPORTANT: Create a deep clone to prevent mutation of the original default data
-          persons: JSON.parse(JSON.stringify(this.#defaultTreeData.persons || [])),
+          persons: JSON.parse(
+            JSON.stringify(this.#defaultTreeData.persons || [])
+          ),
         },
       },
     };
@@ -112,7 +114,11 @@ export class GenealogyForestData {
    * @returns {Object|null} Tree data matching TreeDataType or null if not found
    */
   getTreeData(treeName) {
-    if (this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]) {
+    if (
+      this.#currentTreeData &&
+      this.#currentTreeData.trees &&
+      this.#currentTreeData.trees[treeName]
+    ) {
       return this.#currentTreeData.trees[treeName];
     }
 
@@ -139,7 +145,11 @@ export class GenealogyForestData {
    * @returns {boolean} True if tree exists
    */
   treeExists(treeName) {
-    return !!(this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]);
+    return !!(
+      this.#currentTreeData &&
+      this.#currentTreeData.trees &&
+      this.#currentTreeData.trees[treeName]
+    );
   }
 
   /**
@@ -160,7 +170,8 @@ export class GenealogyForestData {
     let totalPersons = 0;
 
     Object.keys(this.#currentTreeData.trees).forEach((treeName) => {
-      const personCount = this.#currentTreeData.trees[treeName].persons?.length || 0;
+      const personCount =
+        this.#currentTreeData.trees[treeName].persons?.length || 0;
       trees[treeName] = {
         personCount,
         isActive: treeName === this.#currentTreeData.selectedTreeName,
@@ -220,7 +231,11 @@ export class GenealogyForestData {
    */
   switchToTree(treeName) {
     try {
-      if (this.#currentTreeData && this.#currentTreeData.trees && this.#currentTreeData.trees[treeName]) {
+      if (
+        this.#currentTreeData &&
+        this.#currentTreeData.trees &&
+        this.#currentTreeData.trees[treeName]
+      ) {
         this.#currentTreeData.selectedTreeName = treeName;
         this.#putToStorage(this.#currentTreeData);
         if (this.#verbose) {
@@ -289,7 +304,11 @@ export class GenealogyForestData {
       throw new Error(errorMessage);
     }
 
-    if (!this.#currentTreeData || !this.#currentTreeData.trees || !this.#currentTreeData.trees[treeName]) {
+    if (
+      !this.#currentTreeData ||
+      !this.#currentTreeData.trees ||
+      !this.#currentTreeData.trees[treeName]
+    ) {
       const errorMessage = translations?.treeNotFound || "Tree not found";
       throw new Error(errorMessage);
     }
@@ -342,7 +361,11 @@ export class GenealogyForestData {
       throw new Error(errorMessage);
     }
 
-    if (!this.#currentTreeData || !this.#currentTreeData.trees || !this.#currentTreeData.trees[oldName]) {
+    if (
+      !this.#currentTreeData ||
+      !this.#currentTreeData.trees ||
+      !this.#currentTreeData.trees[oldName]
+    ) {
       const errorMessage = translations?.treeNotFound || "Tree not found";
       throw new Error(errorMessage);
     }
@@ -379,7 +402,9 @@ export class GenealogyForestData {
       this.#putToStorage(initialStructure);
       this.#currentTreeData = initialStructure;
       if (this.#verbose) {
-        console.log("Reset entire forest to default state - ALL trees deleted except Family Example");
+        console.log(
+          "Reset entire forest to default state - ALL trees deleted except Family Example"
+        );
       }
       return true;
     } catch (error) {
@@ -401,7 +426,9 @@ export class GenealogyForestData {
       // Only reset the Family Example tree, preserve all others
       // IMPORTANT: Create a deep clone to prevent mutation of the original default data
       this.#currentTreeData.trees[this.#defaultTreeName] = {
-        persons: JSON.parse(JSON.stringify(this.#defaultTreeData.persons || [])),
+        persons: JSON.parse(
+          JSON.stringify(this.#defaultTreeData.persons || [])
+        ),
       };
 
       this.#putToStorage(this.#currentTreeData);
@@ -423,10 +450,12 @@ export class GenealogyForestData {
     try {
       // Return a deep clone of the original default tree data
       const originalData = JSON.parse(JSON.stringify(this.#defaultTreeData));
-      console.log("🔍 Original Family Example data:", {
-        personCount: originalData.persons?.length || 0,
-        persons: originalData.persons?.map(p => p.name) || []
-      });
+      if (this.#verbose) {
+        console.log("🔍 Original Family Example data:", {
+          personCount: originalData.persons?.length || 0,
+          persons: originalData.persons?.map((p) => p.name) || [],
+        });
+      }
       return originalData;
     } catch (error) {
       console.error("Failed to get original Family Example data:", error);

@@ -301,418 +301,370 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module' define:vars={{translations}}>
-  import {appData} from "/utility/AppData.js";
+  // Store current translations (will be updated by language changes)
+  let currentTranslations = translations;
+
+  // Mode management
+  let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
+
+  import {AppLanguages} from "/utility/AppLanguages.js";
+  // Use the AppLanguages singleton for all translations management
+  const appLanguages = AppLanguages.ensureOneExists();
+
+  // Subscribe to language changes to update Toolbar translations
+  appLanguages.subscribe((newTranslations) => {
+    updateToolbarTranslations(newTranslations);
+    console.log("👍 Toolbar: newTranslations:", newTranslations);
+  }, "Toolbar");
+
+  // Use the AppData singleton for all tree data management
+  import {AppData} from "/utility/AppData.js";
+  const appData = AppData.ensureOneExists();
+
   // Toolbar functionality
-  function initializeToolbar() {
-    console.log("Toolbar: Starting initialization");
 
-    // Prevent multiple initializations with a single flag
-    if (window.toolbarInitialized) {
-      console.log("Toolbar: Already initialized, skipping");
-      return;
-    }
-    window.toolbarInitialized = true;
+  console.log("Toolbar: Starting initialization");
 
-    // Mode management
-    let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
+  function updateModeDisplay() {
+    const toolbar = document.querySelector(".toolbar");
+    const modeToggleButton = document.getElementById("mode-toggle-button");
 
-    // Detect current language from localStorage and update translations if needed
-    function initializeLanguage() {
-      const storedLang = localStorage.getItem("genealogy-language");
-      if (storedLang && storedLang !== "en" && window.genealogyTranslations) {
-        const newTranslations = window.genealogyTranslations[storedLang];
-        if (newTranslations) {
-          console.log("Toolbar: Updating to stored language:", storedLang);
-          updateToolbarTranslations(newTranslations);
-        }
-      }
-    }
-
-    function updateModeDisplay() {
-      const toolbar = document.querySelector(".toolbar");
-      const modeToggleButton = document.getElementById("mode-toggle-button");
-
-      if (isOneTreeMode) {
-        toolbar.classList.add("one-tree-mode");
-        if (modeToggleButton) {
-          const tooltip =
-            currentTranslations.goToForestMode || "Go to Forest Mode";
-          modeToggleButton.title = tooltip;
-          modeToggleButton.setAttribute("title", tooltip);
-        }
-      } else {
-        toolbar.classList.remove("one-tree-mode");
-        if (modeToggleButton) {
-          const tooltip =
-            currentTranslations.goToOneTreeMode || "Go to One Tree Mode";
-          modeToggleButton.title = tooltip;
-          modeToggleButton.setAttribute("title", tooltip);
-        }
-      }
-    }
-
-    function toggleMode() {
-      isOneTreeMode = !isOneTreeMode;
-      localStorage.setItem(
-        "genealogy-ui-mode",
-        isOneTreeMode ? "one-tree" : "forest"
-      );
-      updateModeDisplay();
-
-      if (window.showNotification) {
-        const notificationKey = isOneTreeMode
-          ? "switchedToOneTreeMode"
-          : "switchedToForestMode";
-        const message =
-          currentTranslations[notificationKey] ||
-          `Switched to ${isOneTreeMode ? "One Tree Mode" : "Forest Mode"}`;
-        window.showNotification(message, "info");
-      }
-    }
-
-    // Store current translations (will be updated by language changes)
-    let currentTranslations = translations;
-
-    // Update toolbar translations
-    function updateToolbarTranslations(newTranslations) {
-      currentTranslations = newTranslations;
-
-      // Update button text
-      const addButton = document.getElementById("add-button");
-      const clearButton = document.getElementById("clear-button");
-      const printButton = document.getElementById("print-button");
-      const manageTreesButton = document.getElementById("manage-trees-button");
-      const manageFilesButton = document.getElementById("manage-files-button");
-      const loadingIndicator = document.querySelector(
-        "#loading-indicator span"
-      );
-
-      if (addButton) {
-        addButton.textContent = currentTranslations.addPerson;
-        addButton.title = currentTranslations.addPersonTooltip;
-      }
-      if (clearButton) {
-        clearButton.textContent = currentTranslations.clearAll;
-        clearButton.title = currentTranslations.clearAllTooltip;
-      }
-      if (printButton) {
-        printButton.textContent =
-          currentTranslations.printGraph || "Print Graph";
-        printButton.title =
-          currentTranslations.printGraphTooltip ||
-          "Print the current genealogy graph";
-      }
-      if (manageTreesButton) {
-        manageTreesButton.textContent = currentTranslations.manageTrees;
-        manageTreesButton.title = currentTranslations.manageTreesTooltip;
-      }
-      if (manageFilesButton) {
-        manageFilesButton.textContent = currentTranslations.manageFiles;
-        manageFilesButton.title = currentTranslations.manageFilesTooltip;
-      }
-      if (loadingIndicator)
-        loadingIndicator.textContent = currentTranslations.loading;
-
-      // Update mode toggle tooltip
-      updateModeDisplay();
-    }
-
-    // Listen for language changes
-    window.addEventListener("languageChanged", function (event) {
-      console.log("Toolbar: Language changed to", event.detail.language);
-      updateToolbarTranslations(event.detail.translations);
-    });
-
-    // Loading state management
-    function setLoadingState(loading) {
-      const loadingIndicator = document.getElementById("loading-indicator");
-      const addButton = document.getElementById("add-button");
-      const clearButton = document.getElementById("clear-button");
-
-      if (loading) {
-        loadingIndicator.style.display = "flex";
-        addButton.disabled = true;
-        clearButton.disabled = true;
-      } else {
-        loadingIndicator.style.display = "none";
-        addButton.disabled = false;
-        clearButton.disabled = false;
-      }
-    }
-
-    // Make loading state function available globally
-    window.toolbarSetLoadingState = setLoadingState;
-
-    // Initialize toolbar button event listeners
-    function initializeToolbarEvents() {
-      // Prevent multiple event listener attachments
-      if (window.toolbarEventsInitialized) {
-        console.log("Toolbar: Events already initialized, skipping");
-        return;
-      }
-      window.toolbarEventsInitialized = true;
-
-      const addButton = document.getElementById("add-button");
-      const clearButton = document.getElementById("clear-button");
-      const printButton = document.getElementById("print-button");
-      const modeToggleButton = document.getElementById("mode-toggle-button");
-      const manageTreesButton = document.getElementById("manage-trees-button");
-      const manageFilesButton = document.getElementById("manage-files-button");
-
-      // Add button event listener
-      if (addButton) {
-        addButton.addEventListener("click", () => {
-          try {
-            // Check if rendering is in progress
-            if (window.genealogyIsRendering) return;
-
-            const newPerson = {
-              name: "",
-              mother: null,
-              father: null,
-            };
-
-            // Use the current openEditDialog function
-            const openFn = window.currentOpenEditDialog;
-            if (openFn) {
-              openFn(newPerson);
-            } else {
-              console.warn("No edit dialog function available");
-            }
-          } catch (error) {
-            console.error("Error opening add dialog:", error);
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations.errorOpening ||
-                  "Error opening add person dialog",
-                "error"
-              );
-            }
-          }
-        });
-      }
-
-      // Clear button event listener
-      if (clearButton) {
-        clearButton.addEventListener("click", async () => {
-          try {
-            // Check if rendering is in progress
-            if (window.genealogyIsRendering) return;
-
-            const state = appData.getState();
-
-            if (!state.genealogyData) {
-              console.warn("No genealogy data available");
-              return;
-            }
-
-            const personCount = state.genealogyData.persons.length;
-            if (personCount === 0) {
-              if (window.showNotification) {
-                window.showNotification(
-                  currentTranslations.noDataToClear || "No data to clear",
-                  "info"
-                );
-              }
-              return;
-            }
-
-            // Get the most current translations to avoid stale state
-            const latestLang = window.currentLanguage || "en";
-            const latestTranslations =
-              window.genealogyTranslations?.[latestLang] ||
-              window.genealogyTranslations?.en ||
-              currentTranslations;
-
-            const confirmMessage = latestTranslations.confirmClear
-              ? latestTranslations.confirmClear
-                  .replace("{count}", personCount)
-                  .replace(
-                    "{people}",
-                    personCount === 1
-                      ? latestTranslations.person
-                      : latestTranslations.people
-                  )
-              : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
-
-            if (confirm(confirmMessage)) {
-              // Use appData to clear all persons - this will notify all subscribers
-              appData.clearAllPersons();
-
-              // Show success notification
-              if (window.showNotification) {
-                window.showNotification(
-                  latestTranslations.clearedAllPersons ||
-                    `Cleared all ${personCount} ${personCount === 1 ? "person" : "people"}`,
-                  "success"
-                );
-              }
-            }
-          } catch (error) {
-            console.error("Error clearing data:", error);
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations.errorClearingData ||
-                  "Error clearing genealogy data",
-                "error"
-              );
-            }
-          }
-        });
-      }
-
-      // Print button event listener
-      if (printButton) {
-        printButton.addEventListener("click", async () => {
-          try {
-            // Find the SVG element rendered by GraphRenderer
-            const svg = document.querySelector(".genealogy-graph svg");
-            if (!svg) {
-              if (window.showNotification) {
-                window.showNotification(
-                  currentTranslations.errorRenderingGraph ||
-                    "No graph to print",
-                  "error"
-                );
-              }
-              return;
-            }
-            // Dynamically import PrintGraph utility
-            const module = await import("/utility/PrintGraph.js");
-            module.printGraph(
-              svg.outerHTML,
-              currentTranslations.printGraphTitle || "Genealogy Graph"
-            );
-          } catch (error) {
-            console.error("Error printing graph:", error);
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations.errorPrintingGraph ||
-                  "Error printing graph",
-                "error"
-              );
-            }
-          }
-        });
-      }
-
-      // Mode toggle button event listener
+    if (isOneTreeMode) {
+      toolbar.classList.add("one-tree-mode");
       if (modeToggleButton) {
-        modeToggleButton.addEventListener("click", () => {
-          try {
-            toggleMode();
-          } catch (error) {
-            console.error("Error toggling mode:", error);
-          }
-        });
+        const tooltip =
+          currentTranslations.goToForestMode || "Go to Forest Mode";
+        modeToggleButton.title = tooltip;
+        modeToggleButton.setAttribute("title", tooltip);
       }
-
-      // Manage trees button event listener
-      if (manageTreesButton) {
-        manageTreesButton.addEventListener("click", () => {
-          try {
-            // Check if rendering is in progress
-            if (window.genealogyIsRendering) return;
-
-            // Open tree management dialog
-            if (window.treeManagementDialog) {
-              window.treeManagementDialog.show();
-            } else {
-              // Fallback for debugging
-              const trees =
-                window.genealogyTreeManager?.getAvailableTrees?.() || [];
-              const currentTree =
-                window.genealogyTreeManager?.getSelectedTreeName?.() ||
-                "Unknown";
-
-              const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
-                .map((name) =>
-                  name === currentTree ? `• ${name} (active)` : `• ${name}`
-                )
-                .join("\n")}\n\nTree management dialog is loading...`;
-
-              alert(message);
-            }
-          } catch (error) {
-            console.error("Error opening tree management:", error);
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations.errorOpeningTreeManagement ||
-                  "Error opening tree management",
-                "error"
-              );
-            }
-          }
-        });
+    } else {
+      toolbar.classList.remove("one-tree-mode");
+      if (modeToggleButton) {
+        const tooltip =
+          currentTranslations.goToOneTreeMode || "Go to One Tree Mode";
+        modeToggleButton.title = tooltip;
+        modeToggleButton.setAttribute("title", tooltip);
       }
+    }
+  }
 
-      // Manage files button event listener
-      if (manageFilesButton) {
-        manageFilesButton.addEventListener("click", () => {
-          try {
-            // Check if rendering is in progress
-            if (window.genealogyIsRendering) return;
+  function toggleMode() {
+    isOneTreeMode = !isOneTreeMode;
+    localStorage.setItem(
+      "genealogy-ui-mode",
+      isOneTreeMode ? "one-tree" : "forest"
+    );
+    updateModeDisplay();
 
-            // Open file management dialog
-            if (window.fileManagerDialog) {
-              window.fileManagerDialog.show();
-            } else {
-              console.warn("File manager dialog not available");
-              if (window.showNotification) {
-                window.showNotification(
-                  currentTranslations.errorOpeningFileManager ||
-                    "File manager is loading...",
-                  "info"
-                );
-              }
-            }
-          } catch (error) {
-            console.error("Error opening file management:", error);
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations.errorOpeningFileManager ||
-                  "Error opening file management",
-                "error"
-              );
-            }
+    if (window.showNotification) {
+      const notificationKey = isOneTreeMode
+        ? "switchedToOneTreeMode"
+        : "switchedToForestMode";
+      const message =
+        currentTranslations[notificationKey] ||
+        `Switched to ${isOneTreeMode ? "One Tree Mode" : "Forest Mode"}`;
+      window.showNotification(message, "info");
+    }
+  }
+
+  // Update toolbar translations
+  function updateToolbarTranslations(newTranslations) {
+    currentTranslations = newTranslations;
+
+    // Update button text
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+    const printButton = document.getElementById("print-button");
+    const manageTreesButton = document.getElementById("manage-trees-button");
+    const manageFilesButton = document.getElementById("manage-files-button");
+    const loadingIndicator = document.querySelector("#loading-indicator span");
+
+    if (addButton) {
+      addButton.textContent = currentTranslations.addPerson;
+      addButton.title = currentTranslations.addPersonTooltip;
+    }
+    if (clearButton) {
+      clearButton.textContent = currentTranslations.clearAll;
+      clearButton.title = currentTranslations.clearAllTooltip;
+    }
+    if (printButton) {
+      printButton.textContent = currentTranslations.printGraph || "Print Graph";
+      printButton.title =
+        currentTranslations.printGraphTooltip ||
+        "Print the current genealogy graph";
+    }
+    if (manageTreesButton) {
+      manageTreesButton.textContent = currentTranslations.manageTrees;
+      manageTreesButton.title = currentTranslations.manageTreesTooltip;
+    }
+    if (manageFilesButton) {
+      manageFilesButton.textContent = currentTranslations.manageFiles;
+      manageFilesButton.title = currentTranslations.manageFilesTooltip;
+    }
+    if (loadingIndicator)
+      loadingIndicator.textContent = currentTranslations.loading;
+
+    // Update mode toggle tooltip
+    updateModeDisplay();
+  }
+
+  // Loading state management
+  function setLoadingState(loading) {
+    const loadingIndicator = document.getElementById("loading-indicator");
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+
+    if (loading) {
+      loadingIndicator.style.display = "flex";
+      addButton.disabled = true;
+      clearButton.disabled = true;
+    } else {
+      loadingIndicator.style.display = "none";
+      addButton.disabled = false;
+      clearButton.disabled = false;
+    }
+  }
+
+  // Make loading state function available globally
+  window.toolbarSetLoadingState = setLoadingState;
+
+  // Initialize toolbar button event listeners
+  function initializeToolbarEvents() {
+    const addButton = document.getElementById("add-button");
+    const clearButton = document.getElementById("clear-button");
+    const printButton = document.getElementById("print-button");
+    const modeToggleButton = document.getElementById("mode-toggle-button");
+    const manageTreesButton = document.getElementById("manage-trees-button");
+    const manageFilesButton = document.getElementById("manage-files-button");
+
+    // Add button event listener
+    if (addButton) {
+      addButton.addEventListener("click", () => {
+        try {
+          // Check if rendering is in progress
+          if (window.genealogyIsRendering) return;
+
+          const newPerson = {
+            name: "",
+            mother: null,
+            father: null,
+          };
+
+          // Use the current openEditDialog function
+          const openFn = window.currentOpenEditDialog;
+          if (openFn) {
+            openFn(newPerson);
+          } else {
+            console.warn("No edit dialog function available");
           }
-        });
-      }
-
-      // Initialize mode display
-      updateModeDisplay();
-
-      // Add keyboard shortcuts
-      document.addEventListener("keydown", (event) => {
-        // Ctrl/Cmd + N for new person
-        if (
-          (event.ctrlKey || event.metaKey) &&
-          event.key === "n" &&
-          !window.genealogyIsRendering
-        ) {
-          event.preventDefault();
-          if (addButton) {
-            addButton.click();
+        } catch (error) {
+          console.error("Error opening add dialog:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorOpening ||
+                "Error opening add person dialog",
+              "error"
+            );
           }
         }
       });
     }
 
-    // Initialize events directly since we're using centralized state
-    initializeToolbarEvents();
+    // Clear button event listener
+    if (clearButton) {
+      clearButton.addEventListener("click", async () => {
+        try {
+          // Check if rendering is in progress
+          if (window.genealogyIsRendering) return;
 
-    // Check for stored language and update if needed
-    // Use a small delay to ensure translations are loaded
-    // setTimeout(() => {
-    initializeLanguage();
-    // }, 50);
+          const state = appData.getState();
 
-    return {
-      updateTranslations: updateToolbarTranslations,
-      setLoadingState: setLoadingState,
-    };
+          if (!state.genealogyData) {
+            console.warn("No genealogy data available");
+            return;
+          }
+
+          const personCount = state.genealogyData.persons.length;
+          if (personCount === 0) {
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.noDataToClear || "No data to clear",
+                "info"
+              );
+            }
+            return;
+          }
+
+          const confirmMessage = currentTranslations.confirmClear
+            ? currentTranslations.confirmClear
+                .replace("{count}", personCount)
+                .replace(
+                  "{people}",
+                  personCount === 1
+                    ? currentTranslations.person
+                    : currentTranslations.people
+                )
+            : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
+
+          if (confirm(confirmMessage)) {
+            // Use appData to clear all persons - this will notify all subscribers
+            appData.clearAllPersons();
+
+            // Show success notification
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.clearedAllPersons ||
+                  `Cleared all ${personCount} ${personCount === 1 ? "person" : "people"}`,
+                "success"
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error clearing data:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorClearingData ||
+                "Error clearing genealogy data",
+              "error"
+            );
+          }
+        }
+      });
+    }
+
+    // Print button event listener
+    if (printButton) {
+      printButton.addEventListener("click", async () => {
+        try {
+          // Find the SVG element rendered by GraphRenderer
+          const svg = document.querySelector(".genealogy-graph svg");
+          if (!svg) {
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorRenderingGraph || "No graph to print",
+                "error"
+              );
+            }
+            return;
+          }
+          // Dynamically import PrintGraph utility
+          const module = await import("/utility/PrintGraph.js");
+          module.printGraph(
+            svg.outerHTML,
+            currentTranslations.printGraphTitle || "Genealogy Graph"
+          );
+        } catch (error) {
+          console.error("Error printing graph:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorPrintingGraph || "Error printing graph",
+              "error"
+            );
+          }
+        }
+      });
+    }
+
+    // Mode toggle button event listener
+    if (modeToggleButton) {
+      modeToggleButton.addEventListener("click", () => {
+        try {
+          toggleMode();
+        } catch (error) {
+          console.error("Error toggling mode:", error);
+        }
+      });
+    }
+
+    // Manage trees button event listener
+    if (manageTreesButton) {
+      manageTreesButton.addEventListener("click", () => {
+        try {
+          // Check if rendering is in progress
+          if (window.genealogyIsRendering) return;
+
+          // Open tree management dialog
+          if (window.treeManagementDialog) {
+            window.treeManagementDialog.show();
+          } else {
+            // Fallback for debugging
+            const state = appData.getState();
+            const trees = state.availableTrees || [];
+            const currentTree = state.currentTreeName || "Unknown";
+
+            const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
+              .map((name) =>
+                name === currentTree ? `• ${name} (active)` : `• ${name}`
+              )
+              .join("\n")}\n\nTree management dialog is loading...`;
+
+            alert(message);
+          }
+        } catch (error) {
+          console.error("Error opening tree management:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorOpeningTreeManagement ||
+                "Error opening tree management",
+              "error"
+            );
+          }
+        }
+      });
+    }
+
+    // Manage files button event listener
+    if (manageFilesButton) {
+      manageFilesButton.addEventListener("click", () => {
+        try {
+          // Check if rendering is in progress
+          if (window.genealogyIsRendering) return;
+
+          // Open file management dialog
+          if (window.fileManagerDialog) {
+            window.fileManagerDialog.show();
+          } else {
+            console.warn("File manager dialog not available");
+            if (window.showNotification) {
+              window.showNotification(
+                currentTranslations.errorOpeningFileManager ||
+                  "File manager is loading...",
+                "info"
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error opening file management:", error);
+          if (window.showNotification) {
+            window.showNotification(
+              currentTranslations.errorOpeningFileManager ||
+                "Error opening file management",
+              "error"
+            );
+          }
+        }
+      });
+    }
+
+    // Initialize mode display
+    updateModeDisplay();
+
+    // Add keyboard shortcuts
+    document.addEventListener("keydown", (event) => {
+      // Ctrl/Cmd + N for new person
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "n" &&
+        !window.genealogyIsRendering
+      ) {
+        event.preventDefault();
+        if (addButton) {
+          addButton.click();
+        }
+      }
+    });
   }
 
-  // Initialize immediately since DOM is already ready in inline scripts
-  initializeToolbar();
+  // Initialize events directly since we're using centralized state
+  initializeToolbarEvents();
 </script>
