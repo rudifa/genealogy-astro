@@ -24,7 +24,7 @@ export class AppLanguages {
     /** @type {string} */
     this.currentLanguage = this.#getOrInitLocalStorageLang(LS_KEY, "en");
     /** @type {Object|null} */
-    this.allTranslations = null;
+    this.allTranslations = null; // must be set later
     /** @type {Set<Function>} */
     this.subscribers = new Set();
   }
