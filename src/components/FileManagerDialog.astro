@@ -590,7 +590,8 @@ const {translations} = Astro.props;
     cursor: not-allowed !important;
   }
 </style>
-<script is:inline type='module' define:vars={{translations}}>
+
+<script is:inline type='module'>
   import {AppData} from "/utility/AppData.js";
   import {AppLanguages} from "/utility/AppLanguages.js";
 
@@ -617,7 +618,7 @@ const {translations} = Astro.props;
   const fileInfoSection = document.getElementById("file-info-section");
   const fileInfoContent = document.getElementById("file-info-content");
 
-  let currentTranslations; // Will be set in updateFileManagerTranslations
+  let currentTranslations = null;
   let selectedFile = null;
 
   // --- 2. Main execution flow ---
@@ -628,11 +629,6 @@ const {translations} = Astro.props;
     console.log("FileManagerDialog: newTranslations", newTranslations);
   }, "FileManagerDialog");
 
-  // Listen for languageChanged event (from outside)
-  //   window.addEventListener("languageChanged", function (event) {
-  //     updateFileManagerTranslations(event.detail.translations);
-  //   });
-
   // Set up all event listeners
   setupEventListeners();
 
@@ -641,9 +637,6 @@ const {translations} = Astro.props;
     show: showFileManager,
     hide: hideFileManager,
   };
-
-  // Initialize with correct language immediately
-  //   updateFileManagerTranslations(currentTranslations);
 
   // --- 3. Function definitions ---
 

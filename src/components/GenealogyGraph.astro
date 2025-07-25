@@ -85,10 +85,9 @@ const {language, translations} = Astro.props;
       // --- Initialize the edit dialog ---
       const state = appData.getState();
       state; // disposes of a ts hint
-      //   const {openEditDialog} = window.initializeEditDialog();
 
-      //   // Make functions available globally for components
-      //   window.currentOpenEditDialog = openEditDialog;
+      // Initialize the shared variables
+
       window.genealogyIsRendering = false;
       window.setLoadingState = setLoadingState;
 

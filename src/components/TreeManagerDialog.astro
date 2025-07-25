@@ -773,7 +773,7 @@ const {} = Astro.props;
   }
 </style>
 
-<script is:inline type='module' define:vars={{translations}}>
+<script is:inline type='module'>
   import {AppLanguages} from "/utility/AppLanguages.js";
   import {AppData} from "/utility/AppData.js";
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
@@ -793,7 +793,7 @@ const {} = Astro.props;
   const createTreeLabel = document.getElementById("create-tree-label");
   const treeList = document.getElementById("tree-list");
 
-  let currentTranslations = translations;
+  let currentTranslations = null;
   let selectedOther = null;
   let familyExampleNeedsReset = false;
   let unsubscribe = null;

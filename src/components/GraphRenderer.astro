@@ -44,7 +44,7 @@ const {translations} = Astro.props;
   }
 </style>
 
-<script is:inline type='module' define:vars={{translations}}>
+<script is:inline type='module'>
   // 1. Imports and variable declarations
 
   import {AppLanguages} from "/utility/AppLanguages.js";
@@ -54,11 +54,11 @@ const {translations} = Astro.props;
   const verbose = false;
   const appData = AppData.ensureOneExists();
   const appLanguages = AppLanguages.ensureOneExists();
-  let currentTranslations = appLanguages.getTranslations();
   const graphvizPromise = Graphviz.load();
-
   const graphContainer = document.querySelector(".genealogy-graph");
   const graphPlaceholder = document.getElementById("graph-placeholder");
+
+  let currentTranslations = null;
 
   // 2. Main execution flow
 
@@ -92,13 +92,6 @@ const {translations} = Astro.props;
     if (verbose) console.log("GraphRenderer: Setting up graph functionality");
 
     graphContainer.addEventListener("click", handleGraphClick);
-
-    window.updateGraph = function () {
-      if (verbose) console.log("GraphRenderer: Update graph requested");
-      renderGraph();
-    };
-
-    window.renderGraph = renderGraph;
 
     initializeStateSubscription();
 
@@ -245,7 +238,7 @@ const {translations} = Astro.props;
         );
 
         if (personData) {
-          const openFn = window.currentOpenEditDialog;
+          const openFn = window.openEditDialog;
           if (openFn) {
             if (verbose)
               console.log(

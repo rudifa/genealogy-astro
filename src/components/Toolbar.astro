@@ -300,9 +300,8 @@ const {language, translations} = Astro.props;
   }
 </style>
 
-<script is:inline type='module' define:vars={{translations}}>
-  // Store current translations (will be updated by language changes)
-  let currentTranslations = translations;
+<script is:inline type='module'>
+  let currentTranslations = null;
 
   // Mode management
   let isOneTreeMode = localStorage.getItem("genealogy-ui-mode") !== "forest";
@@ -451,7 +450,7 @@ const {language, translations} = Astro.props;
           };
 
           // Use the current openEditDialog function
-          const openFn = window.currentOpenEditDialog;
+          const openFn = window.openEditDialog;
           if (openFn) {
             openFn(newPerson);
           } else {

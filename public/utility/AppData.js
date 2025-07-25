@@ -3,10 +3,10 @@ import {GenealogyForestData} from "./GenealogyForestData.js";
 import {getSampleFamily} from "./SampleFamily.js";
 
 /*
-* AppData.js
-* manages the application state for genealogy data,
-* including the current tree and available trees.
-*/
+ * AppData.js
+ * manages the application state for genealogy data,
+ * including the current tree and available trees.
+ */
 export class AppData {
   constructor() {
     if (AppData._instance) {
@@ -43,21 +43,19 @@ export class AppData {
     if (!AppData._instance) {
       AppData._instance = new AppData();
       AppData._instance.initialize(getSampleFamily());
-      if (verbose && typeof window !== 'undefined') {
-        window._appData = AppData._instance; // attach to window for inspection
-      }
+
       if (verbose) {
         console.log(
           "🦋 AppData.ensureOneExists: instance created and initialized with sample family data"
         );
       }
     } else {
-      if (verbose && typeof window !== 'undefined') {
-        window.appData = AppData._instance;
-      }
       if (verbose) {
         console.log("☘️ AppData.ensureOneExists: instance exists");
       }
+    }
+    if (verbose && typeof window !== "undefined") {
+      window._appData = AppData._instance; // attach to window for inspection only
     }
     return AppData._instance;
   }

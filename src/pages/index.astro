@@ -23,21 +23,6 @@ const t = getTranslations(currentLanguage);
   </main>
 </Layout>
 
-<script
-  is:inline
-  define:vars={{
-    translationsData: JSON.stringify(translations),
-  }}
->
-  console.log(
-    "➡️ index: <script is:inline define:vars={{translationsData: JSON.stringify(translations)}}>"
-  );
-
-  // Use translations from the i18n system
-  window.genealogyTranslations = JSON.parse(translationsData);
-  window.currentLanguage = "en";
-</script>
-
 <script is:inline type='module'>
   console.log("➡️ index: <script is:inline type='module'>");
 
