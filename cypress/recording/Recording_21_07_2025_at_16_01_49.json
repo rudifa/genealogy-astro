@@ -1,0 +1,587 @@
+{
+    "title": "Recording 21/07/2025 at 16:01:49",
+    "steps": [
+        {
+            "type": "setViewport",
+            "width": 703,
+            "height": 710,
+            "deviceScaleFactor": 1,
+            "isMobile": false,
+            "hasTouch": false,
+            "isLandscape": false
+        },
+        {
+            "type": "navigate",
+            "url": "http://localhost:4321/?lang=fr",
+            "assertedEvents": [
+                {
+                    "type": "navigation",
+                    "url": "http://localhost:4321/?lang=fr",
+                    "title": "Explorateur d'Arbre Familial"
+                }
+            ]
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "[data-testid='language-select']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"language-select\"]"
+                ],
+                [
+                    "pierce/[data-testid='language-select']"
+                ],
+                [
+                    "text/fr"
+                ]
+            ],
+            "offsetY": 16.614578247070312,
+            "offsetX": 72.27777671813965
+        },
+        {
+            "type": "change",
+            "value": "de",
+            "selectors": [
+                [
+                    "[data-testid='language-select']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"language-select\"]"
+                ],
+                [
+                    "pierce/[data-testid='language-select']"
+                ],
+                [
+                    "text/fr"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "[data-testid='tree-select']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"tree-select\"]"
+                ],
+                [
+                    "pierce/[data-testid='tree-select']"
+                ]
+            ],
+            "offsetY": 14.1805419921875,
+            "offsetX": 68.27777671813965
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Person Hinzufügen"
+                ],
+                [
+                    "[data-testid='add-person-button']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"add-person-button\"]"
+                ],
+                [
+                    "pierce/[data-testid='add-person-button']"
+                ],
+                [
+                    "text/Person Hinzufügen"
+                ]
+            ],
+            "offsetY": 23.748245239257812,
+            "offsetX": 74.00347137451172
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Name: *"
+                ],
+                [
+                    "#person-name"
+                ],
+                [
+                    "xpath///*[@id=\"person-name\"]"
+                ],
+                [
+                    "pierce/#person-name"
+                ]
+            ],
+            "offsetY": 18.612838745117188,
+            "offsetX": 74.55902481079102
+        },
+        {
+            "type": "change",
+            "value": "Tim",
+            "selectors": [
+                [
+                    "aria/Name: *"
+                ],
+                [
+                    "#person-name"
+                ],
+                [
+                    "xpath///*[@id=\"person-name\"]"
+                ],
+                [
+                    "pierce/#person-name"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Speichern"
+                ],
+                [
+                    "[data-testid='save-button']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"save-button\"]"
+                ],
+                [
+                    "pierce/[data-testid='save-button']"
+                ],
+                [
+                    "text/Speichern"
+                ]
+            ],
+            "offsetY": 22.0694580078125,
+            "offsetX": 52.42010498046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Graph drucken"
+                ],
+                [
+                    "#print-button"
+                ],
+                [
+                    "xpath///*[@id=\"print-button\"]"
+                ],
+                [
+                    "pierce/#print-button"
+                ],
+                [
+                    "text/Graph drucken"
+                ]
+            ],
+            "offsetY": 18.414886474609375,
+            "offsetX": 77.00347137451172
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Bäume Verwalten"
+                ],
+                [
+                    "[data-testid='tree-manager']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"tree-manager\"]"
+                ],
+                [
+                    "pierce/[data-testid='tree-manager']"
+                ],
+                [
+                    "text/Bäume Verwalten"
+                ]
+            ],
+            "offsetY": 26.55029296875,
+            "offsetX": 70.00347137451172
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Neuen Baum Erstellen:"
+                ],
+                [
+                    "#tree-manager-tree-name"
+                ],
+                [
+                    "xpath///*[@id=\"tree-manager-tree-name\"]"
+                ],
+                [
+                    "pierce/#tree-manager-tree-name"
+                ]
+            ],
+            "offsetY": 27.402740478515625,
+            "offsetX": 25.3125
+        },
+        {
+            "type": "change",
+            "value": "New Family",
+            "selectors": [
+                [
+                    "aria/Neuen Baum Erstellen:"
+                ],
+                [
+                    "#tree-manager-tree-name"
+                ],
+                [
+                    "xpath///*[@id=\"tree-manager-tree-name\"]"
+                ],
+                [
+                    "pierce/#tree-manager-tree-name"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Erstellen"
+                ],
+                [
+                    "#create-tree-button"
+                ],
+                [
+                    "xpath///*[@id=\"create-tree-button\"]"
+                ],
+                [
+                    "pierce/#create-tree-button"
+                ]
+            ],
+            "offsetY": 24.88983154296875,
+            "offsetX": 281.3125
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Person Hinzufügen"
+                ],
+                [
+                    "[data-testid='add-person-button']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"add-person-button\"]"
+                ],
+                [
+                    "pierce/[data-testid='add-person-button']"
+                ]
+            ],
+            "offsetY": 27.748245239257812,
+            "offsetX": 64.00347137451172
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Name: *"
+                ],
+                [
+                    "#person-name"
+                ],
+                [
+                    "xpath///*[@id=\"person-name\"]"
+                ],
+                [
+                    "pierce/#person-name"
+                ],
+                [
+                    "text/Tim"
+                ]
+            ],
+            "offsetY": 23.612838745117188,
+            "offsetX": 128.55902481079102
+        },
+        {
+            "type": "keyDown",
+            "target": "main",
+            "key": "Shift"
+        },
+        {
+            "type": "keyUp",
+            "key": "Shift",
+            "target": "main"
+        },
+        {
+            "type": "change",
+            "value": "Holger",
+            "selectors": [
+                [
+                    "aria/Name: *"
+                ],
+                [
+                    "#person-name"
+                ],
+                [
+                    "xpath///*[@id=\"person-name\"]"
+                ],
+                [
+                    "pierce/#person-name"
+                ],
+                [
+                    "text/Tim"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Speichern"
+                ],
+                [
+                    "[data-testid='save-button']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"save-button\"]"
+                ],
+                [
+                    "pierce/[data-testid='save-button']"
+                ],
+                [
+                    "text/Speichern"
+                ]
+            ],
+            "offsetY": 18.0694580078125,
+            "offsetX": 50.42010498046875
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Holger[role=\"link\"]",
+                    "aria/[role=\"graphics-symbol\"]"
+                ],
+                [
+                    "#node1 polygon"
+                ],
+                [
+                    "xpath///*[@id=\"a_node1\"]/a/polygon"
+                ],
+                [
+                    "pierce/#node1 polygon"
+                ]
+            ],
+            "offsetY": 40.1917724609375,
+            "offsetX": 16.83648681640625
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Mutter:"
+                ],
+                [
+                    "[data-testid='mother-input']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"mother-input\"]"
+                ],
+                [
+                    "pierce/[data-testid='mother-input']"
+                ]
+            ],
+            "offsetY": 18.619781494140625,
+            "offsetX": 45.559024810791016
+        },
+        {
+            "type": "change",
+            "value": "Vera",
+            "selectors": [
+                [
+                    "aria/Mutter:"
+                ],
+                [
+                    "[data-testid='mother-input']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"mother-input\"]"
+                ],
+                [
+                    "pierce/[data-testid='mother-input']"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Vater:"
+                ],
+                [
+                    "[data-testid='father-input']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"father-input\"]"
+                ],
+                [
+                    "pierce/[data-testid='father-input']"
+                ]
+            ],
+            "offsetY": 16.22393798828125,
+            "offsetX": 48.559024810791016
+        },
+        {
+            "type": "change",
+            "value": "Johann",
+            "selectors": [
+                [
+                    "aria/Vater:"
+                ],
+                [
+                    "[data-testid='father-input']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"father-input\"]"
+                ],
+                [
+                    "pierce/[data-testid='father-input']"
+                ]
+            ],
+            "target": "main"
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Speichern"
+                ],
+                [
+                    "[data-testid='save-button']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"save-button\"]"
+                ],
+                [
+                    "pierce/[data-testid='save-button']"
+                ],
+                [
+                    "text/Speichern"
+                ]
+            ],
+            "offsetY": 12.0694580078125,
+            "offsetX": 50.960052490234375
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Dateien Verwalten"
+                ],
+                [
+                    "[data-testid='file-manager']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"file-manager\"]"
+                ],
+                [
+                    "pierce/[data-testid='file-manager']"
+                ]
+            ],
+            "offsetY": 28.66143798828125,
+            "offsetX": 83.00347137451172
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Aktuellen Baum Herunterladen"
+                ],
+                [
+                    "#download-current-tree"
+                ],
+                [
+                    "xpath///*[@id=\"download-current-tree\"]"
+                ],
+                [
+                    "pierce/#download-current-tree"
+                ],
+                [
+                    "text/Aktuellen Baum"
+                ]
+            ],
+            "offsetY": 25.385406494140625,
+            "offsetX": 300.00346755981445
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "aria/Close"
+                ],
+                [
+                    "#file-manager-close"
+                ],
+                [
+                    "xpath///*[@id=\"file-manager-close\"]"
+                ],
+                [
+                    "pierce/#file-manager-close"
+                ]
+            ],
+            "offsetY": 20.247241973876953,
+            "offsetX": 16.8531494140625
+        },
+        {
+            "type": "click",
+            "target": "main",
+            "selectors": [
+                [
+                    "[data-testid='language-select']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"language-select\"]"
+                ],
+                [
+                    "pierce/[data-testid='language-select']"
+                ]
+            ],
+            "offsetY": 16.50347137451172,
+            "offsetX": 94.27777671813965
+        },
+        {
+            "type": "change",
+            "value": "ja",
+            "selectors": [
+                [
+                    "[data-testid='language-select']"
+                ],
+                [
+                    "xpath///*[@data-testid=\"language-select\"]"
+                ],
+                [
+                    "pierce/[data-testid='language-select']"
+                ]
+            ],
+            "target": "main"
+        }
+    ]
+}
