@@ -8,22 +8,26 @@
 - **Persons**: The family tree consists of persons, each with their _Name_ and optionally their _Mother_, _Father_ and _Info_.
 - **Multi-Tree Management:** Create and manage multiple family trees, all within your browser.
 - **Easy Editing:** Add, edit, and remove people with a simple dialog. Add and remove family trees.
-- **Multilingual:** Full user experience in English, French, and German.
+- **Multilingual:** Full user experience in English, French, German, Japanese and Burzum Nazg.
 - **Persistent Storage:** Your work is automatically saved in your browser's local storage.
 - **Responsive Design:** Works on desktop, laptop, tablet, and mobile.
 - **Live Demo:** Published on Vercel at [genealogy-astro.vercel.app](https://genealogy-astro.vercel.app/)
 - **File Download/Upload:** Save your trees to your computer or tablet for backup or sharing, and load them back anytime.
-- **Print Tree:** Print the displayed family tree graph.
+- **Print Tree:** Print the displayed family tree graph to your network printer or save it as a PDF.
 
 ## Missing features
 
-- Load multiple files and merge them
+- **Undo/Redo:** No undo/redo functionality yet.
+- **Photo/Image Support:** Currently, you cannot add photos or images to persons.
+- **Tree Sharing:** No built-in sharing functionality to share trees with others (you have to download files and share them manually).
 
 ## Possible features
 
 - add photo/image to a person
 
-## Screenshot
+## Screenshots
+
+![Frodo's Family Tree](img/Frodo_s_Family.png)
 
 ![Example family tree](img/example-family-tree.png)
 
