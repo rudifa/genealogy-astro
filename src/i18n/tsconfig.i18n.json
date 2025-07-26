@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        /* Base Options */
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "target": "ES2022",
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "moduleDetection": "force",
+        "isolatedModules": true,
+        /* Strictness */
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        /* Output */
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "outDir": "../../public/i18n", // Key change: Output JS files to public/i18n
+        "rootDir": "." // The root of the source files is the current directory (src/i18n)
+    },
+    "include": [
+        "./**/*.ts"
+    ], // Key change: Compile all .ts files in this directory
+    "exclude": [
+        "node_modules"
+    ]
+}
