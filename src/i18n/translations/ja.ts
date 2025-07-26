@@ -1,24 +1,41 @@
 // Japanese translations for the genealogy app
 import type {Translations} from "../index";
 
-const ja: Translations = {
+export const ja: Translations = {
+  // General
+  isoCode: "ja",
+  languageName: "Japanese",
+  nativeName: "日本語",
+  flag: "🇯🇵",
+
+  // Footer
   pageTitle: "家系図アプリ",
   pageDescription: "家族のつながりを視覚化し、管理するための家系図アプリです。",
+
+  // Header
   appTitle: "家系図",
   appSubtitle: "家族の歴史を記録しましょう",
+
+  // Toolbar
   addPerson: "人物を追加",
   clearAll: "全てクリア",
   familyExample: "家族の例",
   manageTrees: "家系管理",
   loading: "読み込み中...",
+
+  // Toolbar tooltips
   addPersonTooltip: "新しい人物を追加",
   clearAllTooltip: "全ての人物を削除",
   manageTreesTooltip: "家系を管理",
   manageFilesTooltip: "ファイルを管理",
+
+  // Mode Toggle
   goToForestMode: "フォレストモードへ",
   goToOneTreeMode: "ワンツリーモードへ",
   switchedToForestMode: "フォレストモードに切り替えました",
   switchedToOneTreeMode: "ワンツリーモードに切り替えました",
+
+  // Dialog
   editPerson: "人物を編集",
   addNewPerson: "新しい人物を追加",
   name: "名前",
@@ -29,12 +46,16 @@ const ja: Translations = {
   save: "保存",
   remove: "削除",
   cancel: "キャンセル",
+
+  // Validation messages
   nameRequired: "名前は必須です",
   nameMaxLength: "名前が長すぎます",
   nameExists: "同じ名前の人物が既に存在します",
   parentMaxLength: "親の名前が長すぎます",
   parentSameAsPerson: "親の名前が本人と同じです",
   fixErrors: "エラーを修正してください",
+
+  // Notifications
   graphUpdated: "グラフが更新されました",
   graphCleared: "グラフがクリアされました",
   noDataToClear: "クリアするデータがありません",
@@ -47,6 +68,8 @@ const ja: Translations = {
   errorOpening: "開くエラー",
   errorClearing: "クリアエラー",
   errorInitializing: "初期化エラー",
+
+  // Confirmations
   confirmRemove: "本当に削除しますか？",
   confirmClear: "全ての人物を削除しますか？",
   confirmFamilyExample: "家族の例を読み込みますか？",
@@ -56,6 +79,8 @@ const ja: Translations = {
   failedToResetFamilyExample: "家族の例のリセットに失敗しました",
   errorResetFamilyExample: "家族の例のリセットエラー",
   actionCannotBeUndone: "この操作は元に戻せません",
+
+  // Placeholders and misc
   loadingGraph: "グラフを読み込み中...",
   reloadPage: "ページを再読み込み",
   initializationError: "初期化エラー",
@@ -63,8 +88,12 @@ const ja: Translations = {
   errorRenderingGraph: "グラフ表示エラー",
   person: "人物",
   people: "人物",
+
+  // Language switcher
   language: "言語",
   selectLanguage: "言語を選択",
+
+  // Tree Management Dialog
   manageFamilyTrees: "家系管理",
   availableTrees: "利用可能な家系",
   createNewTree: "新しい家系を作成",
@@ -84,23 +113,33 @@ const ja: Translations = {
   errorSwitchingTree: "家系切り替えエラー",
   errorDeletingTree: "家系削除エラー",
   errorCreatingTree: "家系作成エラー",
+
+  // Tree validation errors
   treeNameEmpty: "家系名が空です",
   treeNameExists: "同じ家系名が既に存在します",
   treeNotFound: "家系が見つかりません",
   cannotDeleteFamilyExample: "家族の例は削除できません",
   cannotRenameFamilyExample: "家族の例は名前変更できません",
+
+  // Tree merge and action tooltips
   selectedForMerge: "マージ対象",
   selectForMerge: "マージ対象を選択",
   clickToSwitchTo: "クリックして切り替え",
+
+  // Footer
   projectInfo: "プロジェクト情報",
   developedBy: "開発者",
   sourceCode: "ソースコード",
   viewOnGitHub: "GitHubで見る",
+
+  // Tree management notifications
   switchedToTree: "家系を切り替えました",
   errorUpdateAfterTreeChange: "家系変更後の更新エラー",
   errorLoadingFamilyExample: "家族の例の読み込みエラー",
   errorOpeningTreeManagement: "家系管理の開くエラー",
   errorOpeningFileManager: "ファイル管理の開くエラー",
+
+  // File Manager
   manageFiles: "ファイル管理",
   downloadSection: "ダウンロード",
   uploadSection: "アップロード",
@@ -124,6 +163,8 @@ const ja: Translations = {
   activeTree: "アクティブな家系",
   exportDate: "エクスポート日",
   personCount: "人物数",
+
+  // File Manager notifications
   noTreeDataToDownload: "ダウンロードする家系データがありません",
   treeDownloaded: "家系がダウンロードされました",
   noTreesToDownload: "ダウンロードする家系がありません",
@@ -139,6 +180,8 @@ const ja: Translations = {
   treeReplaced: "家系が置換されました",
   treeMerged: "家系がマージされました",
   allTreesImported: "全家系がインポートされました",
+
+  // Print
   printGraph: "グラフを印刷",
   printGraphTooltip: "グラフを印刷します",
 };

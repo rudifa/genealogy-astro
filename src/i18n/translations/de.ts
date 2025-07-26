@@ -1,15 +1,21 @@
 import type {Translations} from "../index";
 
 export const de: Translations = {
+  // General
+  isoCode: "de",
+  languageName: "Deutsch",
+  nativeName: "Deutsch",
+  flag: "🇩🇪",
+
   // Page content
-  pageTitle: " ",
+  pageTitle: "Stammbaum Explorer",
   pageDescription:
     "Interaktive Stammbaum-Visualisierung und Genealogie-Verwaltungsanwendung.",
 
   // Header
   appTitle: "Stammbaum Explorer",
   appSubtitle:
-    "Visualisieren und verwalten Sie Ihre Familiengenealgie mit einem interaktiven Graphen. Klicken Sie auf eine Person, um ihre Details zu bearbeiten oder neue Familienmitglieder hinzuzufügen.",
+    "Visualisieren und verwalten Sie Ihre Familienstammbaum mit einem interaktiven Graphen. Klicken Sie auf eine Person, um ihre Details zu bearbeiten oder neue Familienmitglieder hinzuzufügen.",
 
   // Toolbar
   addPerson: "Person Hinzufügen",

@@ -1,6 +1,12 @@
 import type {Translations} from "../index";
 
 export const fr: Translations = {
+  //General
+  isoCode: "fr",
+  languageName: "Français",
+  nativeName: "Français",
+  flag: "🇫🇷",
+
   // Page content
   pageTitle: "Explorateur d'Arbre Familial",
   pageDescription:
