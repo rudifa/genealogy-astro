@@ -1,19 +1,15 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <header class='app-header'>
   <div class='header-content'>
     <div class='title-section'>
-      <h1 class='app-title' data-cy='app-title'>{translations.appTitle}</h1>
-      <p class='app-subtitle'>{translations.appSubtitle}</p>
+      <h1 class='app-title' data-cy='app-title'></h1>
+      <!-- Default text, updated by script -->
+      <p class='app-subtitle'></p>
+      <!-- Default text, updated by script -->
     </div>
   </div>
 </header>
@@ -98,26 +94,25 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
-  import {AppLanguages} from "/utility/AppLanguages.js";
-  // Use the AppLanguages singleton for all translations management
-  const appLanguages = AppLanguages.ensureOneExists();
+  import {App} from "/utility/App.js";
 
-  // Subscribe to language changes to update Header translations
-  appLanguages.subscribe((newTranslations) => {
+  // --- 1. Singletons and DOM elements ---
+  const app = App.ensureAppExists();
+  const appTitle = document.querySelector(".header-content .app-title");
+  const appSubtitle = document.querySelector(".header-content .app-subtitle");
+
+  // --- 2. Subscriptions ---
+  // Subscribe to translation changes to keep the header text in sync
+  app.translations.subscribe((newTranslations) => {
     updateHeaderTranslations(newTranslations);
     console.log("👍 Header: newTranslations:", newTranslations);
-  }, "Header");
+  }, "Header-Translations");
 
-  // Function to update header translations
+  // --- 3. Helper functions ---
   function updateHeaderTranslations(newTranslations) {
-    console.log("Header: updateHeaderTranslations:", newTranslations);
-    const appTitle = document.querySelector(".header-content .app-title");
-    const appSubtitle = document.querySelector(".header-content .app-subtitle");
-
     if (appTitle) {
       appTitle.textContent = newTranslations.appTitle;
     }
-
     if (appSubtitle) {
       appSubtitle.textContent = newTranslations.appSubtitle;
     }

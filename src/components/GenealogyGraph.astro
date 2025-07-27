@@ -37,20 +37,16 @@ const {language, translations} = Astro.props;
 
 <script is:inline type='module'>
   // --- 1. Imports and variable declarations ---
-  import {AppLanguages} from "/utility/AppLanguages.js";
-  import {AppData} from "/utility/AppData.js";
+  import {App} from "/utility/App.js";
 
-  // Use the AppLanguages singleton for all translations management
-  const appLanguages = AppLanguages.ensureOneExists();
-  // Use the AppData singleton for all tree data management
-  const appData = AppData.ensureOneExists();
+  const app = App.ensureAppExists();
 
   let currentTranslations;
 
   // --- 2. Main execution flow ---
 
   // Subscribe to language changes via appLanguages
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateGenealogyGraphTranslations(newTranslations);
     console.log("👍 GenealogyGraph: newTranslations:", newTranslations);
   }, "GenealogyGraph");
@@ -83,7 +79,7 @@ const {language, translations} = Astro.props;
     console.log("GenealogyGraph: initializeGenealogySystem...");
     try {
       // --- Initialize the edit dialog ---
-      const state = appData.getState();
+      const state = app.data.getState();
       state; // disposes of a ts hint
 
       // Initialize the shared variables
@@ -109,7 +105,7 @@ const {language, translations} = Astro.props;
   // Listen for tree management updates to ensure display is synchronized
   function initializeStateSubscription() {
     // Always subscribe to appData singleton
-    const unsubscribe = appData.subscribe((state) => {
+    const unsubscribe = app.data.subscribe((state) => {
       // Sync forest data if present (no longer assign to window.genealogyTreeManager)
       // All tree management is handled via appData singleton now.
       state; // disposes of a ts hint

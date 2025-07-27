@@ -1,40 +1,31 @@
 ---
-import type {Language, Translations} from "../i18n/index";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
 import TreeSwitcher from "./TreeSwitcher.astro";
 
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {language, translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <div class='toolbar' data-cy='toolbar'>
-  <LanguageSwitcher currentLanguage={language} translations={translations} />
-  <TreeSwitcher
-    currentTree='Family Example'
-    language={language}
-    translations={translations}
-  />
+  <LanguageSwitcher />
+  <TreeSwitcher />
   <button
     id='add-button'
     type='button'
     title='Add a new person to current tree'
-    data-cy='add-person-button'>{translations.addPerson}</button
+    data-cy='add-person-button'>Add Person</button
   >
   <button
     id='clear-button'
     type='button'
     title='Remove all persons from current tree'
-    data-cy='clear-all-button'>{translations.clearAll}</button
+    data-cy='clear-all-button'>Clear All</button
   >
   <button
     id='print-button'
     type='button'
     title='Print the current genealogy graph'
-    >{translations.printGraph || "Print Graph"}</button
+    >Print Graph</button
   >
 
   <div class='mode-separator'></div>
@@ -52,17 +43,17 @@ const {language, translations} = Astro.props;
     id='manage-trees-button'
     type='button'
     title='Create, switch, delete or merge family trees'
-    data-cy='tree-manager'>{translations.manageTrees}</button
+    data-cy='tree-manager'>Manage Trees</button
   >
   <button
     id='manage-files-button'
     type='button'
     title='Upload or download family tree data files'
-    data-cy='file-manager'>{translations.manageFiles}</button
+    data-cy='file-manager'>Manage Files</button
   >
   <div id='loading-indicator' class='loading-indicator' style='display: none;'>
     <div class='spinner'></div>
-    <span>{translations.loading}</span>
+    <span>Loading...</span>
   </div>
 </div>
 
@@ -301,12 +292,10 @@ const {language, translations} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  import {AppLanguages} from "/utility/AppLanguages.js";
-  import {AppData} from "/utility/AppData.js";
+  import {App} from "/utility/App.js";
 
   // --- 1. Variable declarations and singletons ---
-  const appLanguages = AppLanguages.ensureOneExists();
-  const appData = AppData.ensureOneExists();
+  const app = App.ensureAppExists();
 
   // DOM elements
   const toolbar = document.querySelector(".toolbar");
@@ -325,7 +314,7 @@ const {language, translations} = Astro.props;
   // --- 2. Main execution flow ---
 
   // Subscribe to language changes
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateToolbarTranslations(newTranslations);
     console.log("👍 Toolbar: newTranslations:", newTranslations);
   }, "Toolbar");
@@ -443,7 +432,7 @@ const {language, translations} = Astro.props;
       clearButton.addEventListener("click", async () => {
         try {
           if (window.genealogyIsRendering) return;
-          const state = appData.getState();
+          const state = app.data.getState();
           if (!state.genealogyData) {
             console.warn("No genealogy data available");
             return;
@@ -470,7 +459,7 @@ const {language, translations} = Astro.props;
             : `Are you sure you want to remove all ${personCount} ${personCount === 1 ? "person" : "people"} from the genealogy? This action cannot be undone.`;
 
           if (confirm(confirmMessage)) {
-            appData.clearAllPersons();
+            app.data.clearAllPersons();
             if (window.showNotification) {
               window.showNotification(
                 currentTranslations?.clearedAllPersons ||
@@ -542,7 +531,7 @@ const {language, translations} = Astro.props;
           if (window.treeManagementDialog) {
             window.treeManagementDialog.show();
           } else {
-            const state = appData.getState();
+            const state = app.data.getState();
             const trees = state.availableTrees || [];
             const currentTree = state.currentTreeName || "Unknown";
             const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees

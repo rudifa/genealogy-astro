@@ -1,16 +1,9 @@
 ---
 import {
   supportedLanguages,
-  translations as allTranslations,
-  type Language,
+  translations as allTranslations
 } from "../i18n/index.ts";
-
-export interface Props {
-  currentLanguage: Language;
-  translations: any;
-}
-
-const {currentLanguage} = Astro.props;
+// This component is now self-sufficient and does not require any props.
 ---
 
 <div class='language-switcher' data-cy='language-switcher'>
@@ -22,7 +15,7 @@ const {currentLanguage} = Astro.props;
       supportedLanguages.map((lang) => (
         <option
           value={lang.code}
-          selected={lang.code === currentLanguage}
+          selected={false} /* Client script will set the correct value */
           data-cy={`lang-${lang.code}`}>
           {lang.flag} {lang.nativeName}
         </option>
@@ -118,18 +111,18 @@ const {currentLanguage} = Astro.props;
   }}
 >
   // 1. Imports
-  import {AppLanguages} from "/utility/AppLanguages.js";
+  import {App} from "/utility/App.js";
 
   // 2. Singleton/instance setup
-  const appLanguages = AppLanguages.ensureOneExists();
+  const app = App.ensureAppExists();
 
   // 3. Initialization
-  appLanguages.setAllTranslations(allTranslations);
+  app.translations.setAllTranslations(allTranslations);
 
   // 4. Subscriptions
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     console.log("👍 LanguageSwitcher: newTranslations:", newTranslations);
-    // const selectedLanguage = appLanguages.getLanguage();
+    // const selectedLanguage = app.translations.getLanguage();
   }, "LanguageSwitcher");
 
   // 5. DOM element references
@@ -140,7 +133,7 @@ const {currentLanguage} = Astro.props;
     languageSelect.addEventListener("change", function (event) {
       console.log("🍋 LanguageSwitcher: change event:", event.target.value);
       const selectedLanguage = event.target.value;
-      appLanguages.setLanguage(selectedLanguage);
+      app.translations.setLanguage(selectedLanguage);
       updateURL(selectedLanguage);
       updatePageLanguage(selectedLanguage);
       // No need to call updateSelectorValue here; select is already in sync
@@ -152,8 +145,8 @@ const {currentLanguage} = Astro.props;
 
   // 8. Helper functions
   function detectAndSetLanguage() {
-    const availableLangs = appLanguages.getAvailableLanguages();
-    const currentLang = appLanguages.getLanguage();
+    const availableLangs = app.translations.getAvailableLanguages();
+    const currentLang = app.translations.getLanguage();
     // Extract the language from the URL
     // Example: https://genealogy-astro.vercel.app/?lang=de
     const urlParams = new URLSearchParams(window.location.search);
@@ -170,21 +163,21 @@ const {currentLanguage} = Astro.props;
       selectedLang = browserLang;
     }
 
-    console.log(
-      "🍅 LanguageSwitcher: detectAndSetLanguage: urlLang:",
-      urlLang,
-      "currentLang:",
-      currentLang,
-      "browserLang:",
-      browserLang,
-      "availableLangs:",
-      availableLangs,
-      "selectedLang:",
-      selectedLang
-    );
+    // console.log(
+    //   "🍅 LanguageSwitcher: detectAndSetLanguage: urlLang:",
+    //   urlLang,
+    //   "currentLang:",
+    //   currentLang,
+    //   "browserLang:",
+    //   browserLang,
+    //   "availableLangs:",
+    //   availableLangs,
+    //   "selectedLang:",
+    //   selectedLang
+    // );
 
     // Propagate the language change to the targets
-    appLanguages.setLanguage(selectedLang);
+    app.translations.setLanguage(selectedLang);
     updateURL(selectedLang);
     updatePageLanguage(selectedLang);
     updateSelectorValue(selectedLang);
@@ -197,9 +190,9 @@ const {currentLanguage} = Astro.props;
   }
 
   function updatePageLanguage(language) {
-    console.log("🍅 LanguageSwitcher: updatePageLanguage:", language);
+    // console.log("🍅 LanguageSwitcher: updatePageLanguage:", language);
 
-    const t = appLanguages.getTranslations(language);
+    const t = app.translations.getTranslations(language);
 
     // Update page title and meta
     document.title = t.pageTitle;
@@ -211,7 +204,7 @@ const {currentLanguage} = Astro.props;
   }
 
   function updateSelectorValue(language) {
-    console.log("🍅 LanguageSwitcher: updateSelectorValue:", language);
+    // console.log("🍅 LanguageSwitcher: updateSelectorValue:", language);
     if (languageSelect && languageSelect.value !== language) {
       languageSelect.value = language;
     }

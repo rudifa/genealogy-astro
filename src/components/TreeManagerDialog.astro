@@ -774,13 +774,11 @@ const {} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  import {AppLanguages} from "/utility/AppLanguages.js";
-  import {AppData} from "/utility/AppData.js";
+  import {App} from "/utility/App.js";
   import {GenealogyTreeData} from "/utility/GenealogyTreeData.js";
 
   // --- 1. Variable declarations and singletons ---
-  const appLanguages = AppLanguages.ensureOneExists();
-  const appData = AppData.ensureOneExists();
+  const app = App.ensureAppExists();
   const dialog = document.getElementById("tree-manager-dialog");
   const closeButton = document.getElementById("close-tree-dialog");
   const cancelButton = document.getElementById("dialog-cancel");
@@ -801,14 +799,14 @@ const {} = Astro.props;
   // --- 2. Main execution flow ---
 
   // Subscribe to language changes
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateDialogTranslations(newTranslations);
     console.log("👍 TreeManagerDialog: newTranslations:", newTranslations);
   }, "TreeManagerDialog");
 
   // Subscribe to state changes
-  if (appData) {
-    unsubscribe = appData.subscribe(async () => {
+  if (app.data) {
+    unsubscribe = app.data.subscribe(async () => {
       checkFamilyExampleResetState();
       if (dialog && dialog.style.display !== "none") {
         updateTreeList();
@@ -865,12 +863,12 @@ const {} = Astro.props;
   }
 
   function checkFamilyExampleResetState() {
-    if (!appData) {
+    if (!app.data) {
       familyExampleNeedsReset = false;
       return;
     }
     try {
-      const familyExampleData = appData.getTreeData("Family Example");
+      const familyExampleData = app.data.getTreeData("Family Example");
       if (!familyExampleData) {
         familyExampleNeedsReset = false;
         return;
@@ -880,7 +878,7 @@ const {} = Astro.props;
         familyExampleNeedsReset = true;
         return;
       }
-      const originalData = appData.getOriginalFamilyExampleData();
+      const originalData = app.data.getOriginalFamilyExampleData();
       if (originalData && originalData.persons) {
         const treesMatch =
           JSON.stringify(familyExampleData) === JSON.stringify(originalData);
@@ -895,7 +893,7 @@ const {} = Astro.props;
 
   function updateMergeDisplay() {
     const currentTree =
-      appData?.getState().currentTreeName || currentTranslations.currentTree;
+      app.data?.getState().currentTreeName || currentTranslations.currentTree;
     if (selectedOther) {
       if (createTreeLabel) {
         createTreeLabel.textContent = currentTranslations.createNewTreeMerging
@@ -925,7 +923,7 @@ const {} = Astro.props;
 
   function updateCurrentTreeDisplay() {
     // Kept for compatibility, main display is updated via state subscription
-    if (appData) {
+    if (app.data) {
       // Optionally log or update UI
     }
   }
@@ -1052,7 +1050,7 @@ const {} = Astro.props;
           )
         ) {
           try {
-            const success = await appData.deleteTree(treeName);
+            const success = await app.data.deleteTree(treeName);
             if (success) {
               if (selectedOther === treeName) {
                 selectedOther = null;
@@ -1083,7 +1081,7 @@ const {} = Astro.props;
         event.preventDefault();
         if (confirm(currentTranslations.confirmResetFamilyExample)) {
           try {
-            const success = await appData.resetFamilyExample();
+            const success = await app.data.resetFamilyExample();
             if (success) {
               updateTreeList();
               updateCurrentTreeDisplay();
@@ -1129,7 +1127,7 @@ const {} = Astro.props;
       treeNameSpan.addEventListener("click", async (event) => {
         event.stopPropagation();
         try {
-          const success = await appData.switchToTree(treeName);
+          const success = await app.data.switchToTree(treeName);
           if (success) {
             updateTreeList();
             updateCurrentTreeDisplay();
@@ -1173,9 +1171,9 @@ const {} = Astro.props;
   }
 
   function updateTreeList() {
-    if (!treeList || !appData) return;
+    if (!treeList || !app.data) return;
     checkFamilyExampleResetState();
-    const state = appData.getState();
+    const state = app.data.getState();
     const trees = state.availableTrees;
     const currentTree = state.currentTreeName;
     treeList.innerHTML = "";
@@ -1188,7 +1186,7 @@ const {} = Astro.props;
   }
 
   async function createNewTree() {
-    if (!newTreeInput || !appData) return;
+    if (!newTreeInput || !app.data) return;
     const treeName = newTreeInput.value.trim();
     if (!treeName) {
       alert(currentTranslations.enterTreeNamePrompt);
@@ -1198,16 +1196,16 @@ const {} = Astro.props;
       let success = false;
       if (selectedOther) {
         // Merge mode
-        const state = appData.getState();
+        const state = app.data.getState();
         const currentTreeData = {persons: state.genealogyData.persons};
-        const otherTreeData = appData.getTreeData(selectedOther);
+        const otherTreeData = app.data.getTreeData(selectedOther);
         if (!currentTreeData || !otherTreeData) {
           throw new Error("Could not retrieve tree data for merging");
         }
         const currentTree = new GenealogyTreeData(currentTreeData);
         const otherTree = new GenealogyTreeData(otherTreeData);
         const mergeStats = currentTree.mergeTree(otherTree, "combine-non-null");
-        success = await appData.createNewTree(
+        success = await app.data.createNewTree(
           treeName,
           false,
           currentTree.persons
@@ -1219,14 +1217,14 @@ const {} = Astro.props;
       } else {
         // Normal mode
         const copyData = copyCheckbox?.checked || false;
-        success = await appData.createNewTree(treeName, copyData);
+        success = await app.data.createNewTree(treeName, copyData);
       }
       if (success) {
         newTreeInput.value = "";
         if (copyCheckbox) copyCheckbox.checked = false;
         updateCreateButtonState();
         updateTreeList();
-        await appData.switchToTree(treeName);
+        await app.data.switchToTree(treeName);
         updateTreeList();
         updateCurrentTreeDisplay();
         hideDialog();

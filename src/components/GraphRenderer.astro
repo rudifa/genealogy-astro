@@ -47,13 +47,11 @@ const {translations} = Astro.props;
 <script is:inline type='module'>
   // 1. Imports and variable declarations
 
-  import {AppLanguages} from "/utility/AppLanguages.js";
+  import {App} from "/utility/App.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
-  import {AppData} from "/utility/AppData.js";
 
   const verbose = false;
-  const appData = AppData.ensureOneExists();
-  const appLanguages = AppLanguages.ensureOneExists();
+  const app = App.ensureAppExists();
   const graphvizPromise = Graphviz.load();
   const graphContainer = document.querySelector(".genealogy-graph");
   const graphPlaceholder = document.getElementById("graph-placeholder");
@@ -71,7 +69,7 @@ const {translations} = Astro.props;
     console.log("GraphRenderer: DOM elements found, setting up functionality");
 
   // Subscribe to language changes via appLanguages
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateGraphRendererTranslations(newTranslations);
     console.log("👎 GraphRenderer: newTranslations:", newTranslations);
   }, "GraphRenderer");
@@ -120,8 +118,8 @@ const {translations} = Astro.props;
     // Get genealogy data from centralized state
     let genealogyData = null;
     let treeName = "Genealogy Tree";
-    if (appData) {
-      const state = appData.getState();
+    if (app.data) {
+      const state = app.data.getState();
       genealogyData = state.genealogyData;
       if (state && state.currentTreeName) {
         treeName = state.currentTreeName;
@@ -221,8 +219,8 @@ const {translations} = Astro.props;
         if (verbose) console.log("GraphRenderer: Person clicked:", personName);
 
         let genealogyData = null;
-        if (appData) {
-          const state = appData.getState();
+        if (app.data) {
+          const state = app.data.getState();
           genealogyData = state.genealogyData;
         } else {
           throw new Error("GraphRenderer: AppData state not available");
@@ -323,7 +321,7 @@ const {translations} = Astro.props;
       );
     }
 
-    const unsubscribe = appData.subscribe((state) => {
+    const unsubscribe = app.data.subscribe((state) => {
       const currentTreeName = state.currentTreeName;
       const currentPersonsCount = state.genealogyData?.persons?.length || 0;
       const currentDataHash = getDataHash(state.genealogyData?.persons || []);

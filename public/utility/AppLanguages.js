@@ -92,7 +92,7 @@ export class AppLanguages {
       }
       if (verbose) {
         console.log(
-          "🌐 AppLanguages.ensureOneExists: instance created (uninitialized)"
+          "☘️ AppLanguages.ensureOneExists: instance created (uninitialized)"
         );
       }
     } else {
@@ -100,7 +100,7 @@ export class AppLanguages {
         window.appLanguages = AppLanguages._instance;
       }
       if (verbose) {
-        console.log("🌍 AppLanguages.ensureOneExists: instance exists");
+        console.log("☘️ AppLanguages.ensureOneExists: instance exists");
       }
     }
     return AppLanguages._instance;

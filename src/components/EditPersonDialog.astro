@@ -346,15 +346,14 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
+  console.log("🔥 EditPersonDialog: ", "setup starts");
+
   // 1. Imports and variable declarations
 
-  // --- Imports ---
-  import {AppData} from "/utility/AppData.js";
-  import {AppLanguages} from "/utility/AppLanguages.js";
+  import {App} from "/utility/App.js";
 
   // --- Singletons ---
-  const appData = AppData.ensureOneExists();
-  const appLanguages = AppLanguages.ensureOneExists();
+  const app = App.ensureAppExists();
 
   // --- DOM references ---
   const dialog = document.getElementById("edit-dialog");
@@ -381,22 +380,24 @@ const {translations} = Astro.props;
   // 2. Main execution flow
 
   // Subscribe to language changes
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateDialogTranslations(newTranslations);
-    console.log(" EditPersonDialog: newTranslations:", newTranslations);
-  }, "EditPersonDialog");
+    console.log("🔥 EditPersonDialog: newTranslations:", newTranslations);
+  }, "EditPersonDialog-Translations");
 
   // Expose dialog open function globally
   window.openEditDialog = openEditDialog;
 
   // Set up all event listeners
   setupEventListeners();
+  console.log("🔥 EditPersonDialog: ", "setup complete");
 
   // 3. Function definitions
 
   // --- Translation helpers ---
   function updateDialogTranslations(newTranslations) {
     translations = newTranslations;
+    console.log("🔥 EditPersonDialog: updated translations:", translations);
     const dialogTitle = dialog.querySelector("h2");
     const nameLabel = document.querySelector('label[for="person-name"]');
     const motherLabel = document.querySelector('label[for="person-mother"]');
@@ -422,8 +423,11 @@ const {translations} = Astro.props;
     const trimmedName = name.trim();
     if (!trimmedName) return translations.nameRequired;
     if (trimmedName.length > 100) return translations.nameMaxLength;
-    if (isNewPerson || trimmedName !== originalNameInput.value) {
-      const state = appData.getState();
+    if (
+      isNewPerson ||
+      trimmedName.toLowerCase() !== originalNameInput.value.toLowerCase()
+    ) {
+      const state = app.data.getState();
       const existingPerson = state.genealogyData.persons.find(
         (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
       );
@@ -542,7 +546,7 @@ const {translations} = Astro.props;
           father: fatherInput.value.trim() || null,
           info: infoInput.value.trim() || null,
         };
-        appData.updatePerson(originalNameInput.value, updatedPerson);
+        app.data.updatePerson(originalNameInput.value, updatedPerson);
         closeEditDialog();
       } catch (error) {
         console.error("Error saving person:", error);
@@ -557,7 +561,7 @@ const {translations} = Astro.props;
       ).replace("{name}", personName);
       if (confirm(confirmMessage)) {
         try {
-          appData.removePerson(personName);
+          app.data.removePerson(personName);
           closeEditDialog();
         } catch (error) {
           console.error("Error removing person:", error);

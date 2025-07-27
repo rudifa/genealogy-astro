@@ -17,21 +17,14 @@ const t = getTranslations(currentLanguage);
   description={t.pageDescription}
   language={currentLanguage}>
   <main class='app-container'>
-    <Header language={currentLanguage} translations={t} />
+    <Header />
     <GenealogyGraph language={currentLanguage} translations={t} />
-    <Footer language={currentLanguage} translations={t} />
+    <Footer />
   </main>
 </Layout>
 
 <script is:inline type='module'>
   console.log("➡️ index: <script is:inline type='module'>");
-
-  import {AppLanguages} from "/utility/AppLanguages.js";
-  // Use the AppLanguages singleton for all translations management
-  const appLanguages = AppLanguages.ensureOneExists();
-  appLanguages.subscribe((newTranslations) => {
-    console.log("👍 index: current language:", newTranslations.isoCode);
-  });
 </script>
 
 <style>

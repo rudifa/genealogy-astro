@@ -592,12 +592,10 @@ const {translations} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  import {AppData} from "/utility/AppData.js";
-  import {AppLanguages} from "/utility/AppLanguages.js";
+  import {App} from "/utility/App.js";
 
   // --- 1. Variable declarations and singletons ---
-  const appData = AppData.ensureOneExists();
-  const appLanguages = AppLanguages.ensureOneExists();
+  const app = App.ensureAppExists();
 
   // DOM elements
   const fileManagerDialog = document.getElementById("file-manager-dialog");
@@ -624,7 +622,7 @@ const {translations} = Astro.props;
   // --- 2. Main execution flow ---
 
   // Subscribe to language changes
-  appLanguages.subscribe((newTranslations) => {
+  app.translations.subscribe((newTranslations) => {
     updateFileManagerTranslations(newTranslations);
     console.log("FileManagerDialog: newTranslations", newTranslations);
   }, "FileManagerDialog");
@@ -818,7 +816,7 @@ const {translations} = Astro.props;
 
   function downloadCurrentTree() {
     try {
-      const currentState = appData.getState();
+      const currentState = app.data.getState();
       const currentTreeName = currentState.currentTreeName || "current-tree";
       const currentTreeData = currentState.genealogyData?.persons
         ? {persons: currentState.genealogyData.persons}
@@ -849,13 +847,13 @@ const {translations} = Astro.props;
 
   function downloadAllTrees() {
     try {
-      const currentState = appData.getState();
+      const currentState = app.data.getState();
       const allTrees = {};
       const availableTrees = currentState.availableTrees || [];
       const currentTreeName = currentState.currentTreeName || "";
       if (availableTrees.length === 0) return;
       for (const treeName of availableTrees) {
-        const treeData = appData.getTreeData(treeName);
+        const treeData = app.data.getTreeData(treeName);
         if (treeData) allTrees[treeName] = treeData;
       }
       const dataToDownload = {
@@ -1027,19 +1025,19 @@ const {translations} = Astro.props;
     if (uploadMode === "new-tree") {
       const customTreeName = newTreeName.value.trim();
       if (!customTreeName) return;
-      const currentState = appData.getState();
+      const currentState = app.data.getState();
       if (currentState.availableTrees.includes(customTreeName)) return;
-      const createSuccess = appData.createTreeWithData(
+      const createSuccess = app.data.createTreeWithData(
         customTreeName,
         treeData.persons || []
       );
       if (createSuccess) {
-        appData.switchToTree(customTreeName);
+        app.data.switchToTree(customTreeName);
       }
     } else if (uploadMode === "replace") {
-      appData.replaceCurrentTreeData(treeData.persons || []);
+      app.data.replaceCurrentTreeData(treeData.persons || []);
     } else {
-      appData.mergeDataIntoCurrentTree(treeData.persons || []);
+      app.data.mergeDataIntoCurrentTree(treeData.persons || []);
     }
   }
 
@@ -1047,25 +1045,25 @@ const {translations} = Astro.props;
     const importedTrees = data.trees || {};
     const importedSelectedTree = data.selectedTree;
     for (const [treeName, treeData] of Object.entries(importedTrees)) {
-      const currentState = appData.getState();
+      const currentState = app.data.getState();
       if (currentState.availableTrees.includes(treeName)) {
         if (uploadMode === "merge") {
-          appData.switchToTree(treeName);
-          appData.mergeDataIntoCurrentTree(treeData.persons || []);
+          app.data.switchToTree(treeName);
+          app.data.mergeDataIntoCurrentTree(treeData.persons || []);
         } else if (uploadMode === "replace") {
-          appData.switchToTree(treeName);
-          appData.replaceCurrentTreeData(treeData.persons || []);
+          app.data.switchToTree(treeName);
+          app.data.replaceCurrentTreeData(treeData.persons || []);
         }
       } else {
-        appData.createTreeWithData(treeName, treeData.persons || []);
+        app.data.createTreeWithData(treeName, treeData.persons || []);
       }
     }
-    const finalState = appData.getState();
+    const finalState = app.data.getState();
     if (
       importedSelectedTree &&
       finalState.availableTrees.includes(importedSelectedTree)
     ) {
-      appData.switchToTree(importedSelectedTree);
+      app.data.switchToTree(importedSelectedTree);
     }
   }
 </script>

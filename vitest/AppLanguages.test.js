@@ -48,7 +48,7 @@ describe("AppLanguages singleton", () => {
     instance.setAllTranslations(appTranslations);
     expect(instance.allTranslations).toBeDefined();
     expect(instance.currentLanguage).toBe("en");
-    expect(instance.getAvailableLanguages()).toEqual(["en", "fr", "de", "ja"]);
+    expect(instance.getAvailableLanguages()).toEqual(["en", "fr", "de", "ja", "zg"]);
   });
 });
 

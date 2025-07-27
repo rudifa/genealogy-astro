@@ -1,20 +1,11 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-export interface Props {
-  currentTree: string;
-  language: Language;
-  translations: Translations;
-}
-
-const {currentTree} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <div class='tree-switcher'>
   <select id='tree-select' class='tree-select' data-cy='tree-select'>
-    <option value={currentTree} selected>
-      🌳 {currentTree}
-    </option>
+    <!-- Options will be populated by the client script -->
   </select>
 </div>
 
@@ -100,23 +91,19 @@ const {currentTree} = Astro.props;
 </style>
 
 <script is:inline type='module'>
-  // This module has no need for the AppLanguages imports
-  // as it does not handle translations directly.
-
-  // Use the AppData singleton for all tree data management
-  import {AppData} from "/utility/AppData.js";
-  const appData = AppData.ensureOneExists();
+  import {App} from "/utility/App.js";
+  const app = App.ensureAppExists();
 
   // Initialize immediately since DOM is already ready in inline scripts
   const treeSelect = document.getElementById("tree-select");
   let unsubscribe = null;
 
   function updateTreeOptions() {
-    if (!treeSelect || !appData) return;
+    if (!treeSelect || !app.data) return;
 
     try {
       // 🎯 Direct method call with VS Code auto-completion!
-      const state = appData.getState();
+      const state = app.data.getState();
       const availableTrees = state.availableTrees;
       const currentTree = state.currentTreeName;
 
@@ -146,7 +133,7 @@ const {currentTree} = Astro.props;
   // Subscribe to state changes
   function initializeStateSubscription() {
     // 🎯 Direct subscription - appState is imported, no need for null check!
-    unsubscribe = appData.subscribe(() => {
+    unsubscribe = app.data.subscribe(() => {
       updateTreeOptions();
     });
     console.log("TreeSwitcher subscribed to state changes");
@@ -162,13 +149,13 @@ const {currentTree} = Astro.props;
 
       try {
         // 🎯 Clean direct access to current state
-        const currentTree = appData.getState().currentTreeName;
+        const currentTree = app.data.getState().currentTreeName;
 
         if (selectedTree !== currentTree) {
           console.log(`Switching from "${currentTree}" to "${selectedTree}"`);
 
           // 🎯 Direct method call - VS Code shows method signature!
-          const success = await appData.switchToTree(selectedTree);
+          const success = await app.data.switchToTree(selectedTree);
 
           if (success) {
             console.log(`Successfully switched to tree: ${selectedTree}`);
