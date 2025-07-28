@@ -1,12 +1,6 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 
 // This component is a simple, static dialog.
 // All logic to show, hide, and handle its form is in the client-side
@@ -20,7 +14,7 @@ const {translations} = Astro.props;
   data-cy='edit-dialog'>
   <div class='dialog-content'>
     <div class='dialog-header'>
-      <h2>{translations.editPerson}</h2>
+      <h2>Edit Person</h2> <!-- Default text, updated by script -->
       <button
         id='close-edit-dialog'
         class='close-button'
@@ -35,8 +29,8 @@ const {translations} = Astro.props;
         <input type='hidden' id='original-name' name='originalName' />
         <div class='form-field'>
           <label for='person-name'
-            >{translations.name}: <span class='required'
-              >{translations.required}</span
+            >Name: <span class='required'
+              >Required</span
             ></label
           >
           <input
@@ -51,7 +45,7 @@ const {translations} = Astro.props;
           <div class='field-error' id='name-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-mother'>{translations.mother}:</label>
+          <label for='person-mother'>Mother:</label>
           <input
             type='text'
             id='person-mother'
@@ -64,7 +58,7 @@ const {translations} = Astro.props;
           <div class='field-error' id='mother-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-father'>{translations.father}:</label>
+          <label for='person-father'>Father:</label>
           <input
             type='text'
             id='person-father'
@@ -77,7 +71,7 @@ const {translations} = Astro.props;
           <div class='field-error' id='father-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-info'>{translations.info}:</label>
+          <label for='person-info'>Info:</label>
           <input
             type='text'
             id='person-info'
@@ -97,13 +91,13 @@ const {translations} = Astro.props;
         </div>
         <div class='dialog-buttons'>
           <button type='submit' id='save-button' data-cy='save-button'
-            >{translations.save}</button
+            >Save</button
           >
           <button type='button' id='remove-button' data-cy='remove-button'
-            >{translations.remove}</button
+            >Remove</button
           >
           <button type='button' id='cancel-button' data-cy='cancel-button'
-            >{translations.cancel}</button
+            >Cancel</button
           >
         </div>
       </form>

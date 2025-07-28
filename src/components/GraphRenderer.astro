@@ -1,18 +1,12 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <div class='genealogy-graph'>
   <!-- This container will be populated by the client-side script -->
   <div id='graph-placeholder' class='graph-placeholder'>
-    <p>{translations.loadingGraph}</p>
+    <p>Loading graph...</p> <!-- Default text, updated by script -->
   </div>
 </div>
 

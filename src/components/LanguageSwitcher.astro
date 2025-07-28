@@ -1,7 +1,7 @@
 ---
 import {
   supportedLanguages,
-  translations as allTranslations
+  translations as allTranslations,
 } from "../i18n/index.ts";
 // This component is now self-sufficient and does not require any props.
 ---
@@ -12,10 +12,10 @@ import {
     class='language-select'
     data-cy='language-select'>
     {
-      supportedLanguages.map((lang) => (
+      supportedLanguages.map((lang, idx) => (
         <option
           value={lang.code}
-          selected={false} /* Client script will set the correct value */
+          selected={idx === 0 ? "selected" : undefined}
           data-cy={`lang-${lang.code}`}>
           {lang.flag} {lang.nativeName}
         </option>

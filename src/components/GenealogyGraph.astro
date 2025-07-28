@@ -1,5 +1,4 @@
 ---
-import type {Language, Translations} from "../i18n/index";
 import EditPersonDialog from "./EditPersonDialog.astro";
 import FileManagerDialog from "./FileManagerDialog.astro";
 import GraphRenderer from "./GraphRenderer.astro";
@@ -7,23 +6,18 @@ import Notification from "./Notification.astro";
 import Toolbar from "./Toolbar.astro";
 import TreeManagerDialog from "./TreeManagerDialog.astro";
 
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {language, translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
 ---
 
 <div class='screen' data-cy='genealogy-graph'>
-  <Toolbar language={language} translations={translations} />
-  <GraphRenderer language={language} translations={translations} />
-  <Notification language={language} translations={translations} />
+  <Toolbar />
+  <GraphRenderer />
+  <Notification />
 </div>
 
-<EditPersonDialog language={language} translations={translations} />
-<FileManagerDialog language={language} translations={translations} />
-<TreeManagerDialog language={language} translations={translations} />
+<EditPersonDialog />
+<FileManagerDialog />
+<TreeManagerDialog />
 
 <style>
   .screen {
