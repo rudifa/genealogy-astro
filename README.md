@@ -23,6 +23,10 @@
 
 ## Possible features
 
+- add more languages
+- add person's siblings
+- add undo/redo functionality
+- use email for sharing trees
 - add photo/image to a person
 
 ## Screenshots
@@ -33,27 +37,26 @@
 
 ## Implementation Details
 
-- The revised implementation uses a global appState object (based on a State module).
-- appState provides subscribe/notify event handling.
-- appState exposes action functions for Astro component scripts to update the data model.
-- Components subscribe to state changes, call actions, and access data via appState.
 
-This pattern is commonly known as the Observer pattern (for the subscribe/notify mechanism) combined with a centralized state management approach. In frontend development, this is often referred to as a "state container" or "store" pattern. Popular libraries like Redux, Zustand, or Vuex use similar concepts.
+- The revised implementation uses a state singleton object of type `App` for managing application state, enabling communication between Astro components, and holding the data and language models.
 
-In summary, the revised implementation uses a global state container with observer/event subscription, sometimes called a "reactive store" or "observable state management."
+```
+app =  {
+    data,           // the user data model
+    translations,   // the translations data model
+    uiState,        // the UI state model (flags and functions)
+  }
+```
 
-This implementation is conceptually similar to how SwiftUI manages state and UI updates, though there are differences in language and framework specifics:
+- `App` is the wrapper that combines all these models and provides a shared state container for the application.
+  - `AppData` provides the user data model (family trees), with subscribe/notify for updates.
+  - `AppLanguage` provides the translations for UI elements in the available languages and the selected language, with subscribe/notify for language changes.
+  - `UIState` provides the UI state model (flags) and sharing functions for inter-component actions.
 
-- Both use a centralized state management approach:
-  - In this app, appState acts as a global store with subscribe/notify (observer pattern).
-  - In SwiftUI, @State, @ObservedObject, and @EnvironmentObject provide reactive state containers.
+This structure is based on the Observer pattern (for the subscribe/notify mechanism) combined with a centralized state management approach. In frontend development, this is often referred to as a "state container" or "store" pattern. 
 
-- Both enable components (views) to subscribe to state changes and automatically update when the state changes.
+The revised implementation removes the ad-hoc global `window.xyz` variables and custom events that were used in the early releases of the project for state management and communication between components.
 
-- Both encourage unidirectional data flow:
-  - Actions/methods update the state, which then notifies subscribers (components/views) to re-render.
+Instead, it uses a more structured approach with a single `App` object that encapsulates all necessary data and methods, and offers a solid foundation for future enhancements and features.
 
-Key differences:
-
-- SwiftUI’s reactivity and view updates are built into the language and framework, with property wrappers and automatic view invalidation.
-- This implementation is manual, using JavaScript/TypeScript and custom observer logic.
+The project features `vitest` for unit testing of the data model components and `cypress` for the end-to-end tests of UI sequences, ensuring that the core functionality is tested and reliable.
