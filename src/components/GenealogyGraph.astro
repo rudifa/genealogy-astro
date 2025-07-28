@@ -61,14 +61,6 @@ import TreeManagerDialog from "./TreeManagerDialog.astro";
     // Individual components will handle their own translation updates
   }
 
-  // Loading state management
-  function setLoadingState(loading) {
-    // Also notify toolbar if available
-    if (window.toolbarSetLoadingState) {
-      window.toolbarSetLoadingState(loading);
-    }
-  }
-
   async function initializeGenealogySystem() {
     console.log("GenealogyGraph: initializeGenealogySystem...");
     try {
@@ -76,23 +68,16 @@ import TreeManagerDialog from "./TreeManagerDialog.astro";
       const state = app.data.getState();
       state; // disposes of a ts hint
 
-      // Initialize the shared variables
-
-      window.genealogyIsRendering = false;
-      window.setLoadingState = setLoadingState;
-
       console.log("Genealogy system initialized successfully");
 
       // No longer need to dispatch ready event - components use direct state access
     } catch (error) {
       console.error("Error initializing genealogy system:", error);
-      if (window.showNotification) {
-        window.showNotification(
-          currentTranslations.errorInitializing ||
-            "Failed to initialize genealogy system",
-          "error"
-        );
-      }
+      app.uiState.showNotification(
+        currentTranslations.errorInitializing ||
+          "Failed to initialize genealogy system",
+        "error"
+      );
     }
   }
 

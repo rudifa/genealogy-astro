@@ -379,8 +379,16 @@
     console.log("🔥 EditPersonDialog: newTranslations:", newTranslations);
   }, "EditPersonDialog-Translations");
 
-  // Expose dialog open function globally
-  window.openEditDialog = openEditDialog;
+  // Subscribe to UI state changes to know when to open/close
+  app.uiState.subscribe((newState) => {
+    const {activeDialog} = newState;
+    if (activeDialog && activeDialog.name === "editPerson") {
+      openEditDialog(activeDialog.data);
+    } else if (dialog.style.display === "flex") {
+      // Close if it's open but should no longer be active
+      closeEditDialog();
+    }
+  }, "EditPersonDialog-UIState");
 
   // Set up all event listeners
   setupEventListeners();
@@ -508,7 +516,7 @@
     setTimeout(() => nameInput.focus(), 100);
   }
   function closeEditDialog() {
-    dialog.style.display = "none";
+    if (dialog.style.display !== "none") dialog.style.display = "none";
     clearErrors();
   }
 
@@ -518,14 +526,14 @@
     motherInput.addEventListener("input", validateForm);
     fatherInput.addEventListener("input", validateForm);
     infoInput.addEventListener("input", validateForm);
-    cancelButton.addEventListener("click", closeEditDialog);
-    if (closeButton) closeButton.addEventListener("click", closeEditDialog);
+    cancelButton.addEventListener("click", () => app.uiState.closeDialog());
+    if (closeButton) closeButton.addEventListener("click", () => app.uiState.closeDialog());
     dialog.addEventListener("click", (e) => {
-      if (e.target === dialog) closeEditDialog();
+      if (e.target === dialog) app.uiState.closeDialog();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && dialog.style.display === "flex")
-        closeEditDialog();
+        app.uiState.closeDialog();
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -541,7 +549,7 @@
           info: infoInput.value.trim() || null,
         };
         app.data.updatePerson(originalNameInput.value, updatedPerson);
-        closeEditDialog();
+        app.uiState.closeDialog();
       } catch (error) {
         console.error("Error saving person:", error);
         showError(translations.errorSaving);
@@ -556,7 +564,7 @@
       if (confirm(confirmMessage)) {
         try {
           app.data.removePerson(personName);
-          closeEditDialog();
+          app.uiState.closeDialog();
         } catch (error) {
           console.error("Error removing person:", error);
           showError(translations.errorRemoving);

@@ -621,14 +621,18 @@
     console.log("FileManagerDialog: newTranslations", newTranslations);
   }, "FileManagerDialog");
 
+  // Subscribe to UI state changes to know when to open/close
+  app.uiState.subscribe((newState) => {
+    const {activeDialog} = newState;
+    if (activeDialog && activeDialog.name === "fileManager") {
+      showFileManager();
+    } else if (fileManagerDialog.style.display === "flex") {
+      hideFileManager();
+    }
+  }, "FileManagerDialog-UIState");
+
   // Set up all event listeners
   setupEventListeners();
-
-  // Expose dialog globally
-  window.fileManagerDialog = {
-    show: showFileManager,
-    hide: hideFileManager,
-  };
 
   // --- 3. Function definitions ---
 
@@ -694,7 +698,7 @@
 
   function setupEventListeners() {
     if (fileManagerClose) {
-      fileManagerClose.addEventListener("click", hideFileManager);
+      fileManagerClose.addEventListener("click", () => app.uiState.closeDialog());
     }
     if (downloadCurrentTreeBtn) {
       downloadCurrentTreeBtn.addEventListener("click", downloadCurrentTree);
@@ -744,14 +748,14 @@
       }
     });
     if (confirmUploadBtn) {
-      confirmUploadBtn.addEventListener("click", confirmUpload);
+      confirmUploadBtn.addEventListener("click", () => confirmUpload());
     }
     if (cancelUploadBtn) {
-      cancelUploadBtn.addEventListener("click", hideFileManager);
+      cancelUploadBtn.addEventListener("click", () => app.uiState.closeDialog());
     }
     if (fileManagerDialog) {
       fileManagerDialog.addEventListener("click", (e) => {
-        if (e.target === fileManagerDialog) hideFileManager();
+        if (e.target === fileManagerDialog) app.uiState.closeDialog();
       });
     }
   }
@@ -991,7 +995,7 @@
       try {
         const data = JSON.parse(e.target.result);
         await processUpload(data, uploadMode);
-        hideFileManager();
+        app.uiState.closeDialog();
       } catch (error) {
         console.error("FileManager: Error processing upload:", error);
       }

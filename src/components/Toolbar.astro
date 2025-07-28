@@ -319,12 +319,17 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     console.log("👍 Toolbar: newTranslations:", newTranslations);
   }, "Toolbar");
 
-  // Make loading state function available globally
-  window.toolbarSetLoadingState = setLoadingState;
+  // Subscribe to UI state for loading indicator
+  app.uiState.subscribe((uiState) => {
+    setLoadingState(uiState.isRendering);
+  }, "Toolbar-UIState");
 
   // Initialize toolbar events and mode display
   setupToolbarEvents();
   updateModeDisplay();
+  // Set initial state from the singleton
+  const initialUiState = app.uiState.getState();
+  setLoadingState(initialUiState.isRendering);
 
   // --- 3. Function definitions ---
 
@@ -379,29 +384,25 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     );
     updateModeDisplay();
 
-    if (window.showNotification) {
-      const notificationKey = isOneTreeMode
-        ? "switchedToOneTreeMode"
-        : "switchedToForestMode";
-      const message =
-        currentTranslations?.[notificationKey] ||
-        `Switched to ${isOneTreeMode ? "One Tree Mode" : "Forest Mode"}`;
-      window.showNotification(message, "info");
-    }
+    const notificationKey = isOneTreeMode
+      ? "switchedToOneTreeMode"
+      : "switchedToForestMode";
+    const message =
+      currentTranslations?.[notificationKey] ||
+      `Switched to ${isOneTreeMode ? "One Tree Mode" : "Forest Mode"}`;
+    app.uiState.showNotification(message, "info");
   }
 
   function setLoadingState(loading) {
     if (!loadingIndicator || !addButton || !clearButton) return;
 
-    if (loading) {
-      loadingIndicator.style.display = "flex";
-      addButton.disabled = true;
-      clearButton.disabled = true;
-    } else {
-      loadingIndicator.style.display = "none";
-      addButton.disabled = false;
-      clearButton.disabled = false;
-    }
+    loadingIndicator.style.display = loading ? "flex" : "none";
+    addButton.disabled = loading;
+    clearButton.disabled = loading;
+    printButton.disabled = loading;
+    modeToggleButton.disabled = loading;
+    manageTreesButton.disabled = loading;
+    manageFilesButton.disabled = loading;
   }
 
   function setupToolbarEvents() {
@@ -409,20 +410,16 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     if (addButton) {
       addButton.addEventListener("click", () => {
         try {
-          if (window.genealogyIsRendering) return;
+          if (app.uiState.getState().isRendering) return;
           const newPerson = {name: "", mother: null, father: null};
-          const openFn = window.openEditDialog;
-          if (openFn) openFn(newPerson);
-          else console.warn("No edit dialog function available");
+          app.uiState.openDialog("editPerson", newPerson);
         } catch (error) {
           console.error("Error opening add dialog:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations?.errorOpening ||
-                "Error opening add person dialog",
-              "error"
-            );
-          }
+          app.uiState.showNotification(
+            currentTranslations?.errorOpening ||
+              "Error opening add person dialog",
+            "error"
+          );
         }
       });
     }
@@ -431,7 +428,7 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     if (clearButton) {
       clearButton.addEventListener("click", async () => {
         try {
-          if (window.genealogyIsRendering) return;
+          if (app.uiState.getState().isRendering) return;
           const state = app.data.getState();
           if (!state.genealogyData) {
             console.warn("No genealogy data available");
@@ -439,12 +436,10 @@ import TreeSwitcher from "./TreeSwitcher.astro";
           }
           const personCount = state.genealogyData.persons.length;
           if (personCount === 0) {
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations?.noDataToClear || "No data to clear",
-                "info"
-              );
-            }
+            app.uiState.showNotification(
+              currentTranslations?.noDataToClear || "No data to clear",
+              "info"
+            );
             return;
           }
           const confirmMessage = currentTranslations?.confirmClear
@@ -460,23 +455,19 @@ import TreeSwitcher from "./TreeSwitcher.astro";
 
           if (confirm(confirmMessage)) {
             app.data.clearAllPersons();
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations?.clearedAllPersons ||
-                  `Cleared all ${personCount} ${personCount === 1 ? "person" : "people"}`,
-                "success"
-              );
-            }
+            app.uiState.showNotification(
+              currentTranslations?.clearedAllPersons ||
+                `Cleared all ${personCount} ${personCount === 1 ? "person" : "people"}`,
+              "success"
+            );
           }
         } catch (error) {
           console.error("Error clearing data:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations?.errorClearingData ||
-                "Error clearing genealogy data",
-              "error"
-            );
-          }
+          app.uiState.showNotification(
+            currentTranslations?.errorClearingData ||
+              "Error clearing genealogy data",
+            "error"
+          );
         }
       });
     }
@@ -487,12 +478,10 @@ import TreeSwitcher from "./TreeSwitcher.astro";
         try {
           const svg = document.querySelector(".genealogy-graph svg");
           if (!svg) {
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations?.errorRenderingGraph || "No graph to print",
-                "error"
-              );
-            }
+            app.uiState.showNotification(
+              currentTranslations?.errorRenderingGraph || "No graph to print",
+              "error"
+            );
             return;
           }
           const module = await import("/utility/PrintGraph.js");
@@ -502,12 +491,10 @@ import TreeSwitcher from "./TreeSwitcher.astro";
           );
         } catch (error) {
           console.error("Error printing graph:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations?.errorPrintingGraph || "Error printing graph",
-              "error"
-            );
-          }
+          app.uiState.showNotification(
+            currentTranslations?.errorPrintingGraph || "Error printing graph",
+            "error"
+          );
         }
       });
     }
@@ -527,29 +514,15 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     if (manageTreesButton) {
       manageTreesButton.addEventListener("click", () => {
         try {
-          if (window.genealogyIsRendering) return;
-          if (window.treeManagementDialog) {
-            window.treeManagementDialog.show();
-          } else {
-            const state = app.data.getState();
-            const trees = state.availableTrees || [];
-            const currentTree = state.currentTreeName || "Unknown";
-            const message = `Current tree: "${currentTree}"\n\nAvailable trees:\n${trees
-              .map((name) =>
-                name === currentTree ? `• ${name} (active)` : `• ${name}`
-              )
-              .join("\n")}\n\nTree management dialog is loading...`;
-            alert(message);
-          }
+          if (app.uiState.getState().isRendering) return;
+          app.uiState.openDialog("treeManager");
         } catch (error) {
           console.error("Error opening tree management:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations?.errorOpeningTreeManagement ||
-                "Error opening tree management",
-              "error"
-            );
-          }
+          app.uiState.showNotification(
+            currentTranslations?.errorOpeningTreeManagement ||
+              "Error opening tree management",
+            "error"
+          );
         }
       });
     }
@@ -558,28 +531,15 @@ import TreeSwitcher from "./TreeSwitcher.astro";
     if (manageFilesButton) {
       manageFilesButton.addEventListener("click", () => {
         try {
-          if (window.genealogyIsRendering) return;
-          if (window.fileManagerDialog) {
-            window.fileManagerDialog.show();
-          } else {
-            console.warn("File manager dialog not available");
-            if (window.showNotification) {
-              window.showNotification(
-                currentTranslations?.errorOpeningFileManager ||
-                  "File manager is loading...",
-                "info"
-              );
-            }
-          }
+          if (app.uiState.getState().isRendering) return;
+          app.uiState.openDialog("fileManager");
         } catch (error) {
           console.error("Error opening file management:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations?.errorOpeningFileManager ||
-                "Error opening file management",
-              "error"
-            );
-          }
+          app.uiState.showNotification(
+            currentTranslations?.errorOpeningFileManager ||
+              "Error opening file management",
+            "error"
+          );
         }
       });
     }
@@ -589,7 +549,7 @@ import TreeSwitcher from "./TreeSwitcher.astro";
       if (
         (event.ctrlKey || event.metaKey) &&
         event.key === "n" &&
-        !window.genealogyIsRendering
+        !app.uiState.getState().isRendering
       ) {
         event.preventDefault();
         if (addButton) addButton.click();

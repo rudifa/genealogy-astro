@@ -5,9 +5,7 @@
  * which dialog is currently open, loading indicators, and notifications.
  *
  * It follows the observer pattern, allowing different components to subscribe
- * to UI state changes and react accordingly. For example, a Toolbar can
- * subscribe to know when to show a loading spinner, and a Dialog component
- * can subscribe to know when it should become visible.
+ * to UI state changes and react accordingly.
  */
 export class UIState {
   constructor() {
@@ -26,14 +24,6 @@ export class UIState {
     this.subscribers = new Map();
   }
 
-  // --- Observer Pattern Methods ---
-
-  /**
-   * Subscribes a component to UI state changes.
-   * @param {Function} callback - The function to call when state changes.
-   * @param {string} id - A unique ID for the subscriber.
-   * @returns {Function} An unsubscribe function.
-   */
   subscribe(callback, id) {
     if (!id) {
       throw new Error("UIState subscriber must have a unique ID.");
@@ -43,19 +33,12 @@ export class UIState {
     return () => this.subscribers.delete(id);
   }
 
-  /**
-   * Notifies all subscribers of a state change.
-   */
   notify() {
     for (const callback of this.subscribers.values()) {
       callback(this.state);
     }
   }
 
-  /**
-   * Returns the current state.
-   * @returns {object} The current state object.
-   */
   getState() {
     return this.state;
   }

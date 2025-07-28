@@ -808,15 +808,18 @@
     });
   }
 
+  // Subscribe to UI state changes to know when to open/close
+  app.uiState.subscribe((newState) => {
+    const {activeDialog} = newState;
+    if (activeDialog && activeDialog.name === "treeManager") {
+      showDialog();
+    } else if (dialog.style.display === "flex") {
+      hideDialog();
+    }
+  }, "TreeManagerDialog-UIState");
+
   // Set up all event listeners
   setupEventListeners();
-
-  // Expose dialog globally
-  window.treeManagementDialog = {
-    show: showDialog,
-    hide: hideDialog,
-    updateTreeList: updateTreeList,
-  };
 
   // --- 3. Function definitions ---
 
@@ -928,8 +931,8 @@
   }
 
   function setupEventListeners() {
-    if (closeButton) closeButton.addEventListener("click", hideDialog);
-    if (cancelButton) cancelButton.addEventListener("click", hideDialog);
+    if (closeButton) closeButton.addEventListener("click", () => app.uiState.closeDialog());
+    if (cancelButton) cancelButton.addEventListener("click", () => app.uiState.closeDialog());
     if (createButton) createButton.addEventListener("click", createNewTree);
 
     if (newTreeInput) {
@@ -943,7 +946,7 @@
 
     if (dialog) {
       dialog.addEventListener("click", (e) => {
-        if (e.target === dialog) hideDialog();
+        if (e.target === dialog) app.uiState.closeDialog();
       });
     }
 
@@ -1052,7 +1055,7 @@
               }
               updateTreeList();
               updateCurrentTreeDisplay();
-              hideDialog();
+              app.uiState.closeDialog();
             } else {
               alert(currentTranslations.failedToDeleteTree);
             }
@@ -1079,7 +1082,7 @@
             if (success) {
               updateTreeList();
               updateCurrentTreeDisplay();
-              hideDialog();
+              app.uiState.closeDialog();
             } else {
               alert(currentTranslations.failedToResetFamilyExample);
             }
@@ -1125,7 +1128,7 @@
           if (success) {
             updateTreeList();
             updateCurrentTreeDisplay();
-            hideDialog();
+            app.uiState.closeDialog();
           } else {
             alert(currentTranslations.failedToSwitchTree);
           }
@@ -1221,7 +1224,7 @@
         await app.data.switchToTree(treeName);
         updateTreeList();
         updateCurrentTreeDisplay();
-        hideDialog();
+        app.uiState.closeDialog();
       }
     } catch (error) {
       console.error("Error creating tree:", error);

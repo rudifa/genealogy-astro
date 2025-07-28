@@ -103,10 +103,6 @@
   }
 
   async function renderGraph() {
-    const showNotification = window.showNotification;
-    const setLoadingState = window.setLoadingState;
-    const isRendering = window.genealogyIsRendering;
-
     if (verbose) console.log("GraphRenderer: renderGraph called");
 
     // Get genealogy data from centralized state
@@ -129,26 +125,14 @@
         genealogyData?.persons?.length
       );
 
-    if (!graphContainer || isRendering || !genealogyData) {
-      if (!graphContainer || !genealogyData) {
-        console.warn(
-          "GraphRenderer: Missing dependencies graphContainer:",
-          !!graphContainer,
-          ", genealogyData:",
-          !!genealogyData
-        );
-      } else if (isRendering) {
-        if (verbose)
-          console.log(
-            "GraphRenderer: Already rendering, skipping duplicate call"
-          );
-      }
+    if (!graphContainer || !genealogyData || app.uiState.getState().isRendering) {
+      if (verbose && app.uiState.getState().isRendering)
+        console.log("GraphRenderer: Already rendering, skipping duplicate call");
       return;
     }
 
     try {
-      if (setLoadingState) setLoadingState(true);
-      window.genealogyIsRendering = true;
+      app.uiState.setRendering(true);
 
       if (graphPlaceholder) {
         graphPlaceholder.style.display = "none";
@@ -169,11 +153,8 @@
       graphContainer.innerHTML = newSvgString;
       addPersonNodeHoverEffects();
 
-      if (genealogyData.persons.length === 0 && showNotification) {
-        showNotification(
-          currentTranslations.graphCleared || "Graph cleared",
-          "info"
-        );
+      if (genealogyData.persons.length === 0) {
+        app.uiState.showNotification(currentTranslations.graphCleared || "Graph cleared", "info");
       }
     } catch (error) {
       console.error("GraphRenderer: Error rendering graph:", error);
@@ -188,8 +169,7 @@
         }
       }
     } finally {
-      window.genealogyIsRendering = false;
-      if (setLoadingState) setLoadingState(false);
+      app.uiState.setRendering(false);
     }
   }
 
@@ -230,34 +210,25 @@
         );
 
         if (personData) {
-          const openFn = window.openEditDialog;
-          if (openFn) {
-            if (verbose)
-              console.log(
-                "GraphRenderer: Opening edit dialog for:",
-                personName
-              );
-            openFn(personData);
-          } else {
-            console.warn("GraphRenderer: No edit dialog function available");
-          }
-        } else {
-          if (window.showNotification) {
-            window.showNotification(
-              `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
-              "error"
+          if (verbose)
+            console.log(
+              "GraphRenderer: Opening edit dialog for:",
+              personName
             );
-          }
+          app.uiState.openDialog("editPerson", personData);
+        } else {
+          app.uiState.showNotification(
+            `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
+            "error"
+          );
         }
       }
     } catch (error) {
       console.error("Error handling graph click:", error);
-      if (window.showNotification) {
-        window.showNotification(
-          currentTranslations.errorOpening || "Error opening person details",
-          "error"
-        );
-      }
+      app.uiState.showNotification(
+        currentTranslations.errorOpening || "Error opening person details",
+        "error"
+      );
     }
   }
 
