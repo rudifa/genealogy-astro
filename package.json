@@ -48,7 +48,8 @@
         "lint": "astro check",
         "preview": "astro preview",
         "start": "astro dev --host",
-        "test": "node --test 'test/**/*.test.js' && vitest run --reporter verbose && cypress run --headless",
+        "test": "vitest run --reporter verbose && cypress run --headless",
+        "test:ci": "start-server-and-test dev http://localhost:4321 'cypress run --headless'",
         "test:node": "node --test 'test/**/*.test.js'",
         "vitest": "vitest run --reporter verbose",
         "vitest:watch": "vitest"
