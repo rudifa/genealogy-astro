@@ -22,29 +22,29 @@ describe('Genealogy Graph Interaction', () => {
     });
 
     // Check if person info dialog or details appear
-    cy.get('[data-testid="person-info"], [class*="person-info"], [class*="dialog"]').should('be.visible');
+    cy.get('[data-cy="person-info"], [class*="person-info"], [class*="dialog"]').should('be.visible');
   });
 
   it('should not zoom when wheel event is triggered', () => {
-    cy.get('[data-testid="genealogy-graph"] svg').should('be.visible');
+    cy.get('[data-cy="genealogy-graph"] svg').should('be.visible');
     cy.wait(200); // Wait for any rendering changes
-    cy.get('[data-testid="genealogy-graph"] svg').invoke('attr', 'viewBox').then((before) => {
-      cy.get('[data-testid="genealogy-graph"] svg').trigger('wheel', { deltaY: -100 });
+    cy.get('[data-cy="genealogy-graph"] svg').invoke('attr', 'viewBox').then((before) => {
+      cy.get('[data-cy="genealogy-graph"] svg').trigger('wheel', { deltaY: -100 });
       cy.wait(200);
-      cy.get('[data-testid="genealogy-graph"] svg').invoke('attr', 'viewBox').should('eq', before);
+      cy.get('[data-cy="genealogy-graph"] svg').invoke('attr', 'viewBox').should('eq', before);
     });
   });
 
   it('should not pan when mouse drag is triggered', () => {
-    cy.get('[data-testid="genealogy-graph"] svg').should('be.visible');
+    cy.get('[data-cy="genealogy-graph"] svg').should('be.visible');
     cy.wait(200);
-    cy.get('[data-testid="genealogy-graph"] svg').invoke('attr', 'viewBox').then((before) => {
-      cy.get('[data-testid="genealogy-graph"] svg')
+    cy.get('[data-cy="genealogy-graph"] svg').invoke('attr', 'viewBox').then((before) => {
+      cy.get('[data-cy="genealogy-graph"] svg')
         .trigger('mousedown', { clientX: 100, clientY: 100 })
         .trigger('mousemove', { clientX: 200, clientY: 200 })
         .trigger('mouseup');
       cy.wait(200);
-      cy.get('[data-testid="genealogy-graph"] svg').invoke('attr', 'viewBox').should('eq', before);
+      cy.get('[data-cy="genealogy-graph"] svg').invoke('attr', 'viewBox').should('eq', before);
     });
   });
 

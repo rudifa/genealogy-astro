@@ -189,10 +189,10 @@ The Cypress configuration is in `cypress.config.js`:
 
 ### 1. Use Data Attributes
 
-Add `data-testid` attributes to elements for reliable selection:
+Add `data-cy` attributes to elements for reliable selection:
 
 ```html
-<button data-testid="save-button">Save</button>
+<button data-cy="save-button">Save</button>
 ```
 
 ### 2. Wait for Async Operations
@@ -200,7 +200,7 @@ Add `data-testid` attributes to elements for reliable selection:
 Use custom commands like `cy.waitForGraph()` or explicit waits:
 
 ```javascript
-cy.get('[data-testid="graph"]', {timeout: 10000}).should("be.visible");
+cy.get('[data-cy="graph"]', {timeout: 10000}).should("be.visible");
 ```
 
 ### 3. Clean State Between Tests

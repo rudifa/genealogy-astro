@@ -1,12 +1,6 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 
 // This component is a simple, static dialog.
 // All logic to show, hide, and handle its form is in the client-side
@@ -17,10 +11,10 @@ const {translations} = Astro.props;
   id='edit-dialog'
   class='dialog-overlay'
   style='display: none;'
-  data-testid='edit-dialog'>
+  data-cy='edit-dialog'>
   <div class='dialog-content'>
     <div class='dialog-header'>
-      <h2>{translations.editPerson}</h2>
+      <h2>Edit Person</h2> <!-- Default text, updated by script -->
       <button
         id='close-edit-dialog'
         class='close-button'
@@ -35,8 +29,8 @@ const {translations} = Astro.props;
         <input type='hidden' id='original-name' name='originalName' />
         <div class='form-field'>
           <label for='person-name'
-            >{translations.name}: <span class='required'
-              >{translations.required}</span
+            >Name: <span class='required'
+              >Required</span
             ></label
           >
           <input
@@ -51,7 +45,7 @@ const {translations} = Astro.props;
           <div class='field-error' id='name-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-mother'>{translations.mother}:</label>
+          <label for='person-mother'>Mother:</label>
           <input
             type='text'
             id='person-mother'
@@ -59,12 +53,12 @@ const {translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
-            data-testid='mother-input'
+            data-cy='mother-input'
           />
           <div class='field-error' id='mother-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-father'>{translations.father}:</label>
+          <label for='person-father'>Father:</label>
           <input
             type='text'
             id='person-father'
@@ -72,12 +66,12 @@ const {translations} = Astro.props;
             maxlength='100'
             autocomplete='off'
             data-1p-ignore
-            data-testid='father-input'
+            data-cy='father-input'
           />
           <div class='field-error' id='father-error'></div>
         </div>
         <div class='form-field'>
-          <label for='person-info'>{translations.info}:</label>
+          <label for='person-info'>Info:</label>
           <input
             type='text'
             id='person-info'
@@ -85,7 +79,7 @@ const {translations} = Astro.props;
             maxlength='200'
             autocomplete='off'
             data-1p-ignore
-            data-testid='info-input'
+            data-cy='info-input'
             placeholder='
             e.g.,
             Birth
@@ -96,14 +90,14 @@ const {translations} = Astro.props;
           <div class='field-error' id='info-error'></div>
         </div>
         <div class='dialog-buttons'>
-          <button type='submit' id='save-button' data-testid='save-button'
-            >{translations.save}</button
+          <button type='submit' id='save-button' data-cy='save-button'
+            >Save</button
           >
-          <button type='button' id='remove-button' data-testid='remove-button'
-            >{translations.remove}</button
+          <button type='button' id='remove-button' data-cy='remove-button'
+            >Remove</button
           >
-          <button type='button' id='cancel-button' data-testid='cancel-button'
-            >{translations.cancel}</button
+          <button type='button' id='cancel-button' data-cy='cancel-button'
+            >Cancel</button
           >
         </div>
       </form>
@@ -346,302 +340,207 @@ const {translations} = Astro.props;
 </style>
 
 <script type='module' is:inline>
-  // 🎯 Direct import - VS Code can navigate to definition!
-  import {appData} from "/utility/AppData.js";
+  console.log("🔥 EditPersonDialog: ", "setup starts");
 
-  export function initializeEditDialog(initialGenealogyTreeData) {
-    // Keep a reference to the current genealogy data that can be updated
-    let genealogyData = initialGenealogyTreeData;
-    // Use global translations, with English as fallback
-    let t = window.genealogyTranslations?.[window.currentLanguage] ||
-      window.genealogyTranslations?.en || {
-        editPerson: "Edit Person",
-        addNewPerson: "Add New Person",
-        nameRequired: "Name is required",
-        nameMaxLength: "Name must be 100 characters or less",
-        nameExists: "A person with this name already exists",
-        confirmRemove:
-          "Are you sure you want to remove {name}? This action cannot be undone.",
-        validationErrors: "Please fix the validation errors before saving",
-        errorSaving: "An error occurred while saving. Please try again.",
-        errorRemoving:
-          "An error occurred while removing the person. Please try again.",
-        parentNameLength: "{parent} name must be 100 characters or less",
-        parentSameName: "{parent} cannot be the same as the person",
-      };
+  // 1. Imports and variable declarations
 
-    // Debug translations
-    console.log("EditPersonDialog: Loaded translations:", t);
-    console.log("EditPersonDialog: Current language:", window.currentLanguage);
-    console.log(
-      "EditPersonDialog: Available translations:",
-      Object.keys(window.genealogyTranslations || {})
-    );
+  import {App} from "/utility/App.js";
 
-    // --- Get references to dialog elements ---
-    const dialog = document.getElementById("edit-dialog");
-    const form = document.getElementById("edit-form");
-    const originalNameInput = document.getElementById("original-name");
-    const nameInput = document.getElementById("person-name");
-    const motherInput = document.getElementById("person-mother");
-    const fatherInput = document.getElementById("person-father");
-    const infoInput = document.getElementById("person-info");
-    const saveButton = document.getElementById("save-button");
-    const cancelButton = document.getElementById("cancel-button");
-    const closeButton = document.getElementById("close-edit-dialog");
-    const removeButton = document.getElementById("remove-button");
-    const errorMessage = document.getElementById("error-message");
+  // --- Singletons ---
+  const app = App.ensureAppExists();
 
-    // Error display elements
-    const nameError = document.getElementById("name-error");
-    const motherError = document.getElementById("mother-error");
-    const fatherError = document.getElementById("father-error");
-    const infoError = document.getElementById("info-error");
+  // --- DOM references ---
+  const dialog = document.getElementById("edit-dialog");
+  const form = document.getElementById("edit-form");
+  const originalNameInput = document.getElementById("original-name");
+  const nameInput = document.getElementById("person-name");
+  const motherInput = document.getElementById("person-mother");
+  const fatherInput = document.getElementById("person-father");
+  const infoInput = document.getElementById("person-info");
+  const saveButton = document.getElementById("save-button");
+  const cancelButton = document.getElementById("cancel-button");
+  const closeButton = document.getElementById("close-edit-dialog");
+  const removeButton = document.getElementById("remove-button");
+  const errorMessage = document.getElementById("error-message");
+  const nameError = document.getElementById("name-error");
+  const motherError = document.getElementById("mother-error");
+  const fatherError = document.getElementById("father-error");
+  const infoError = document.getElementById("info-error");
 
-    let isNewPerson = false;
+  let isNewPerson = false;
 
-    // Function to update dialog translations
-    function updateDialogTranslations(translations) {
-      t = translations;
+  let translations; // updateDialogTranslations will set this
 
-      // Update static text elements
-      const dialogTitle = dialog.querySelector("h2");
-      const nameLabel = document.querySelector('label[for="person-name"]');
-      const motherLabel = document.querySelector('label[for="person-mother"]');
-      const fatherLabel = document.querySelector('label[for="person-father"]');
-      const infoLabel = document.querySelector('label[for="person-info"]');
+  // 2. Main execution flow
 
-      // Update labels
-      if (nameLabel)
-        nameLabel.innerHTML = `${t.name}: <span class='required'>${t.required}</span>`;
-      if (motherLabel) motherLabel.textContent = `${t.mother}:`;
-      if (fatherLabel) fatherLabel.textContent = `${t.father}:`;
-      if (infoLabel) infoLabel.textContent = `${t.info}:`;
+  // Subscribe to language changes
+  app.translations.subscribe((newTranslations) => {
+    updateDialogTranslations(newTranslations);
+    console.log("🔥 EditPersonDialog: newTranslations:", newTranslations);
+  }, "EditPersonDialog-Translations");
 
-      // Update buttons
-      if (saveButton) saveButton.textContent = t.save;
-      if (removeButton) removeButton.textContent = t.remove;
-      if (cancelButton) cancelButton.textContent = t.cancel;
-
-      // Update dialog title based on current state
-      if (dialogTitle && dialog.style.display === "flex") {
-        dialogTitle.textContent = isNewPerson ? t.addNewPerson : t.editPerson;
-      }
+  // Subscribe to UI state changes to know when to open/close
+  app.uiState.subscribe((newState) => {
+    const {activeDialog} = newState;
+    if (activeDialog && activeDialog.name === "editPerson") {
+      openEditDialog(activeDialog.data);
+    } else if (dialog.style.display === "flex") {
+      // Close if it's open but should no longer be active
+      closeEditDialog();
     }
+  }, "EditPersonDialog-UIState");
 
-    // Initialize dialog translations on load
-    updateDialogTranslations(t);
+  // Set up all event listeners
+  setupEventListeners();
+  console.log("🔥 EditPersonDialog: ", "setup complete");
 
-    // Listen for language changes
-    window.addEventListener("languageChanged", function (event) {
-      updateDialogTranslations(event.detail.translations);
-    });
+  // 3. Function definitions
 
-    // Function to refresh translations
-    function refreshTranslations() {
-      const newTranslations = window.genealogyTranslations?.[
-        window.currentLanguage
-      ] ||
-        window.genealogyTranslations?.en || {
-          editPerson: "Edit Person",
-          addNewPerson: "Add New Person",
-          nameRequired: "Name is required",
-          nameMaxLength: "Name must be 100 characters or less",
-          nameExists: "A person with this name already exists",
-          confirmRemove:
-            "Are you sure you want to remove {name}? This action cannot be undone.",
-          validationErrors: "Please fix the validation errors before saving",
-          errorSaving: "An error occurred while saving. Please try again.",
-          errorRemoving:
-            "An error occurred while removing the person. Please try again.",
-          parentNameLength: "{parent} name must be 100 characters or less",
-          parentSameName: "{parent} cannot be the same as the person",
-        };
-
-      // Update the translations object
-      t = newTranslations;
-
-      console.log("EditPersonDialog: Refreshed translations:", t);
+  // --- Translation helpers ---
+  function updateDialogTranslations(newTranslations) {
+    translations = newTranslations;
+    console.log("🔥 EditPersonDialog: updated translations:", translations);
+    const dialogTitle = dialog.querySelector("h2");
+    const nameLabel = document.querySelector('label[for="person-name"]');
+    const motherLabel = document.querySelector('label[for="person-mother"]');
+    const fatherLabel = document.querySelector('label[for="person-father"]');
+    const infoLabel = document.querySelector('label[for="person-info"]');
+    if (nameLabel)
+      nameLabel.innerHTML = `${translations.name}: <span class='required'>${translations.required}</span>`;
+    if (motherLabel) motherLabel.textContent = `${translations.mother}:`;
+    if (fatherLabel) fatherLabel.textContent = `${translations.father}:`;
+    if (infoLabel) infoLabel.textContent = `${translations.info}:`;
+    if (saveButton) saveButton.textContent = translations.save;
+    if (removeButton) removeButton.textContent = translations.remove;
+    if (cancelButton) cancelButton.textContent = translations.cancel;
+    if (dialogTitle && dialog.style.display === "flex") {
+      dialogTitle.textContent = isNewPerson
+        ? translations.addNewPerson
+        : translations.editPerson;
     }
+  }
 
-    // --- Validation functions ---
-    function validateName(name) {
-      const trimmedName = name.trim();
-      if (!trimmedName) {
-        return t.nameRequired;
-      }
-      if (trimmedName.length > 100) {
-        return t.nameMaxLength;
-      }
-      // Check for duplicate names (only for new persons or when name changed)
-      if (isNewPerson || trimmedName !== originalNameInput.value) {
-        // Get current genealogy data from state
-        let currentGenealogyData = genealogyData;
-        // 🎯 Direct method call - VS Code shows available methods!
-        if (appData) {
-          const state = appData.getState();
-          currentGenealogyData = state.genealogyData;
-        }
-
-        const existingPerson = currentGenealogyData.persons.find(
-          (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
-        );
-        if (existingPerson) {
-          return t.nameExists;
-        }
-      }
-      return null;
+  // --- Validation ---
+  function validateName(name) {
+    const trimmedName = name.trim();
+    if (!trimmedName) return translations.nameRequired;
+    if (trimmedName.length > 100) return translations.nameMaxLength;
+    if (
+      isNewPerson ||
+      trimmedName.toLowerCase() !== originalNameInput.value.toLowerCase()
+    ) {
+      const state = app.data.getState();
+      const existingPerson = state.genealogyData.persons.find(
+        (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (existingPerson) return translations.nameExists;
     }
-
-    function validateParent(parentName, fieldName) {
-      if (!parentName.trim()) return null;
-
-      if (parentName.trim().length > 100) {
-        const message =
-          t.parentNameLength || "{parent} name must be 100 characters or less";
-        return message.replace("{parent}", fieldName);
-      }
-
-      // Check for circular relationship
-      const currentName = nameInput.value.trim();
-      if (parentName.trim().toLowerCase() === currentName.toLowerCase()) {
-        const message =
-          t.parentSameName || "{parent} cannot be the same as the person";
-        return message.replace("{parent}", fieldName);
-      }
-
-      return null;
+    return null;
+  }
+  function validateParent(parentName, fieldName) {
+    if (!parentName.trim()) return null;
+    if (parentName.trim().length > 100)
+      return (
+        translations.parentNameLength ||
+        "{parent} name must be 100 characters or less"
+      ).replace("{parent}", fieldName);
+    if (
+      parentName.trim().toLowerCase() === nameInput.value.trim().toLowerCase()
+    )
+      return (
+        translations.parentSameName ||
+        "{parent} cannot be the same as the person"
+      ).replace("{parent}", fieldName);
+    return null;
+  }
+  function validateInfo(info) {
+    if (!info.trim()) return null;
+    if (info.trim().length > 200) return "Info must be 200 characters or less";
+    return null;
+  }
+  function clearErrors() {
+    errorMessage.style.display = "none";
+    nameError.textContent = "";
+    motherError.textContent = "";
+    fatherError.textContent = "";
+    infoError.textContent = "";
+  }
+  function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = "block";
+  }
+  function validateForm() {
+    clearErrors();
+    let isValid = true;
+    const nameValidation = validateName(nameInput.value);
+    if (nameValidation) {
+      nameError.textContent = nameValidation;
+      isValid = false;
     }
-
-    function validateInfo(info) {
-      if (!info.trim()) return null;
-
-      if (info.trim().length > 200) {
-        return "Info must be 200 characters or less";
-      }
-
-      return null;
+    const motherValidation = validateParent(motherInput.value, "Mother");
+    if (motherValidation) {
+      motherError.textContent = motherValidation;
+      isValid = false;
     }
-
-    function clearErrors() {
-      errorMessage.style.display = "none";
-      nameError.textContent = "";
-      motherError.textContent = "";
-      fatherError.textContent = "";
-      infoError.textContent = "";
+    const fatherValidation = validateParent(fatherInput.value, "Father");
+    if (fatherValidation) {
+      fatherError.textContent = fatherValidation;
+      isValid = false;
     }
-
-    function showError(message) {
-      errorMessage.textContent = message;
-      errorMessage.style.display = "block";
+    const infoValidation = validateInfo(infoInput.value);
+    if (infoValidation) {
+      infoError.textContent = infoValidation;
+      isValid = false;
     }
+    saveButton.disabled = !isValid;
+    return isValid;
+  }
 
-    function validateForm() {
-      clearErrors();
-      let isValid = true;
+  // --- Dialog logic ---
+  function openEditDialog(person) {
+    // refreshTranslations();
+    isNewPerson = !person.name;
+    originalNameInput.value = person.name || "";
+    nameInput.value = person.name || "";
+    motherInput.value = person.mother || "";
+    fatherInput.value = person.father || "";
+    infoInput.value = person.info || "";
+    const title = dialog.querySelector("h2");
+    title.textContent = isNewPerson
+      ? translations.addNewPerson
+      : translations.editPerson;
+    removeButton.style.display = isNewPerson ? "none" : "block";
+    clearErrors();
+    validateForm();
+    dialog.style.display = "flex";
+    setTimeout(() => nameInput.focus(), 100);
+  }
+  function closeEditDialog() {
+    if (dialog.style.display !== "none") dialog.style.display = "none";
+    clearErrors();
+  }
 
-      // Validate name
-      const nameValidation = validateName(nameInput.value);
-      if (nameValidation) {
-        nameError.textContent = nameValidation;
-        isValid = false;
-      }
-
-      // Validate mother
-      const motherValidation = validateParent(motherInput.value, "Mother");
-      if (motherValidation) {
-        motherError.textContent = motherValidation;
-        isValid = false;
-      }
-
-      // Validate father
-      const fatherValidation = validateParent(fatherInput.value, "Father");
-      if (fatherValidation) {
-        fatherError.textContent = fatherValidation;
-        isValid = false;
-      }
-
-      // Validate info
-      const infoValidation = validateInfo(infoInput.value);
-      if (infoValidation) {
-        infoError.textContent = infoValidation;
-        isValid = false;
-      }
-
-      saveButton.disabled = !isValid;
-      return isValid;
-    }
-
-    // --- Dialog functions ---
-    function openEditDialog(person) {
-      // Refresh translations in case language changed
-      refreshTranslations();
-
-      isNewPerson = !person.name;
-      originalNameInput.value = person.name || "";
-      nameInput.value = person.name || "";
-      motherInput.value = person.mother || "";
-      fatherInput.value = person.father || "";
-      infoInput.value = person.info || "";
-
-      // Update dialog title
-      const title = dialog.querySelector("h2");
-      title.textContent = isNewPerson ? t.addNewPerson : t.editPerson;
-
-      // Show/hide remove button based on whether this is a new person
-      removeButton.style.display = isNewPerson ? "none" : "block";
-
-      clearErrors();
-      validateForm();
-      dialog.style.display = "flex";
-
-      // Focus on name input
-      setTimeout(() => nameInput.focus(), 100);
-    }
-
-    function closeEditDialog() {
-      dialog.style.display = "none";
-      clearErrors();
-    }
-
-    // --- Dialog event listeners ---
-    // Real-time validation
+  // --- Event listeners ---
+  function setupEventListeners() {
     nameInput.addEventListener("input", validateForm);
     motherInput.addEventListener("input", validateForm);
     fatherInput.addEventListener("input", validateForm);
     infoInput.addEventListener("input", validateForm);
-
-    // Cancel button closes the dialog
-    cancelButton.addEventListener("click", closeEditDialog);
-
-    // Close button closes the dialog
-    if (closeButton) {
-      closeButton.addEventListener("click", closeEditDialog);
-    }
-
-    // Close dialog when clicking overlay
+    cancelButton.addEventListener("click", () => app.uiState.closeDialog());
+    if (closeButton) closeButton.addEventListener("click", () => app.uiState.closeDialog());
     dialog.addEventListener("click", (e) => {
-      if (e.target === dialog) {
-        closeEditDialog();
-      }
+      if (e.target === dialog) app.uiState.closeDialog();
     });
-
-    // Handle Escape key
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && dialog.style.display === "flex") {
-        closeEditDialog();
-      }
+      if (e.key === "Escape" && dialog.style.display === "flex")
+        app.uiState.closeDialog();
     });
-
-    // Save button updates the genealogy data and closes the dialog
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       if (!validateForm()) {
-        showError(t.validationErrors);
+        showError(translations.validationErrors);
         return;
       }
-
       try {
         const updatedPerson = {
           name: nameInput.value.trim(),
@@ -649,54 +548,28 @@ const {translations} = Astro.props;
           father: fatherInput.value.trim() || null,
           info: infoInput.value.trim() || null,
         };
-
-        // 🎯 Centralized state management with direct import
-        // VS Code will auto-complete method names and show signatures!
-        appData.updatePerson(originalNameInput.value, updatedPerson);
-
-        closeEditDialog();
-        // Don't emit data changed event - the state management will handle notifications
-        // emitDataChanged();
+        app.data.updatePerson(originalNameInput.value, updatedPerson);
+        app.uiState.closeDialog();
       } catch (error) {
         console.error("Error saving person:", error);
-        showError(t.errorSaving);
+        showError(translations.errorSaving);
       }
     });
-
-    // Remove button removes the person from genealogy data
     removeButton.addEventListener("click", async () => {
       const personName = originalNameInput.value;
       const confirmMessage = (
-        t.confirmRemove ||
+        translations.confirmRemove ||
         "Are you sure you want to remove {name}? This action cannot be undone."
       ).replace("{name}", personName);
       if (confirm(confirmMessage)) {
         try {
-          // 🎯 Direct method call - clean and simple!
-          appData.removePerson(personName);
-          closeEditDialog();
-          // Don't emit data changed event - the state management will handle notifications
-          // emitDataChanged();
+          app.data.removePerson(personName);
+          app.uiState.closeDialog();
         } catch (error) {
           console.error("Error removing person:", error);
-          showError(t.errorRemoving);
+          showError(translations.errorRemoving);
         }
       }
     });
-
-    // Function to update the genealogy data reference
-    function updateGenealogyTreeData(newGenealogyTreeData) {
-      genealogyData = newGenealogyTreeData;
-      console.log(
-        "EditPersonDialog updated with new genealogy data:",
-        genealogyData
-      );
-    }
-
-    // Return the openEditDialog function and update function so they can be called from outside
-    return {openEditDialog, updateGenealogyTreeData};
   }
-
-  // Make the function available globally
-  window.initializeEditDialog = initializeEditDialog;
 </script>

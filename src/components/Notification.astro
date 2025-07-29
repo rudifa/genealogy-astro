@@ -1,12 +1,6 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <div id='notification' class='notification' style='display: none;'></div>
@@ -44,74 +38,27 @@ const {translations} = Astro.props;
   }
 </style>
 
-<script is:inline define:vars={{translations}}>
-  // Notification system functionality
-  function initializeNotification() {
-    console.log("Notification: Starting initialization");
+<script is:inline type='module'>
+  import {App} from "/utility/App.js";
 
-    // Prevent multiple initializations
-    if (window.notificationInitialized) {
-      console.log("Notification: Already initialized, skipping");
-      return;
-    }
-    window.notificationInitialized = true;
+  // --- 1. Variable declarations ---
+  const app = App.ensureAppExists();
+  const notificationElement = document.getElementById("notification");
 
-    // Store current translations (will be updated by language changes)
-    // let currentTranslations = translations;
-
-    // Get notification element
-    const notificationElement = document.getElementById("notification");
-
-    if (!notificationElement) {
-      console.error("Notification: Notification element not found");
-      return;
-    }
-
-    console.log("Notification: Element found, setting up functionality");
-
-    // Update notification translations (for any future localized messages)
-    function updateNotificationTranslations(newTranslations) {
-      currentTranslations = newTranslations;
-    }
-
-    // Listen for language changes
-    window.addEventListener("languageChanged", function (event) {
-      console.log("Notification: Language changed to", event.detail.language);
-      updateNotificationTranslations(event.detail.translations);
-    });
-
-    // Notification system
-    function showNotification(message, type = "info", duration = 3000) {
-      console.log(`Notification: Showing ${type} notification:`, message);
-
-      notificationElement.textContent = message;
-      notificationElement.className = `notification ${type}`;
-      notificationElement.style.display = "block";
-
-      // Auto-hide after duration
-      setTimeout(() => {
+  // --- 2. Main execution flow ---
+  if (!notificationElement) {
+    console.error("Notification: Notification element not found");
+  } else {
+    // Subscribe to UI state changes to show/hide notifications
+    app.uiState.subscribe((newState) => {
+      const {notification} = newState;
+      if (notification) {
+        notificationElement.textContent = notification.message;
+        notificationElement.className = `notification ${notification.type}`;
+        notificationElement.style.display = "block";
+      } else {
         notificationElement.style.display = "none";
-      }, duration);
-    }
-
-    // Hide notification manually
-    function hideNotification() {
-      notificationElement.style.display = "none";
-    }
-
-    // Make notification functions available globally
-    window.showNotification = showNotification;
-    window.hideNotification = hideNotification;
-
-    console.log("Notification: System initialized successfully");
-
-    return {
-      updateTranslations: updateNotificationTranslations,
-      show: showNotification,
-      hide: hideNotification,
-    };
+      }
+    }, "Notification-UIState");
   }
-
-  // Initialize immediately since DOM is already ready in inline scripts
-  initializeNotification();
 </script>

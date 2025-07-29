@@ -1,18 +1,12 @@
 ---
-import type {Language, Translations} from "../i18n/index";
-
-interface Props {
-  language: Language;
-  translations: Translations;
-}
-
-const {translations} = Astro.props;
+// This component is now self-sufficient and does not require any props.
+// It connects directly to the App singleton for its data.
 ---
 
 <div class='genealogy-graph'>
   <!-- This container will be populated by the client-side script -->
   <div id='graph-placeholder' class='graph-placeholder'>
-    <p>{translations.loadingGraph}</p>
+    <p>Loading graph...</p> <!-- Default text, updated by script -->
   </div>
 </div>
 
@@ -44,383 +38,289 @@ const {translations} = Astro.props;
   }
 </style>
 
-<script is:inline type='module' define:vars={{translations}}>
+<script is:inline type='module'>
+  // 1. Imports and variable declarations
+
+  import {App} from "/utility/App.js";
   import {Graphviz} from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm@2.13.0/dist/index.js";
-  // 🎯 Direct import for state management
-  import {appData} from "/utility/AppData.js";
 
-  // Graph Renderer functionality
-  function initializeGraphRenderer() {
-    console.log("GraphRenderer: Starting initialization");
+  const verbose = false;
+  const app = App.ensureAppExists();
+  const graphvizPromise = Graphviz.load();
+  const graphContainer = document.querySelector(".genealogy-graph");
+  const graphPlaceholder = document.getElementById("graph-placeholder");
 
-    // Prevent multiple initializations with a single flag
-    if (window.graphRendererInitialized) {
-      console.log("GraphRenderer: Already initialized, skipping");
-      return;
-    }
-    window.graphRendererInitialized = true;
+  let currentTranslations = null;
 
-    // Initialize Graphviz
-    const graphvizPromise = Graphviz.load();
+  // 2. Main execution flow
 
-    // Store current translations (will be updated by language changes)
-    let currentTranslations = translations;
+  if (!graphContainer || !graphPlaceholder) {
+    console.error("GraphRenderer: DOM elements not found in component");
+    throw new Error("GraphRenderer: DOM elements not found in component");
+  }
 
-    // DOM elements are available immediately since they're in the same component
-    const graphContainer = document.querySelector(".genealogy-graph");
-    const graphPlaceholder = document.getElementById("graph-placeholder");
-
-    if (!graphContainer || !graphPlaceholder) {
-      console.error("GraphRenderer: DOM elements not found in component");
-      return;
-    }
-
+  if (verbose)
     console.log("GraphRenderer: DOM elements found, setting up functionality");
 
-    // Update graph renderer translations
-    function updateGraphRendererTranslations(newTranslations) {
-      currentTranslations = newTranslations;
+  // Subscribe to language changes via appLanguages
+  app.translations.subscribe((newTranslations) => {
+    updateGraphRendererTranslations(newTranslations);
+    console.log("👎 GraphRenderer: newTranslations:", newTranslations);
+  }, "GraphRenderer");
 
-      // Update graph placeholder text
-      const graphPlaceholder = document.querySelector("#graph-placeholder p");
-      if (graphPlaceholder)
-        graphPlaceholder.textContent = currentTranslations.loadingGraph;
+  // Setup graph functionality directly
+  setupGraphFunctionality();
+
+  // 3. Function definitions
+
+  function updateGraphRendererTranslations(newTranslations) {
+    currentTranslations = newTranslations;
+    const graphPlaceholder = document.querySelector("#graph-placeholder p");
+    if (graphPlaceholder)
+      graphPlaceholder.textContent = currentTranslations.loadingGraph;
+  }
+
+  function setupGraphFunctionality() {
+    if (verbose) console.log("GraphRenderer: Setting up graph functionality");
+
+    graphContainer.addEventListener("click", handleGraphClick);
+
+    initializeStateSubscription();
+
+    renderGraph();
+    afterGraphRender();
+  }
+
+  async function dotStringToSvg(data, treeName) {
+    const dotString = data.genealogyDotString(treeName);
+    try {
+      const graphviz = await graphvizPromise;
+      return graphviz.layout(dotString, "svg", "dot");
+    } catch (error) {
+      console.error("GraphRenderer: Error rendering DOT to SVG:", error);
+      throw new Error(`Failed to render graph: ${error.message}`);
+    }
+  }
+
+  async function renderGraph() {
+    if (verbose) console.log("GraphRenderer: renderGraph called");
+
+    // Get genealogy data from centralized state
+    let genealogyData = null;
+    let treeName = "Genealogy Tree";
+    if (app.data) {
+      const state = app.data.getState();
+      genealogyData = state.genealogyData;
+      if (state && state.currentTreeName) {
+        treeName = state.currentTreeName;
+      }
+    } else {
+      throw new Error("GraphRenderer: AppData state not available");
     }
 
-    // Listen for language changes
-    window.addEventListener("languageChanged", function (event) {
-      console.log("GraphRenderer: Language changed to", event.detail.language);
-      updateGraphRendererTranslations(event.detail.translations);
-    });
+    if (verbose) console.log("GraphRenderer: genealogyData:", genealogyData);
+    if (verbose)
+      console.log(
+        "GraphRenderer: persons count:",
+        genealogyData?.persons?.length
+      );
 
-    // Initialize graph renderer events and rendering
-    function setupGraphFunctionality() {
-      console.log("GraphRenderer: Setting up graph functionality");
+    if (!graphContainer || !genealogyData || app.uiState.getState().isRendering) {
+      if (verbose && app.uiState.getState().isRendering)
+        console.log("GraphRenderer: Already rendering, skipping duplicate call");
+      return;
+    }
 
-      // --- Function to convert genealogy data to SVG ---
-      async function dotStringToSvg(data, treeName) {
-        // Convert genealogy data to DOT string, passing treeName as title
-        const dotString = data.genealogyDotString(treeName);
+    try {
+      app.uiState.setRendering(true);
 
-        try {
-          // Convert DOT string to SVG string using Graphviz
-          const graphviz = await graphvizPromise;
-          return graphviz.layout(dotString, "svg", "dot");
-        } catch (error) {
-          console.error("GraphRenderer: Error rendering DOT to SVG:", error);
-          throw new Error(`Failed to render graph: ${error.message}`);
-        }
+      if (graphPlaceholder) {
+        graphPlaceholder.style.display = "none";
       }
 
-      // --- Function to render the graph ---
-      async function renderGraph() {
-        const showNotification = window.showNotification;
-        const setLoadingState = window.setLoadingState;
-        const isRendering = window.genealogyIsRendering;
-
-        console.log("GraphRenderer: renderGraph called");
-
-        // Get genealogy data from centralized state instead of window.genealogyData
-        let genealogyData = null;
-        let treeName = "Genealogy Tree";
-        // 🎯 Direct access to state - clean and simple!
-        if (appData) {
-          const state = appData.getState();
-          genealogyData = state.genealogyData;
-          if (state && state.currentTreeName) {
-            treeName = state.currentTreeName;
-          }
-        } else {
-          // Fallback to old approach if state not available
-          genealogyData = window.genealogyData;
-        }
-
-        console.log("GraphRenderer: genealogyData:", genealogyData);
+      if (verbose)
         console.log(
-          "GraphRenderer: persons count:",
-          genealogyData?.persons?.length
+          "GraphRenderer: Converting DOT to SVG for data:",
+          genealogyData
+        );
+      const newSvgString = await dotStringToSvg(genealogyData, treeName);
+      if (verbose)
+        console.log(
+          "GraphRenderer: Received SVG string length:",
+          newSvgString?.length
         );
 
-        if (!graphContainer || isRendering || !genealogyData) {
-          // Only warn if it's actually a problem (not just a race condition)
-          if (!graphContainer || !genealogyData) {
-            console.warn(
-              "GraphRenderer: Missing dependencies graphContainer:",
-              !!graphContainer,
-              ", genealogyData:",
-              !!genealogyData
-            );
-          } else if (isRendering) {
-            console.log(
-              "GraphRenderer: Already rendering, skipping duplicate call"
-            );
-          }
+      graphContainer.innerHTML = newSvgString;
+      addPersonNodeHoverEffects();
+
+      if (genealogyData.persons.length === 0) {
+        app.uiState.showNotification(currentTranslations.graphCleared || "Graph cleared", "info");
+      }
+    } catch (error) {
+      console.error("GraphRenderer: Error rendering graph:", error);
+      if (graphPlaceholder) {
+        graphPlaceholder.style.display = "block";
+        const p = graphPlaceholder.querySelector("p");
+        if (p) {
+          p.textContent =
+            currentTranslations.renderError ||
+            "Error rendering graph. Please try again.";
+          p.style.color = "#dc3545";
+        }
+      }
+    } finally {
+      app.uiState.setRendering(false);
+    }
+  }
+
+  function handleGraphClick(event) {
+    try {
+      const targetLink = event.target.closest("a");
+
+      if (!targetLink) {
+        return;
+      }
+
+      const url =
+        targetLink.getAttribute("xlink:href") ||
+        targetLink.getAttribute("href");
+
+      if (url && url.startsWith("person:")) {
+        event.preventDefault();
+
+        const personName = decodeURIComponent(url.substring("person:".length));
+
+        if (verbose) console.log("GraphRenderer: Person clicked:", personName);
+
+        let genealogyData = null;
+        if (app.data) {
+          const state = app.data.getState();
+          genealogyData = state.genealogyData;
+        } else {
+          throw new Error("GraphRenderer: AppData state not available");
+        }
+
+        if (!genealogyData) {
+          console.warn("GraphRenderer: No genealogy data available");
           return;
         }
 
-        try {
-          if (setLoadingState) setLoadingState(true);
-          window.genealogyIsRendering = true;
+        const personData = genealogyData.persons.find(
+          (p) => p.name === personName
+        );
 
-          // Hide placeholder if it exists
-          if (graphPlaceholder) {
-            graphPlaceholder.style.display = "none";
-          }
-
-          console.log(
-            "GraphRenderer: Converting DOT to SVG for data:",
-            genealogyData
-          );
-          const newSvgString = await dotStringToSvg(genealogyData, treeName);
-          console.log(
-            "GraphRenderer: Received SVG string length:",
-            newSvgString?.length
-          );
-
-          // Insert the new SVG string into the graph container
-          graphContainer.innerHTML = newSvgString;
-          // Attach hover effects to person nodes immediately after SVG render
-          addPersonNodeHoverEffects();
-          //   console.log(
-          //     "GraphRenderer: addPersonNodeHoverEffects called after SVG render"
-          //   );
-
-          // Show success notification for significant changes
-          if (genealogyData.persons.length === 0 && showNotification) {
-            showNotification(
-              currentTranslations.graphCleared || "Graph cleared",
-              "info"
-            );
-          }
-
-          //   console.log("GraphRenderer: Graph rendered successfully");
-        } catch (error) {
-          console.error("GraphRenderer: Error rendering graph:", error);
-          if (graphPlaceholder) {
-            graphPlaceholder.style.display = "block";
-            const p = graphPlaceholder.querySelector("p");
-            if (p) {
-              p.textContent =
-                currentTranslations.renderError ||
-                "Error rendering graph. Please try again.";
-              p.style.color = "#dc3545";
-            }
-          }
-        } finally {
-          window.genealogyIsRendering = false;
-          if (setLoadingState) setLoadingState(false);
-        }
-      }
-
-      // --- Graph interaction handler ---
-      // Handles clicks on a person box in the graph to open person dialog
-      function handleGraphClick(event) {
-        try {
-          const targetLink = event.target.closest("a");
-
-          if (!targetLink) {
-            return;
-          }
-
-          const url =
-            targetLink.getAttribute("xlink:href") ||
-            targetLink.getAttribute("href");
-
-          if (url && url.startsWith("person:")) {
-            event.preventDefault();
-
-            const personName = decodeURIComponent(
-              url.substring("person:".length)
-            );
-
-            console.log("GraphRenderer: Person clicked:", personName);
-
-            // Get genealogy data from centralized state
-            let genealogyData = null;
-            // 🎯 Direct state access for person lookup
-            if (appData) {
-              const state = appData.getState();
-              genealogyData = state.genealogyData;
-            } else {
-              // Fallback to old approach if state not available
-              genealogyData = window.genealogyData;
-            }
-
-            if (!genealogyData) {
-              console.warn("GraphRenderer: No genealogy data available");
-              return;
-            }
-
-            const personData = genealogyData.persons.find(
-              (p) => p.name === personName
-            );
-
-            if (personData) {
-              // Use the current openEditDialog function
-              const openFn = window.currentOpenEditDialog;
-              if (openFn) {
-                console.log(
-                  "GraphRenderer: Opening edit dialog for:",
-                  personName
-                );
-                openFn(personData);
-              } else {
-                console.warn(
-                  "GraphRenderer: No edit dialog function available"
-                );
-              }
-            } else {
-              if (window.showNotification) {
-                window.showNotification(
-                  `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
-                  "error"
-                );
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error handling graph click:", error);
-          if (window.showNotification) {
-            window.showNotification(
-              currentTranslations.errorOpening ||
-                "Error opening person details",
-              "error"
-            );
-          }
-        }
-      }
-
-      // --- Add JS-based hover effect for SVG person nodes ---
-      function addPersonNodeHoverEffects() {
-        const svg = graphContainer.querySelector("svg");
-        if (!svg) return;
-        svg.querySelectorAll("a").forEach((link) => {
-          link.addEventListener("mouseover", () => {
-            // console.log("Hovered:", link); // Debug log
-            const polygon = link.querySelector("polygon");
-            if (polygon) {
-              polygon.setAttribute("stroke", "#007acc");
-              polygon.setAttribute("stroke-width", "1.5");
-              polygon.setAttribute("fill", "#e9f4ff"); // Optional: highlight fill
-            }
-            link.querySelectorAll("text").forEach((text) => {
-              text.setAttribute("fill", "#007acc");
-              text.setAttribute("font-weight", "bold");
-            });
-          });
-          link.addEventListener("mouseout", () => {
-            const polygon = link.querySelector("polygon");
-            if (polygon) {
-              polygon.setAttribute("stroke", "black");
-              polygon.setAttribute("stroke-width", "1");
-              polygon.setAttribute("fill", "#e9f4ff"); // Reset fill
-            }
-            link.querySelectorAll("text").forEach((text) => {
-              text.setAttribute("fill", "black");
-              text.setAttribute("font-weight", "normal");
-            });
-          });
-        });
-      }
-
-      // After rendering the graph, apply hover effects
-      function afterGraphRender() {
-        addPersonNodeHoverEffects();
-      }
-
-      // Set up event listeners
-      graphContainer.addEventListener("click", handleGraphClick);
-
-      // Set up global update handler
-      window.updateGraph = function () {
-        console.log("GraphRenderer: Update graph requested");
-        renderGraph();
-      };
-
-      // Expose renderGraph to global scope for external calls
-      window.renderGraph = renderGraph;
-
-      // Subscribe to state changes for automatic re-rendering via appData
-      function initializeStateSubscription() {
-        // 🎯 Direct subscription - no need for polling!
-        let lastTreeName = null;
-        let lastPersonsCount = null;
-        let lastDataHash = null; // Add hash for content changes
-
-        // Helper function to create a simple hash of the persons data
-        function getDataHash(persons) {
-          if (!persons || persons.length === 0) return "";
-          // Create a hash based on all person data (name, mother, father, info)
-          return JSON.stringify(
-            persons
-              .map((p) => ({
-                name: p.name,
-                mother: p.mother,
-                father: p.father,
-                info: p.info,
-              }))
-              .sort((a, b) => a.name.localeCompare(b.name))
-          );
-        }
-
-        const unsubscribe = appData.subscribe((state) => {
-          // Check for tree, count, and content changes
-          const currentTreeName = state.currentTreeName;
-          const currentPersonsCount = state.genealogyData?.persons?.length || 0;
-          const currentDataHash = getDataHash(
-            state.genealogyData?.persons || []
-          );
-
-          if (
-            currentTreeName !== lastTreeName ||
-            currentPersonsCount !== lastPersonsCount ||
-            currentDataHash !== lastDataHash
-          ) {
+        if (personData) {
+          if (verbose)
             console.log(
-              `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
+              "GraphRenderer: Opening edit dialog for:",
+              personName
             );
-
-            // Log data changes for debugging
-            if (
-              currentDataHash !== lastDataHash &&
-              currentPersonsCount === lastPersonsCount
-            ) {
-              console.log(
-                "GraphRenderer: Person data content changed (same count)"
-              );
-            }
-
-            lastTreeName = currentTreeName;
-            lastPersonsCount = currentPersonsCount;
-            lastDataHash = currentDataHash;
-            renderGraph();
-          }
-        });
-
-        console.log("GraphRenderer subscribed to state changes");
-
-        // Store unsubscribe function for cleanup
-        window.addEventListener("beforeunload", function () {
-          unsubscribe();
-        });
+          app.uiState.openDialog("editPerson", personData);
+        } else {
+          app.uiState.showNotification(
+            `Person "${personName}" ${currentTranslations.personNotFound || "not found"}`,
+            "error"
+          );
+        }
       }
-
-      // Initialize state subscription
-      initializeStateSubscription();
-
-      // Initial render when system is ready
-      renderGraph();
-      afterGraphRender();
+    } catch (error) {
+      console.error("Error handling graph click:", error);
+      app.uiState.showNotification(
+        currentTranslations.errorOpening || "Error opening person details",
+        "error"
+      );
     }
-
-    // Setup graph functionality directly - no longer wait for event
-    setupGraphFunctionality();
-
-    return {
-      updateTranslations: updateGraphRendererTranslations,
-    };
   }
 
-  // Initialize immediately since DOM is already ready in inline scripts
-  initializeGraphRenderer();
+  function addPersonNodeHoverEffects() {
+    const svg = graphContainer.querySelector("svg");
+    if (!svg) return;
+    svg.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("mouseover", () => {
+        const polygon = link.querySelector("polygon");
+        if (polygon) {
+          polygon.setAttribute("stroke", "#007acc");
+          polygon.setAttribute("stroke-width", "1.5");
+          polygon.setAttribute("fill", "#e9f4ff");
+        }
+        link.querySelectorAll("text").forEach((text) => {
+          text.setAttribute("fill", "#007acc");
+          text.setAttribute("font-weight", "bold");
+        });
+      });
+      link.addEventListener("mouseout", () => {
+        const polygon = link.querySelector("polygon");
+        if (polygon) {
+          polygon.setAttribute("stroke", "black");
+          polygon.setAttribute("stroke-width", "1");
+          polygon.setAttribute("fill", "#e9f4ff");
+        }
+        link.querySelectorAll("text").forEach((text) => {
+          text.setAttribute("fill", "black");
+          text.setAttribute("font-weight", "normal");
+        });
+      });
+    });
+  }
+
+  function afterGraphRender() {
+    addPersonNodeHoverEffects();
+  }
+
+  function initializeStateSubscription() {
+    let lastTreeName = null;
+    let lastPersonsCount = null;
+    let lastDataHash = null;
+
+    function getDataHash(persons) {
+      if (!persons || persons.length === 0) return "";
+      return JSON.stringify(
+        persons
+          .map((p) => ({
+            name: typeof p.name === "string" ? p.name : "???",
+            mother: p.mother,
+            father: p.father,
+            info: p.info,
+          }))
+          .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+      );
+    }
+
+    const unsubscribe = app.data.subscribe((state) => {
+      const currentTreeName = state.currentTreeName;
+      const currentPersonsCount = state.genealogyData?.persons?.length || 0;
+      const currentDataHash = getDataHash(state.genealogyData?.persons || []);
+
+      if (
+        currentTreeName !== lastTreeName ||
+        currentPersonsCount !== lastPersonsCount ||
+        currentDataHash !== lastDataHash
+      ) {
+        if (verbose) {
+          console.log(
+            `GraphRenderer: State changed - tree: ${lastTreeName} → ${currentTreeName}, persons: ${lastPersonsCount} → ${currentPersonsCount}`
+          );
+          if (
+            currentDataHash !== lastDataHash &&
+            currentPersonsCount === lastPersonsCount
+          ) {
+            console.log(
+              "GraphRenderer: Person data content changed (same count)"
+            );
+          }
+        }
+
+        lastTreeName = currentTreeName;
+        lastPersonsCount = currentPersonsCount;
+        lastDataHash = currentDataHash;
+        renderGraph();
+      }
+    });
+
+    if (verbose) console.log("GraphRenderer subscribed to state changes");
+
+    window.addEventListener("beforeunload", function () {
+      unsubscribe();
+    });
+  }
 </script>

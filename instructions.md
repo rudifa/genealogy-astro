@@ -11,10 +11,18 @@
 - Fix any syntax errors, such as missing parentheses or stray semicolons.
 - Remove unused variables and unneeded async/await.
 
+### Refactoring a `<script type="module"` ...>
+
+1. If there is an initialization function used as an immediately-executed function,
+   move the code from the function body to the module level and remove the emptied function and te call.
+2. Move imports and variable declarations to the top.
+3. Move the main execution flow (statements that run immediately) next.
+4. Leave the function definitions at the bottom.
+
 ## Running Tests
 
 - Use `npm run test` to run all tests.
-- Use `npm run  test
+- Use `npm run test
 - Use `npm run vitest` for vitest tests.
 - Use `npm run test:e2e` for Cypress E2E tests.
 

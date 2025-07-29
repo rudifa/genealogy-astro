@@ -1,25 +1,22 @@
 ---
-import {supportedLanguages, type Language} from "../i18n/index";
-
-export interface Props {
-  currentLanguage: Language;
-  translations: any;
-}
-
-const {currentLanguage} = Astro.props;
+import {
+  supportedLanguages,
+  translations as allTranslations,
+} from "../i18n/index.ts";
+// This component is now self-sufficient and does not require any props.
 ---
 
-<div class='language-switcher' data-testid='language-switcher'>
+<div class='language-switcher' data-cy='language-switcher'>
   <select
     id='language-select'
     class='language-select'
-    data-testid='language-select'>
+    data-cy='language-select'>
     {
-      supportedLanguages.map((lang) => (
+      supportedLanguages.map((lang, idx) => (
         <option
           value={lang.code}
-          selected={lang.code === currentLanguage}
-          data-testid={`lang-${lang.code}`}>
+          selected={idx === 0 ? "selected" : undefined}
+          data-cy={`lang-${lang.code}`}>
           {lang.flag} {lang.nativeName}
         </option>
       ))
@@ -106,42 +103,110 @@ const {currentLanguage} = Astro.props;
   }
 </style>
 
-<script is:inline>
-  // Initialize immediately since DOM is already ready in inline scripts
+<script
+  is:inline
+  type='module'
+  define:vars={{
+    allTranslations,
+  }}
+>
+  // 1. Imports
+  import {App} from "/utility/App.js";
+
+  // 2. Singleton/instance setup
+  const app = App.ensureAppExists();
+
+  // 3. Initialization
+  app.translations.setAllTranslations(allTranslations);
+
+  // 4. Subscriptions
+  app.translations.subscribe((newTranslations) => {
+    console.log("👍 LanguageSwitcher: newTranslations:", newTranslations);
+    // const selectedLanguage = app.translations.getLanguage();
+  }, "LanguageSwitcher");
+
+  // 5. DOM element references
   const languageSelect = document.getElementById("language-select");
 
+  // 6. Event listeners
   if (languageSelect) {
-    // Set initial value based on localStorage, Astro.props, or default
-    const storedLang = localStorage.getItem("genealogy-language");
-    const currentLang = storedLang || window.currentLanguage || "en";
-    languageSelect.value = currentLang;
-
     languageSelect.addEventListener("change", function (event) {
+      console.log("🍋 LanguageSwitcher: change event:", event.target.value);
       const selectedLanguage = event.target.value;
-
-      // Update the global language
-      window.currentLanguage = selectedLanguage;
-
-      // Store language preference in localStorage
-      localStorage.setItem("genealogy-language", selectedLanguage);
-
-      // Update the page language
-      if (window.updatePageLanguage) {
-        window.updatePageLanguage(selectedLanguage);
-      }
-
-      // Update URL
-      const url = new URL(window.location.href);
-      url.searchParams.set("lang", selectedLanguage);
-      window.history.replaceState({}, "", url.toString());
+      app.translations.setLanguage(selectedLanguage);
+      updateURL(selectedLanguage);
+      updatePageLanguage(selectedLanguage);
+      // No need to call updateSelectorValue here; select is already in sync
     });
   }
 
-  // Listen for language changes to update the dropdown
-  window.addEventListener("languageChanged", function (event) {
-    const language = event.detail.language;
+  // 7. Main logic (function calls)
+  detectAndSetLanguage();
+
+  // 8. Helper functions
+  function detectAndSetLanguage() {
+    const availableLangs = app.translations.getAvailableLanguages();
+    const currentLang = app.translations.getLanguage();
+    // Extract the language from the URL
+    // Example: https://genealogy-astro.vercel.app/?lang=de
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get("lang");
+    const browserLang = navigator.language?.slice(0, 2);
+
+    let selectedLang = availableLangs[0]; // Default to the first available language
+
+    if (urlLang && availableLangs.includes(urlLang)) {
+      selectedLang = urlLang;
+    } else if (currentLang && availableLangs.includes(currentLang)) {
+      selectedLang = currentLang;
+    } else if (browserLang && availableLangs.includes(browserLang)) {
+      selectedLang = browserLang;
+    }
+
+    // console.log(
+    //   "🍅 LanguageSwitcher: detectAndSetLanguage: urlLang:",
+    //   urlLang,
+    //   "currentLang:",
+    //   currentLang,
+    //   "browserLang:",
+    //   browserLang,
+    //   "availableLangs:",
+    //   availableLangs,
+    //   "selectedLang:",
+    //   selectedLang
+    // );
+
+    // Propagate the language change to the targets
+    app.translations.setLanguage(selectedLang);
+    updateURL(selectedLang);
+    updatePageLanguage(selectedLang);
+    updateSelectorValue(selectedLang);
+  }
+
+  function updateURL(language) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", language);
+    window.history.replaceState({}, "", url.toString());
+  }
+
+  function updatePageLanguage(language) {
+    // console.log("🍅 LanguageSwitcher: updatePageLanguage:", language);
+
+    const t = app.translations.getTranslations(language);
+
+    // Update page title and meta
+    document.title = t.pageTitle;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", t.pageDescription);
+    }
+    document.documentElement.lang = language;
+  }
+
+  function updateSelectorValue(language) {
+    // console.log("🍅 LanguageSwitcher: updateSelectorValue:", language);
     if (languageSelect && languageSelect.value !== language) {
       languageSelect.value = language;
     }
-  });
+  }
 </script>
