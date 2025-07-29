@@ -1,6 +1,6 @@
-import {en, fr, de, ja, zg} from "./translations/index";
+import {fr, de, it, rm, en, ja, zg} from "./translations/index";
 
-export type Language = "en" | "fr" | "de" | "ja" | "zg";
+export type Language = "fr" | "de" | "it" | "rm" | "en" | "ja" | "zg";
 
 export interface Translations {
   // General
@@ -188,9 +188,11 @@ export interface Translations {
 }
 
 export const translations: Record<Language, Translations> = {
-  en,
   fr,
   de,
+  it,
+  rm,
+  en,
   ja,
   zg,
 };
@@ -205,9 +207,11 @@ export const supportedLanguages: {
   nativeName: string;
   flag: string;
 }[] = [
-  {code: "en", name: "English", nativeName: "English", flag: "🇬🇧"},
   {code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷"},
   {code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪"},
+  {code: "it", name: "Italian", nativeName: "Italiano", flag: "🇮🇹"},
+  {code: "rm", name: "Rhaeto-Romance", nativeName: "Rumantsch", flag: "🇨🇭"},
+  {code: "en", name: "English", nativeName: "English", flag: "🇬🇧"},
   {code: "ja", name: "Japanese", nativeName: "日本語", flag: "🇯🇵"},
   {code: "zg", name: "Burzum Nazg", nativeName: "Burzum Nazg", flag: "👁️"},
 ];
