@@ -273,6 +273,3 @@ export class AppData {
     return {...this.state};
   }
 }
-
-// For migration, you will later export an instance:
-// export const appData = new AppData();

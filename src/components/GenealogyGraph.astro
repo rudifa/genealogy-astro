@@ -50,9 +50,6 @@ import TreeManagerDialog from "./TreeManagerDialog.astro";
   // Initialize genealogy system immediately since DOM is already ready in inline scripts
   initializeGenealogySystem();
 
-  // Initialize state subscription
-  initializeStateSubscription();
-
   // --- 3. Function definitions ---
 
   // Translation management
@@ -69,8 +66,6 @@ import TreeManagerDialog from "./TreeManagerDialog.astro";
       state; // disposes of a ts hint
 
       console.log("Genealogy system initialized successfully");
-
-      // No longer need to dispatch ready event - components use direct state access
     } catch (error) {
       console.error("Error initializing genealogy system:", error);
       app.uiState.showNotification(
@@ -79,22 +74,5 @@ import TreeManagerDialog from "./TreeManagerDialog.astro";
         "error"
       );
     }
-  }
-
-  // Listen for tree management updates to ensure display is synchronized
-  function initializeStateSubscription() {
-    // Always subscribe to appData singleton
-    const unsubscribe = app.data.subscribe((state) => {
-      // Sync forest data if present (no longer assign to window.genealogyTreeManager)
-      // All tree management is handled via appData singleton now.
-      state; // disposes of a ts hint
-    });
-
-    console.log("GenealogyGraph subscribed to state changes");
-
-    // Store unsubscribe function for cleanup
-    window.addEventListener("beforeunload", function () {
-      unsubscribe();
-    });
   }
 </script>
