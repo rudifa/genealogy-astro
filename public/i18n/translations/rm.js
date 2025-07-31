@@ -37,6 +37,12 @@ export const rm = {
     save: "Memorisar",
     remove: "Stizzar",
     cancel: "Interrumper",
+    // Sibling (Add Sibling mode)
+    addSibling: "Agiuntar sora / frar",
+    addSiblingTo: "Agiuntar ina sora / in frar a {name}",
+    siblingAdded: "Sora / frar agiuntà cun success.",
+    siblingAdvice: "Endatescha il num e las infurmaziuns da la sora / dal frar.",
+    siblingExists: "Ina sora / in frar cun quest num exista gia.",
     // Validation messages
     nameRequired: "Il num è obligatoric",
     nameMaxLength: "Il num sto avair maximalmain 100 caracters",

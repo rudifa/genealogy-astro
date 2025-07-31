@@ -40,7 +40,16 @@ export const zg: Translations = {
   save: "Mordor",
   remove: "Thrak",
   cancel: "Gakh",
+
+  // Sibling (Add Sibling mode)
+  addSibling: "Globûrz snaga ghash",
+  addSiblingTo: "Globûrz snaga ghash {name}",
+  siblingAdded: "Globûrz snaga ghash krimpûl.",
+  siblingAdvice: "Globûrz snaga ghash-ûk nam, globûrz snaga ghash-ûk info.",
+  siblingExists: "Globûrz snaga ghash-ûk nam krimpûl.",
+
   // Validation messages
+  pleaseFillField: "Gakh burzum gabil",
   nameRequired: "Nazg ghash burzum",
   nameMaxLength: "Nazg ghash 100 burzum golug",
   nameExists: "Uruk nazg shara burzum durb",

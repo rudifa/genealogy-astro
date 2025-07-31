@@ -48,7 +48,15 @@ export const rm: Translations = {
   remove: "Stizzar",
   cancel: "Interrumper",
 
-  // Validation messages
+  // Sibling (Add Sibling mode)
+  addSibling: "Agiuntar sora / frar",
+  addSiblingTo: "Agiuntar ina sora / in frar a {name}",
+  siblingAdded: "Sora / frar agiuntà cun success.",
+  siblingAdvice: "Endatescha il num e las infurmaziuns da la sora / dal frar.",
+  siblingExists: "Ina sora / in frar cun quest num exista gia.",
+
+  // Validation messagespleaseFillField: "Per plaschair endatescha quest champ",
+  pleaseFillField: "Per plaschair endatescha quest champ",
   nameRequired: "Il num è obligatoric",
   nameMaxLength: "Il num sto avair maximalmain 100 caracters",
   nameExists: "Ina persuna cun quest num exista gia",

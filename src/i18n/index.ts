@@ -48,6 +48,15 @@ export interface Translations {
   remove: string;
   cancel: string;
 
+  // Sibling (Add Sibling mode)
+  addSibling: string;
+  addSiblingTo: string;
+  siblingAdded: string;
+  siblingAdvice: string;
+  siblingExists: string;
+
+  pleaseFillField: string;
+
   // Validation messages
   nameRequired: string;
   nameMaxLength: string;
