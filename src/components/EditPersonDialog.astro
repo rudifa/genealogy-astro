@@ -14,7 +14,8 @@
   data-cy='edit-dialog'>
   <div class='dialog-content'>
     <div class='dialog-header'>
-      <h2>Edit Person</h2> <!-- Default text, updated by script -->
+      <h2>Edit Person</h2>
+      <!-- Default text, updated by script -->
       <button
         id='close-edit-dialog'
         class='close-button'
@@ -29,9 +30,7 @@
         <input type='hidden' id='original-name' name='originalName' />
         <div class='form-field'>
           <label for='person-name'
-            >Name: <span class='required'
-              >Required</span
-            ></label
+            >Name: <span class='required'>Required</span></label
           >
           <input
             type='text'
@@ -88,6 +87,22 @@
             location...'
           />
           <div class='field-error' id='info-error'></div>
+        </div>
+        <!-- Sibling Section -->
+        <div
+          id='sibling-section'
+          class='sibling-section'
+          style='display: block'>
+          <div class='form-field-checkbox'>
+            <input
+              type='checkbox'
+              id='add-sibling-checkbox'
+              name='addSibling'
+            />
+            <label for='add-sibling-checkbox' id='add-sibling-label'
+              >Add Sibling</label
+            >
+          </div>
         </div>
         <div class='dialog-buttons'>
           <button type='submit' id='save-button' data-cy='save-button'
@@ -337,6 +352,30 @@
   #cancel-button:hover {
     background-color: #e9ecef;
   }
+
+  .sibling-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #ccc;
+  }
+
+  .form-field-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .form-field-checkbox label {
+    margin-bottom: 0;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .form-field-checkbox input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+  }
 </style>
 
 <script type='module' is:inline>
@@ -366,8 +405,12 @@
   const motherError = document.getElementById("mother-error");
   const fatherError = document.getElementById("father-error");
   const infoError = document.getElementById("info-error");
+  const siblingSection = document.getElementById("sibling-section");
+  const addSiblingCheckbox = document.getElementById("add-sibling-checkbox");
 
   let isNewPerson = false;
+  let currentPerson = null; // Add this at the top of your script
+  let dialogMode = "edit"; // 'add', 'edit', or 'addSibling'
 
   let translations; // updateDialogTranslations will set this
 
@@ -405,25 +448,35 @@
     const motherLabel = document.querySelector('label[for="person-mother"]');
     const fatherLabel = document.querySelector('label[for="person-father"]');
     const infoLabel = document.querySelector('label[for="person-info"]');
+    const addSiblingLabel = document.getElementById("add-sibling-label");
+
+    if (addSiblingLabel)
+      addSiblingLabel.textContent = translations.addSibling || "Add Sibling";
     if (nameLabel)
       nameLabel.innerHTML = `${translations.name}: <span class='required'>${translations.required}</span>`;
     if (motherLabel) motherLabel.textContent = `${translations.mother}:`;
     if (fatherLabel) fatherLabel.textContent = `${translations.father}:`;
     if (infoLabel) infoLabel.textContent = `${translations.info}:`;
-    if (saveButton) saveButton.textContent = translations.save;
-    if (removeButton) removeButton.textContent = translations.remove;
-    if (cancelButton) cancelButton.textContent = translations.cancel;
+    saveButton.textContent = translations.save;
+    removeButton.textContent = translations.remove;
+    cancelButton.textContent = translations.cancel;
+
     if (dialogTitle && dialog.style.display === "flex") {
-      dialogTitle.textContent = isNewPerson
-        ? translations.addNewPerson
-        : translations.editPerson;
+      if (dialogMode === "add")
+        dialogTitle.textContent = translations.addNewPerson;
+      else if (dialogMode === "edit")
+        dialogTitle.textContent = translations.editPerson;
+      else if (dialogMode === "addSibling" && currentPerson) {
+        dialogTitle.textContent = (
+          translations.addSiblingTo || "Add a Sibling to {name}"
+        ).replace("{name}", currentPerson.name);
+      }
     }
   }
 
   // --- Validation ---
   function validateName(name) {
     const trimmedName = name.trim();
-    if (!trimmedName) return translations.nameRequired;
     if (trimmedName.length > 100) return translations.nameMaxLength;
     if (
       isNewPerson ||
@@ -431,7 +484,7 @@
     ) {
       const state = app.data.getState();
       const existingPerson = state.genealogyData.persons.find(
-        (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
+        (p) => p && p.name && p.name.toLowerCase() === trimmedName.toLowerCase()
       );
       if (existingPerson) return translations.nameExists;
     }
@@ -465,6 +518,7 @@
     fatherError.textContent = "";
     infoError.textContent = "";
   }
+
   function showError(message) {
     errorMessage.textContent = message;
     errorMessage.style.display = "block";
@@ -492,24 +546,38 @@
       infoError.textContent = infoValidation;
       isValid = false;
     }
+
     saveButton.disabled = !isValid;
     return isValid;
   }
 
   // --- Dialog logic ---
   function openEditDialog(person) {
-    // refreshTranslations();
+    +console.log("🔥 EditPersonDialog: openEditDialog called");
+    currentPerson = person; // Store for later use
+
     isNewPerson = !person.name;
+    dialogMode = isNewPerson ? "add" : "edit";
+    // refreshTranslations();
     originalNameInput.value = person.name || "";
     nameInput.value = person.name || "";
     motherInput.value = person.mother || "";
     fatherInput.value = person.father || "";
     infoInput.value = person.info || "";
     const title = dialog.querySelector("h2");
+
     title.textContent = isNewPerson
       ? translations.addNewPerson
       : translations.editPerson;
     removeButton.style.display = isNewPerson ? "none" : "block";
+
+    if (isNewPerson) {
+      siblingSection.style.display = "none";
+    } else {
+      siblingSection.style.display = "block";
+      addSiblingCheckbox.checked = false;
+      addSiblingCheckbox.disabled = false;
+    }
     clearErrors();
     validateForm();
     dialog.style.display = "flex";
@@ -520,14 +588,57 @@
     clearErrors();
   }
 
+  function switchToSiblingMode() {
+    if (!currentPerson) return;
+
+    dialogMode = "addSibling";
+    isNewPerson = true; // For validation and saving
+    originalNameInput.value = ""; // Crucial for name validation
+
+    // Update UI
+    const title = dialog.querySelector("h2");
+    title.textContent = (
+      translations.addSiblingTo || "Add a Sibling to {name}"
+    ).replace("{name}", currentPerson.name);
+
+    nameInput.value = "";
+    infoInput.value = "";
+    // Mother and Father inputs are correctly pre-filled from the original person
+
+    removeButton.style.display = "none";
+    addSiblingCheckbox.disabled = true;
+
+    nameInput.focus();
+    validateForm(); // Re-validate the form to update button state and show errors
+  }
+
   // --- Event listeners ---
   function setupEventListeners() {
+    // Handle custom validation message for the required 'name' field
+    nameInput.addEventListener("invalid", () => {
+      // This event fires when the user tries to submit an invalid form.
+      // We check if the reason for invalidity is that the value is missing.
+      if (nameInput.validity.valueMissing) {
+        nameInput.setCustomValidity(translations.pleaseFillField);
+      }
+    });
+    nameInput.addEventListener("input", () => {
+      // Clear the custom message when the user starts typing, making the field valid again.
+      nameInput.setCustomValidity("");
+    });
+
     nameInput.addEventListener("input", validateForm);
     motherInput.addEventListener("input", validateForm);
     fatherInput.addEventListener("input", validateForm);
     infoInput.addEventListener("input", validateForm);
+    addSiblingCheckbox.addEventListener("change", () => {
+      if (addSiblingCheckbox.checked) {
+        switchToSiblingMode();
+      }
+    });
     cancelButton.addEventListener("click", () => app.uiState.closeDialog());
-    if (closeButton) closeButton.addEventListener("click", () => app.uiState.closeDialog());
+    if (closeButton)
+      closeButton.addEventListener("click", () => app.uiState.closeDialog());
     dialog.addEventListener("click", (e) => {
       if (e.target === dialog) app.uiState.closeDialog();
     });
@@ -535,6 +646,7 @@
       if (e.key === "Escape" && dialog.style.display === "flex")
         app.uiState.closeDialog();
     });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!validateForm()) {
@@ -549,9 +661,10 @@
           info: infoInput.value.trim() || null,
         };
         app.data.updatePerson(originalNameInput.value, updatedPerson);
+
         app.uiState.closeDialog();
       } catch (error) {
-        console.error("Error saving person:", error);
+        console.error("Error saving person or sibling:", error);
         showError(translations.errorSaving);
       }
     });

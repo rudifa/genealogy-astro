@@ -37,6 +37,12 @@ export const en = {
     save: "Save",
     remove: "Remove",
     cancel: "Cancel",
+    // Sibling (Add Sibling mode)
+    addSibling: "Add Sibling",
+    addSiblingTo: "Add a Sibling to {name}",
+    siblingAdded: "Sibling added successfully.",
+    siblingAdvice: "Enter the sibling's name and info.",
+    siblingExists: "A sibling with this name already exists.",
     // Validation messages
     nameRequired: "Name is required",
     nameMaxLength: "Name must be 100 characters or less",
