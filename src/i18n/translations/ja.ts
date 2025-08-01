@@ -47,7 +47,15 @@ export const ja: Translations = {
   remove: "削除",
   cancel: "キャンセル",
 
+  // Sibling (Add Sibling mode)
+  addSibling: "兄弟姉妹を追加",
+  addSiblingTo: "{name} に兄弟姉妹を追加",
+  siblingAdded: "兄弟姉妹が正常に追加されました。",
+  siblingAdvice: "兄弟姉妹の名前と情報を入力してください。",
+  siblingExists: "この名前の兄弟姉妹はすでに存在します。",
+
   // Validation messages
+  pleaseFillField: "このフィールドを入力してください",
   nameRequired: "名前は必須です",
   nameMaxLength: "名前が長すぎます",
   nameExists: "同じ名前の人物が既に存在します",

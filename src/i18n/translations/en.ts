@@ -48,7 +48,15 @@ export const en: Translations = {
   remove: "Remove",
   cancel: "Cancel",
 
+  // Sibling (Add Sibling mode)
+  addSibling: "Add Sibling",
+  addSiblingTo: "Add a Sibling to {name}",
+  siblingAdded: "Sibling added successfully.",
+  siblingAdvice: "Enter the sibling's name and info.",
+  siblingExists: "A sibling with this name already exists.",
+
   // Validation messages
+  pleaseFillField: "Please fill in this field",
   nameRequired: "Name is required",
   nameMaxLength: "Name must be 100 characters or less",
   nameExists: "A person with this name already exists",

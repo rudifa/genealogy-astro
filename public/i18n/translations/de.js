@@ -37,6 +37,12 @@ export const de = {
     save: "Speichern",
     remove: "Entfernen",
     cancel: "Abbrechen",
+    // Sibling (Add Sibling mode)
+    addSibling: "Geschwister hinzufügen",
+    addSiblingTo: "Geschwister zu {name} hinzufügen",
+    siblingAdded: "Geschwister erfolgreich hinzugefügt.",
+    siblingAdvice: "Geben Sie den Namen und die Informationen des Geschwisters ein.",
+    siblingExists: "Ein Geschwister mit diesem Namen existiert bereits.",
     // Validation messages
     nameRequired: "Name ist erforderlich",
     nameMaxLength: "Name muss 100 Zeichen oder weniger haben",

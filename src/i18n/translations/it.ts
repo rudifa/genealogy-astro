@@ -48,7 +48,16 @@ export const it: Translations = {
   remove: "Rimuovi",
   cancel: "Annulla",
 
+  // Sibling (Add Sibling mode)
+  addSibling: "Aggiungi sorella / fratello",
+  addSiblingTo: "Aggiungi una sorella / un fratello a {name}",
+  siblingAdded: "Sorella / fratello aggiunto con successo.",
+  siblingAdvice:
+    "Inserisci il nome e le informazioni della sorella / del fratello.",
+  siblingExists: "Esiste già una sorella / un fratello con questo nome.",
+
   // Validation messages
+  pleaseFillField: "Per favore compila questo campo",
   nameRequired: "Il nome è obbligatorio",
   nameMaxLength: "Il nome deve essere di 100 caratteri o meno",
   nameExists: "Esiste già una persona con questo nome",
